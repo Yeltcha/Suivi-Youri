@@ -2,7 +2,7 @@
 
 TRAINING by Yeltcha est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
 
-La version 1.3.0 ajoute une bibliothèque personnelle d’exercices avec muscles, équipement, marque, machine, modèle, salle, réglages et notes. Les séances modèles peuvent être créées, modifiées ou supprimées, et les programmes peuvent suivre un Split personnalisé ou un Upper / Lower. Pendant une séance, il est possible d’ajouter, remplacer, réordonner ou retirer un exercice. L’ensemble reste disponible hors ligne et synchronisé avec Supabase.
+La version 1.4.0 ajoute la création d’un exercice directement pendant une séance. Le nouvel exercice est enregistré dans la bibliothèque personnelle, ajouté uniquement à la séance en cours et synchronisé avec Supabase, sans modifier les programmes existants. La bibliothèque conserve les muscles, l’équipement, la marque, la machine, le modèle, la salle, les réglages et les notes. Les séances modèles peuvent être créées, modifiées ou supprimées, et les programmes peuvent suivre un Split personnalisé ou un Upper / Lower.
 
 ## Installation recommandée sur iPhone
 
@@ -37,7 +37,7 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
 
-La bibliothèque utilise la ligne `training_state` déjà créée dans Supabase. Aucune nouvelle table ni nouvelle requête SQL ne sont nécessaires pour passer de la version 1.2.0 à la version 1.3.0.
+La bibliothèque utilise la ligne `training_state` déjà créée dans Supabase. Aucune nouvelle table ni nouvelle requête SQL ne sont nécessaires pour passer à la version 1.4.0.
 
 ## Contenu du dossier
 
