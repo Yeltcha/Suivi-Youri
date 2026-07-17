@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0c0f0d">
-<meta name="description" content="Programme et carnet d’entraînement bodybuilding avec synchronisation sécurisée des séances, séries dégressives, volume et progression.">
+<meta name="description" content="Carnet bodybuilding avec bibliothèque d’exercices, programmes personnalisés, séries dégressives et synchronisation sécurisée.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -892,6 +892,8 @@ svg {
     #volume-tracker-app .program-card[open] summary { border-bottom: 1px solid var(--line); }
     #volume-tracker-app .program-content { padding: 6px 17px 17px; }
     #volume-tracker-app .exercise-plan-row { display: grid; grid-template-columns: 28px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px 0; }
+    #volume-tracker-app .template-exercise-row { grid-template-columns: 28px minmax(0,1fr); }
+    #volume-tracker-app .template-exercise-row > .row { grid-column: 2; justify-content: flex-start; }
     #volume-tracker-app .order-dot { width: 26px; height: 26px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; color: var(--muted); font-size: 11px; font-weight: 800; }
     #volume-tracker-app .field { display: grid; gap: 6px; min-width: 0; }
     #volume-tracker-app .field label,
@@ -920,7 +922,7 @@ svg {
     #volume-tracker-app .exercise-track { padding: 0; overflow: hidden; }
     #volume-tracker-app .exercise-track-head { display: grid; gap: 10px; padding: 15px; background: var(--surface-2); }
     #volume-tracker-app .exercise-title-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
-    #volume-tracker-app .exercise-actions { display: flex; gap: 6px; }
+    #volume-tracker-app .exercise-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; max-width: 82px; }
     #volume-tracker-app .previous { color: var(--muted); font-size: 11px; }
     #volume-tracker-app .sets-table { padding: 12px; display: grid; gap: 8px; }
     #volume-tracker-app .set-grid { display: grid; grid-template-columns: 30px minmax(64px,1.2fr) minmax(50px,.8fr) minmax(44px,.7fr) 38px; gap: 7px; align-items: center; }
@@ -1000,6 +1002,9 @@ svg {
     #volume-tracker-app .toast.show { opacity: 1; transform: translate(-50%, 0); }
     #volume-tracker-app dialog {
       width: min(calc(100% - 28px), 520px);
+      max-height: min(90vh, 820px);
+      max-height: min(90dvh, 820px);
+      overflow: auto;
       border: 1px solid var(--line);
       border-radius: 20px;
       background: var(--surface);
@@ -1027,6 +1032,8 @@ svg {
       #volume-tracker-app .history-item .row-between > div:first-child { width: 100%; }
       #volume-tracker-app .history-actions { width: 100%; }
       #volume-tracker-app .history-actions .btn { flex: 1 1 120px; }
+      #volume-tracker-app .dialog-actions { flex-wrap: wrap; }
+      #volume-tracker-app .dialog-actions .btn { flex: 1 1 120px; }
     }
     @media (max-width: 350px) {
       #volume-tracker-app .feedback-grid,
@@ -1044,6 +1051,8 @@ svg {
       #volume-tracker-app .live-strip { grid-template-columns: repeat(4, minmax(0,1fr)); }
       #volume-tracker-app .set-grid { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
       #volume-tracker-app .drop-row { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
+      #volume-tracker-app .template-exercise-row { grid-template-columns: 28px minmax(0,1fr) auto; }
+      #volume-tracker-app .template-exercise-row > .row { grid-column: auto; justify-content: end; }
     }
     @media (prefers-reduced-motion: reduce) {
       #volume-tracker-app *, #volume-tracker-app *::before, #volume-tracker-app *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1075,19 +1084,55 @@ svg {
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <dialog id="custom-exercise-dialog">
-    <form id="custom-exercise-form" class="dialog-body" method="dialog">
+  <dialog id="library-exercise-dialog">
+    <form id="library-exercise-form" class="dialog-body" method="dialog">
       <div class="stack">
-        <p class="eyebrow">Séance en cours</p>
-        <h2>Ajouter un exercice</h2>
+        <p class="eyebrow">Bibliothèque</p>
+        <h2 id="library-dialog-title">Ajouter un exercice</h2>
       </div>
-      <div class="field"><label for="custom-name">Nom</label><input id="custom-name" name="name" required placeholder="Ex. Pec fly unilatéral"></div>
+      <div class="field"><label for="library-name">Nom de l’exercice</label><input id="library-name" name="name" required placeholder="Ex. Presse inclinée convergente"></div>
       <div class="form-grid">
-        <div class="field"><label for="custom-muscle">Groupe principal</label><select id="custom-muscle" name="muscle"></select></div>
-        <div class="field"><label for="custom-sets">Séries prévues</label><input id="custom-sets" name="sets" type="number" min="1" max="12" value="3" required></div>
+        <div class="field"><label for="library-muscle">Muscle principal</label><select id="library-muscle" name="muscle"></select></div>
+        <div class="field"><label for="library-secondary">Muscles secondaires</label><input id="library-secondary" name="secondaryMuscles" placeholder="Ex. triceps, deltoïdes"></div>
       </div>
-      <div class="field"><label for="custom-load-type">Saisie de charge</label><select id="custom-load-type" name="loadType"><option value="total">Charge totale</option><option value="perSide">Charge par côté (×2)</option><option value="bodyweightPlus">Poids du corps + lest</option></select></div>
-      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-custom">Annuler</button><button class="btn btn-primary" type="submit">Ajouter</button></div>
+      <div class="form-grid">
+        <div class="field"><label for="library-equipment">Type d’équipement</label><select id="library-equipment" name="equipmentType"><option value="machine">Machine</option><option value="cable">Poulie / câble</option><option value="dumbbell">Haltères</option><option value="barbell">Barre</option><option value="bodyweight">Poids du corps</option><option value="other">Autre</option></select></div>
+        <div class="field"><label for="library-load-type">Saisie de charge</label><select id="library-load-type" name="loadType"><option value="total">Charge totale</option><option value="perSide">Charge par côté (×2)</option><option value="bodyweightPlus">Poids du corps + lest</option></select></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label for="library-brand">Marque</label><input id="library-brand" name="brand" placeholder="Ex. Panatta"></div>
+        <div class="field"><label for="library-machine">Nom de la machine</label><input id="library-machine" name="machineName" placeholder="Ex. Super Leg Press"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label for="library-model">Modèle</label><input id="library-model" name="machineModel" placeholder="Référence ou génération"></div>
+        <div class="field"><label for="library-gym">Salle</label><input id="library-gym" name="gym" placeholder="Ex. Salle principale"></div>
+      </div>
+      <div class="field"><label for="library-settings">Réglages personnels</label><input id="library-settings" name="machineSettings" placeholder="Ex. siège 3 · dossier 2"></div>
+      <div class="field"><label for="library-notes">Notes techniques</label><textarea id="library-notes" name="notes" placeholder="Placement, amplitude, repères…"></textarea></div>
+      <label class="row small"><input name="unilateral" type="checkbox" style="width:auto;min-height:auto"> Exercice unilatéral</label>
+      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-library-exercise">Annuler</button><button class="btn btn-primary" type="submit">Enregistrer</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="exercise-picker-dialog">
+    <form id="exercise-picker-form" class="dialog-body" method="dialog">
+      <div class="stack"><p class="eyebrow">Choix de l’exercice</p><h2 id="picker-dialog-title">Ajouter à la séance</h2></div>
+      <div class="field"><label for="picker-exercise">Exercice de la bibliothèque</label><select id="picker-exercise" name="exerciseId" required></select></div>
+      <div class="field"><label for="picker-sets">Nombre de séries prévues</label><input id="picker-sets" name="sets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
+      <p id="picker-exercise-detail" class="small muted"></p>
+      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-exercise-picker">Annuler</button><button class="btn btn-primary" type="submit">Valider</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="program-dialog">
+    <form id="program-form" class="dialog-body" method="dialog">
+      <div class="stack"><p class="eyebrow">Nouveau programme</p><h2>Créer une organisation</h2></div>
+      <div class="field"><label for="program-name">Nom du programme</label><input id="program-name" name="name" required placeholder="Ex. Hypertrophie 2026"></div>
+      <div class="field"><label for="program-type">Type</label><select id="program-type" name="type"><option value="split">Split personnalisé</option><option value="upperLower">Upper / Lower</option></select></div>
+      <div class="field" id="split-count-field"><label for="program-session-count">Nombre de séances du split</label><input id="program-session-count" name="sessionCount" type="number" min="1" max="10" value="4"></div>
+      <div class="field" id="upper-frequency-field" hidden><label for="program-upper-frequency">Fréquence Upper / Lower</label><select id="program-upper-frequency" name="upperFrequency"><option value="4">4 séances · Upper A / Lower A / Upper B / Lower B</option><option value="2">2 séances · Upper / Lower</option></select></div>
+      <div class="notice">Les séances sont créées vides. Tu pourras ensuite leur ajouter les exercices de ta bibliothèque.</div>
+      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-program-dialog">Annuler</button><button class="btn btn-primary" type="submit">Créer le programme</button></div>
     </form>
   </dialog>
 
@@ -1097,7 +1142,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.2.0";
+      const APP_VERSION = "1.3.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1106,8 +1151,12 @@ svg {
       const main = root.querySelector("#app-main");
       const toastEl = root.querySelector("#toast");
       const headerStatus = root.querySelector("#header-status");
-      const customDialog = root.querySelector("#custom-exercise-dialog");
-      const customForm = root.querySelector("#custom-exercise-form");
+      const libraryDialog = root.querySelector("#library-exercise-dialog");
+      const libraryForm = root.querySelector("#library-exercise-form");
+      const pickerDialog = root.querySelector("#exercise-picker-dialog");
+      const pickerForm = root.querySelector("#exercise-picker-form");
+      const programDialog = root.querySelector("#program-dialog");
+      const programForm = root.querySelector("#program-form");
       const importInput = root.querySelector("#import-input");
 
       const MUSCLES = [
@@ -1213,10 +1262,62 @@ svg {
         exercises: session.exercises.map(row => ({ id: row[0], name: row[1], plannedSets: row[2], muscle: row[3], loadType: row[4] }))
       }));
 
+      function inferEquipmentType(exercise) {
+        const name = exercise.name.toLowerCase();
+        if (name.includes("haltère")) return "dumbbell";
+        if (name.includes("poulie") || name.includes("tirage") || name.includes("extension")) return "cable";
+        if (name.includes("dips") || name.includes("crunch")) return "bodyweight";
+        if (name.includes("press") || name.includes("rowing") || name.includes("butterfly") || name.includes("leg ")) return "machine";
+        return "other";
+      }
+
+      function seededExerciseLibrary() {
+        const exercises = new Map();
+        PROGRAM.forEach(session => session.exercises.forEach(exercise => {
+          if (!exercises.has(exercise.id)) exercises.set(exercise.id, {
+            id: exercise.id,
+            name: exercise.name,
+            muscle: exercise.muscle,
+            secondaryMuscles: [],
+            equipmentType: inferEquipmentType(exercise),
+            brand: "",
+            machineName: "",
+            machineModel: "",
+            gym: "",
+            machineSettings: "",
+            notes: "",
+            loadType: exercise.loadType,
+            unilateral: /unilatéral/i.test(exercise.name),
+            favorite: false
+          });
+        }));
+        return [...exercises.values()];
+      }
+
+      function seededWorkoutTemplates() {
+        return PROGRAM.map(session => ({
+          id: session.id,
+          name: session.name,
+          type: session.type,
+          warmup: session.warmup,
+          exercises: session.exercises.map((exercise, index) => ({ libraryExerciseId: exercise.id, plannedSets: exercise.plannedSets, order: index + 1 }))
+        }));
+      }
+
+      function seededPrograms() {
+        return [{ id: "programme-actuel", name: "Programme actuel", type: "split", workoutTemplateIds: PROGRAM.map(session => session.id) }];
+      }
+
       const muscleMap = Object.fromEntries(MUSCLES.map(muscle => [muscle.id, muscle]));
       let currentView = "home";
       let statsDays = 56;
       let selectedExercise = "";
+      let libraryQuery = "";
+      let libraryMuscleFilter = "all";
+      let editingLibraryExerciseId = "";
+      let editingTemplateId = "";
+      let pickerMode = "draft-add";
+      let pickerTargetIndex = -1;
       let installPrompt = null;
       let toastTimer = null;
       let state = loadState();
@@ -1230,11 +1331,18 @@ svg {
 
       function defaultState() {
         return {
-          version: 3,
+          version: 4,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6 },
           sessions: [],
           draft: null,
+          exerciseLibrary: seededExerciseLibrary(),
+          workoutTemplates: seededWorkoutTemplates(),
+          programs: seededPrograms(),
+          activeProgramId: "programme-actuel",
           deletedSessionIds: [],
+          deletedLibraryExerciseIds: [],
+          deletedTemplateIds: [],
+          deletedProgramIds: [],
           updatedAt: ""
         };
       }
@@ -1253,16 +1361,78 @@ svg {
       function normalizeState(input) {
         const base = defaultState();
         if (!input || typeof input !== "object") return base;
+        const exerciseLibrary = Array.isArray(input.exerciseLibrary)
+          ? input.exerciseLibrary.filter(item => item && typeof item === "object").map(normalizeLibraryExercise)
+          : base.exerciseLibrary;
+        const workoutTemplates = Array.isArray(input.workoutTemplates)
+          ? input.workoutTemplates.filter(item => item && typeof item === "object").map(normalizeWorkoutTemplate)
+          : base.workoutTemplates;
+        const programs = Array.isArray(input.programs)
+          ? input.programs.filter(item => item && typeof item === "object").map(normalizeProgram)
+          : base.programs;
+        const requestedActiveProgram = typeof input.activeProgramId === "string" ? input.activeProgramId : base.activeProgramId;
         return {
-          version: 3,
+          version: 4,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek)
           },
           sessions: Array.isArray(input.sessions) ? input.sessions.filter(session => session && typeof session === "object").map(normalizeSession) : [],
           draft: input.draft && typeof input.draft === "object" ? normalizeSession(input.draft) : null,
+          exerciseLibrary,
+          workoutTemplates,
+          programs,
+          activeProgramId: programs.some(program => program.id === requestedActiveProgram) ? requestedActiveProgram : (programs[0]?.id || ""),
           deletedSessionIds: Array.isArray(input.deletedSessionIds) ? [...new Set(input.deletedSessionIds.filter(id => typeof id === "string"))] : [],
+          deletedLibraryExerciseIds: Array.isArray(input.deletedLibraryExerciseIds) ? [...new Set(input.deletedLibraryExerciseIds.filter(id => typeof id === "string"))] : [],
+          deletedTemplateIds: Array.isArray(input.deletedTemplateIds) ? [...new Set(input.deletedTemplateIds.filter(id => typeof id === "string"))] : [],
+          deletedProgramIds: Array.isArray(input.deletedProgramIds) ? [...new Set(input.deletedProgramIds.filter(id => typeof id === "string"))] : [],
           updatedAt: typeof input.updatedAt === "string" ? input.updatedAt : ""
+        };
+      }
+
+      function normalizeLibraryExercise(exercise) {
+        return {
+          id: String(exercise.id || uid("library")),
+          name: String(exercise.name || "Exercice"),
+          muscle: String(exercise.muscle || exercise.primaryMuscle || "other"),
+          secondaryMuscles: Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles.map(String) : [],
+          equipmentType: String(exercise.equipmentType || "other"),
+          brand: String(exercise.brand || ""),
+          machineName: String(exercise.machineName || ""),
+          machineModel: String(exercise.machineModel || ""),
+          gym: String(exercise.gym || ""),
+          machineSettings: String(exercise.machineSettings || ""),
+          notes: String(exercise.notes || ""),
+          loadType: String(exercise.loadType || "total"),
+          unilateral: Boolean(exercise.unilateral),
+          favorite: Boolean(exercise.favorite)
+        };
+      }
+
+      function normalizeWorkoutTemplate(template) {
+        return {
+          id: String(template.id || uid("template")),
+          name: String(template.name || "Nouvelle séance"),
+          type: String(template.type || "CUSTOM"),
+          warmup: String(template.warmup || "Libre"),
+          exercises: Array.isArray(template.exercises) ? template.exercises.filter(Boolean).map((exercise, index) => ({
+            libraryExerciseId: String(exercise.libraryExerciseId || exercise.id || ""),
+            plannedSets: Math.max(1, Math.min(12, finiteNumber(exercise.plannedSets, 3))),
+            order: finiteNumber(exercise.order, index + 1),
+            name: exercise.name,
+            muscle: exercise.muscle,
+            loadType: exercise.loadType
+          })) : []
+        };
+      }
+
+      function normalizeProgram(program) {
+        return {
+          id: String(program.id || uid("program")),
+          name: String(program.name || "Programme"),
+          type: program.type === "upperLower" ? "upperLower" : "split",
+          workoutTemplateIds: Array.isArray(program.workoutTemplateIds) ? [...new Set(program.workoutTemplateIds.map(String))] : []
         };
       }
 
@@ -1339,7 +1509,7 @@ svg {
       }
 
       function stateHasTrainingData(value) {
-        return Boolean(value?.draft || value?.sessions?.length);
+        return Boolean(value?.draft || value?.sessions?.length || value?.updatedAt);
       }
 
       function mergeTrainingStates(localInput, remoteInput) {
@@ -1350,18 +1520,39 @@ svg {
         const preferred = localTime >= remoteTime ? local : remote;
         const secondary = preferred === local ? remote : local;
         const deletedSessionIds = [...new Set([...local.deletedSessionIds, ...remote.deletedSessionIds])];
-        const deleted = new Set(deletedSessionIds);
-        const sessions = new Map();
-        [...secondary.sessions, ...preferred.sessions].forEach(session => {
-          if (session?.id && !deleted.has(session.id)) sessions.set(session.id, session);
-        });
+        const deletedLibraryExerciseIds = [...new Set([...local.deletedLibraryExerciseIds, ...remote.deletedLibraryExerciseIds])];
+        const deletedTemplateIds = [...new Set([...local.deletedTemplateIds, ...remote.deletedTemplateIds])];
+        const deletedProgramIds = [...new Set([...local.deletedProgramIds, ...remote.deletedProgramIds])];
+        const mergeById = (secondaryItems, preferredItems, deletedIds) => {
+          const deleted = new Set(deletedIds);
+          const items = new Map();
+          [...secondaryItems, ...preferredItems].forEach(item => {
+            if (item?.id && !deleted.has(item.id)) items.set(item.id, item);
+          });
+          return [...items.values()];
+        };
+        const exerciseLibrary = mergeById(secondary.exerciseLibrary, preferred.exerciseLibrary, deletedLibraryExerciseIds);
+        const allowedExerciseIds = new Set(exerciseLibrary.map(exercise => exercise.id));
+        const workoutTemplates = mergeById(secondary.workoutTemplates, preferred.workoutTemplates, deletedTemplateIds)
+          .map(template => ({ ...template, exercises: template.exercises.filter(exercise => allowedExerciseIds.has(exercise.libraryExerciseId)) }));
+        const allowedTemplateIds = new Set(workoutTemplates.map(template => template.id));
+        const programs = mergeById(secondary.programs, preferred.programs, deletedProgramIds)
+          .map(program => ({ ...program, workoutTemplateIds: program.workoutTemplateIds.filter(id => allowedTemplateIds.has(id)) }));
+        const activeProgramId = programs.some(program => program.id === preferred.activeProgramId) ? preferred.activeProgramId : (programs[0]?.id || "");
         return normalizeState({
           ...preferred,
-          version: 3,
+          version: 4,
           settings: preferred.settings,
-          sessions: [...sessions.values()],
+          sessions: mergeById(secondary.sessions, preferred.sessions, deletedSessionIds),
           draft: preferred.draft || secondary.draft || null,
+          exerciseLibrary,
+          workoutTemplates,
+          programs,
+          activeProgramId,
           deletedSessionIds,
+          deletedLibraryExerciseIds,
+          deletedTemplateIds,
+          deletedProgramIds,
           updatedAt: new Date().toISOString()
         });
       }
@@ -1610,12 +1801,55 @@ svg {
         return ({ total: "charge totale", perSide: "par côté ×2", bodyweightPlus: "PDC + lest" })[type] || "charge totale";
       }
 
+      function equipmentTypeLabel(type) {
+        return ({ machine: "Machine", cable: "Poulie / câble", dumbbell: "Haltères", barbell: "Barre", bodyweight: "Poids du corps", other: "Autre" })[type] || "Autre";
+      }
+
+      function getLibraryExercise(exerciseId) {
+        return state.exerciseLibrary.find(exercise => exercise.id === exerciseId) || null;
+      }
+
+      function resolveTemplateExercise(templateExercise) {
+        const libraryExercise = getLibraryExercise(templateExercise.libraryExerciseId);
+        return {
+          ...(libraryExercise || {}),
+          id: libraryExercise?.id || templateExercise.libraryExerciseId,
+          libraryExerciseId: templateExercise.libraryExerciseId,
+          name: libraryExercise?.name || templateExercise.name || "Exercice supprimé",
+          muscle: libraryExercise?.muscle || templateExercise.muscle || "other",
+          loadType: libraryExercise?.loadType || templateExercise.loadType || "total",
+          plannedSets: Math.max(1, finiteNumber(templateExercise.plannedSets, 3))
+        };
+      }
+
+      function resolveWorkoutTemplate(template) {
+        return { ...template, exercises: template.exercises.map(resolveTemplateExercise) };
+      }
+
+      function getActiveProgram() {
+        return state.programs.find(program => program.id === state.activeProgramId) || null;
+      }
+
+      function getActiveWorkoutTemplates() {
+        const program = getActiveProgram();
+        if (!program) return [];
+        return program.workoutTemplateIds
+          .map(id => state.workoutTemplates.find(template => template.id === id))
+          .filter(Boolean)
+          .map(resolveWorkoutTemplate);
+      }
+
+      function getResolvedWorkoutTemplate(templateId) {
+        const template = state.workoutTemplates.find(item => item.id === templateId);
+        return template ? resolveWorkoutTemplate(template) : null;
+      }
+
       function sessionPlannedSets(session) {
         return session.exercises.reduce((sum, exercise) => sum + exercise.plannedSets, 0);
       }
 
       function createDraft(programId) {
-        const template = PROGRAM.find(session => session.id === programId);
+        const template = getResolvedWorkoutTemplate(programId);
         if (!template) return;
         if (state.draft && !window.confirm("Une séance est déjà en cours. La remplacer ?")) return;
         const now = new Date();
@@ -1639,6 +1873,153 @@ svg {
         };
         saveState();
         navigate("workout");
+      }
+
+      function openDialog(dialog) {
+        if (typeof dialog.showModal === "function") dialog.showModal();
+        else dialog.setAttribute("open", "");
+      }
+
+      function closeDialog(dialog) {
+        if (typeof dialog.close === "function") dialog.close();
+        else dialog.removeAttribute("open");
+      }
+
+      function openLibraryExerciseDialog(exerciseId = "") {
+        editingLibraryExerciseId = exerciseId;
+        const exercise = getLibraryExercise(exerciseId);
+        libraryForm.reset();
+        root.querySelector("#library-dialog-title").textContent = exercise ? "Modifier l’exercice" : "Ajouter un exercice";
+        root.querySelector("#library-muscle").innerHTML = MUSCLES.map(muscle => `<option value="${muscle.id}">${muscle.label}</option>`).join("") + `<option value="other">Autre</option>`;
+        if (exercise) {
+          const values = {
+            name: exercise.name,
+            muscle: exercise.muscle,
+            secondaryMuscles: exercise.secondaryMuscles.join(", "),
+            equipmentType: exercise.equipmentType,
+            loadType: exercise.loadType,
+            brand: exercise.brand,
+            machineName: exercise.machineName,
+            machineModel: exercise.machineModel,
+            gym: exercise.gym,
+            machineSettings: exercise.machineSettings,
+            notes: exercise.notes
+          };
+          Object.entries(values).forEach(([name, value]) => {
+            const field = libraryForm.elements.namedItem(name);
+            if (field) field.value = value;
+          });
+          libraryForm.elements.namedItem("unilateral").checked = exercise.unilateral;
+        }
+        openDialog(libraryDialog);
+      }
+
+      function pickerExerciseOptions(selectedId = "") {
+        return [...state.exerciseLibrary]
+          .sort((a, b) => `${a.muscle}-${a.name}`.localeCompare(`${b.muscle}-${b.name}`, "fr"))
+          .map(exercise => `<option value="${esc(exercise.id)}" ${exercise.id === selectedId ? "selected" : ""}>${esc(muscleMap[exercise.muscle]?.short || "Autre")} · ${esc(exercise.name)}${exercise.brand ? ` · ${esc(exercise.brand)}` : ""}</option>`)
+          .join("");
+      }
+
+      function updatePickerDetail() {
+        const exercise = getLibraryExercise(root.querySelector("#picker-exercise")?.value);
+        const detail = root.querySelector("#picker-exercise-detail");
+        if (!detail) return;
+        detail.textContent = exercise ? [equipmentTypeLabel(exercise.equipmentType), exercise.brand, exercise.machineName, exercise.machineModel, loadTypeLabel(exercise.loadType)].filter(Boolean).join(" · ") : "";
+      }
+
+      function openExercisePicker(mode, targetIndex = -1) {
+        if (!state.exerciseLibrary.length) {
+          showToast("Ajoute d’abord un exercice à la bibliothèque.");
+          navigate("library");
+          return;
+        }
+        pickerMode = mode;
+        pickerTargetIndex = targetIndex;
+        const existing = mode === "draft-replace" ? state.draft?.exercises?.[targetIndex] : null;
+        root.querySelector("#picker-dialog-title").textContent = mode === "draft-replace" ? "Remplacer l’exercice" : mode === "template-add" ? "Ajouter à la séance modèle" : "Ajouter à la séance en cours";
+        root.querySelector("#picker-exercise").innerHTML = pickerExerciseOptions(existing?.libraryExerciseId || existing?.id || "");
+        root.querySelector("#picker-sets").value = existing?.sets?.length || 3;
+        updatePickerDetail();
+        openDialog(pickerDialog);
+      }
+
+      function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null) {
+        const sets = existing ? [...existing.sets] : [];
+        while (sets.length < plannedSets) sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] });
+        if (sets.length > plannedSets) sets.length = plannedSets;
+        return {
+          ...libraryExercise,
+          id: libraryExercise.id,
+          libraryExerciseId: libraryExercise.id,
+          plannedSets,
+          instanceId: existing?.instanceId || uid("exercise"),
+          order: existing?.order || 1,
+          comments: existing?.comments || "",
+          sets
+        };
+      }
+
+      function createTemplate() {
+        const activeProgram = getActiveProgram();
+        if (!activeProgram) return openDialog(programDialog);
+        const template = { id: uid("template"), name: `Séance ${activeProgram.workoutTemplateIds.length + 1}`, type: "CUSTOM", warmup: "Libre", exercises: [] };
+        state.workoutTemplates.push(template);
+        activeProgram.workoutTemplateIds.push(template.id);
+        editingTemplateId = template.id;
+        saveState();
+        navigate("template-editor");
+      }
+
+      function deleteTemplate(templateId) {
+        const template = state.workoutTemplates.find(item => item.id === templateId);
+        if (!template || !window.confirm(`Supprimer la séance « ${template.name} » de tous les programmes ? Les séances déjà enregistrées resteront dans l’historique.`)) return;
+        state.workoutTemplates = state.workoutTemplates.filter(item => item.id !== templateId);
+        state.programs.forEach(program => { program.workoutTemplateIds = program.workoutTemplateIds.filter(id => id !== templateId); });
+        state.deletedTemplateIds = [...new Set([...state.deletedTemplateIds, templateId])];
+        if (editingTemplateId === templateId) editingTemplateId = "";
+        saveState();
+        navigate("program");
+        showToast("Séance supprimée du programme.");
+      }
+
+      function deleteLibraryExercise(exerciseId) {
+        const exercise = getLibraryExercise(exerciseId);
+        if (!exercise) return;
+        const usedIn = state.workoutTemplates.filter(template => template.exercises.some(item => item.libraryExerciseId === exerciseId));
+        const message = usedIn.length
+          ? `Supprimer « ${exercise.name} » de la bibliothèque et le retirer de ${usedIn.length} séance(s) modèle(s) ? L’historique déjà enregistré ne sera pas modifié.`
+          : `Supprimer « ${exercise.name} » de la bibliothèque ?`;
+        if (!window.confirm(message)) return;
+        state.exerciseLibrary = state.exerciseLibrary.filter(item => item.id !== exerciseId);
+        state.workoutTemplates.forEach(template => { template.exercises = template.exercises.filter(item => item.libraryExerciseId !== exerciseId); });
+        state.deletedLibraryExerciseIds = [...new Set([...state.deletedLibraryExerciseIds, exerciseId])];
+        saveState();
+        render();
+        showToast("Exercice supprimé de la bibliothèque.");
+      }
+
+      function deleteProgram(programId) {
+        const program = state.programs.find(item => item.id === programId);
+        if (!program || !window.confirm(`Supprimer le programme « ${program.name} » ? Ses séances non utilisées ailleurs seront également supprimées. L’historique d’entraînement restera intact.`)) return;
+        const otherTemplateIds = new Set(state.programs.filter(item => item.id !== programId).flatMap(item => item.workoutTemplateIds));
+        const exclusiveTemplateIds = program.workoutTemplateIds.filter(id => !otherTemplateIds.has(id));
+        state.programs = state.programs.filter(item => item.id !== programId);
+        state.workoutTemplates = state.workoutTemplates.filter(template => !exclusiveTemplateIds.includes(template.id));
+        state.deletedProgramIds = [...new Set([...state.deletedProgramIds, programId])];
+        state.deletedTemplateIds = [...new Set([...state.deletedTemplateIds, ...exclusiveTemplateIds])];
+        state.activeProgramId = state.programs[0]?.id || "";
+        saveState();
+        render();
+        showToast("Programme supprimé.");
+      }
+
+      function openProgramDialog() {
+        programForm.reset();
+        root.querySelector("#program-session-count").value = 4;
+        root.querySelector("#split-count-field").hidden = false;
+        root.querySelector("#upper-frequency-field").hidden = true;
+        openDialog(programDialog);
       }
 
       function effectiveLoad(weight, loadType) {
@@ -1726,10 +2107,12 @@ svg {
       }
 
       function nextProgram() {
+        const templates = getActiveWorkoutTemplates();
+        if (!templates.length) return null;
         const last = latestSession();
-        if (!last) return PROGRAM[0];
-        const index = PROGRAM.findIndex(session => session.id === last.programId);
-        return PROGRAM[(index + 1 + PROGRAM.length) % PROGRAM.length];
+        if (!last) return templates[0];
+        const index = templates.findIndex(session => session.id === last.programId);
+        return templates[(index + 1 + templates.length) % templates.length];
       }
 
       function lastExercisePerformance(exerciseId) {
@@ -1793,6 +2176,8 @@ svg {
 
       function render() {
         if (currentView === "program") main.innerHTML = renderProgram();
+        else if (currentView === "library") main.innerHTML = renderLibrary();
+        else if (currentView === "template-editor") main.innerHTML = renderTemplateEditor();
         else if (currentView === "workout") main.innerHTML = renderWorkout();
         else if (currentView === "stats") main.innerHTML = renderStats();
         else if (currentView === "data") main.innerHTML = renderData();
@@ -1828,7 +2213,9 @@ svg {
         const weekMuscles = muscleSets(week);
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
-          : `<button class="btn btn-primary" type="button" data-action="start-session" data-program="${next.id}">Démarrer ${next.name}</button>`;
+          : next
+            ? `<button class="btn btn-primary" type="button" data-action="start-session" data-program="${next.id}">Démarrer ${esc(next.name)}</button>`
+            : `<button class="btn btn-primary" type="button" data-action="navigate" data-view="program">Créer un programme</button>`;
 
         return `
           <section class="page">
@@ -1836,8 +2223,8 @@ svg {
             <div class="hero">
               <div class="hero-copy">
                 <p class="eyebrow">Cycle hebdomadaire</p>
-                <h1>${state.draft ? "Ta séance t’attend." : `Prochaine étape : ${next.name}`}</h1>
-                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries de travail · chauffe ${esc(next.warmup)}`}</p>
+                <h1>${state.draft ? "Ta séance t’attend." : next ? `Prochaine étape : ${esc(next.name)}` : "Construis ton prochain programme."}</h1>
+                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries de travail · chauffe ${esc(next.warmup)}` : "Crée un split ou un Upper / Lower, puis compose chaque séance depuis ta bibliothèque."}</p>
               </div>
               ${action}
             </div>
@@ -1865,33 +2252,88 @@ svg {
       }
 
       function renderProgram() {
-        const totalWeeklySets = PROGRAM.reduce((sum, session) => sum + sessionPlannedSets(session), 0);
+        const activeProgram = getActiveProgram();
+        const templates = getActiveWorkoutTemplates();
+        const totalWeeklySets = templates.reduce((sum, session) => sum + sessionPlannedSets(session), 0);
+        if (!activeProgram) return `
+          <section class="page">
+            <div><p class="eyebrow">Programmes</p><h1>Construis ton entraînement</h1><p class="muted">Crée un split personnalisé ou un Upper / Lower, puis compose ses séances avec ta bibliothèque.</p></div>
+            <div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h2>Aucun programme actif</h2><p class="muted">Ton historique reste conservé. Commence simplement une nouvelle organisation.</p><button class="btn btn-primary" type="button" data-action="open-program-dialog">Créer un programme</button></div></div>
+            <button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque d’exercices</button>
+          </section>`;
         return `
           <section class="page">
-            <div class="section-head"><div><p class="eyebrow">Programme importé</p><h1>Ton split complet</h1></div><span class="badge accent">${totalWeeklySets} séries / cycle</span></div>
-            <p class="muted">L’ordre et le volume reprennent ton tableau Excel. Les volumes musculaires correspondent aux séries principales colorées dans le classeur.</p>
+            <div class="section-head"><div><p class="eyebrow">Programme actif</p><h1>${esc(activeProgram.name)}</h1></div><span class="badge accent">${activeProgram.type === "upperLower" ? "Upper / Lower" : "Split"}</span></div>
+            <div class="card stack">
+              <div class="form-grid">
+                <div class="field"><label for="active-program">Programme affiché</label><select id="active-program" data-active-program>${state.programs.map(program => `<option value="${esc(program.id)}" ${program.id === activeProgram.id ? "selected" : ""}>${esc(program.name)} · ${program.type === "upperLower" ? "Upper / Lower" : "Split"}</option>`).join("")}</select></div>
+                <div class="field"><label>Volume du cycle</label><div class="row"><span class="badge accent">${templates.length} séance${templates.length > 1 ? "s" : ""}</span><span class="badge">${totalWeeklySets} séries prévues</span></div></div>
+              </div>
+              <div class="row"><button class="btn btn-primary" type="button" data-action="create-template">＋ Créer une séance</button><button class="btn" type="button" data-action="navigate" data-view="library">Bibliothèque d’exercices</button><button class="btn" type="button" data-action="open-program-dialog">Nouveau programme</button><button class="btn btn-danger" type="button" data-action="delete-program" data-program-id="${esc(activeProgram.id)}">Supprimer ce programme</button></div>
+            </div>
             <div class="program-grid">
-              ${PROGRAM.map((session, sessionIndex) => `
+              ${templates.map((session, sessionIndex) => `
                 <details class="card program-card" ${sessionIndex === 0 ? "open" : ""}>
                   <summary>
-                    <div><h2>${session.name}</h2><p class="small muted">${session.exercises.length} exercices · chauffe ${esc(session.warmup)}</p></div>
+                    <div><h2>${esc(session.name)}</h2><p class="small muted">${session.exercises.length} exercices · chauffe ${esc(session.warmup)}</p></div>
                     <span class="badge accent">${sessionPlannedSets(session)} séries</span>
                   </summary>
                   <div class="program-content">
                     <div class="list-divider">
                       ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
                     </div>
-                    <button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${session.name}</button>
+                    ${session.exercises.length ? `<button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${esc(session.name)}</button>` : `<div class="notice">Cette séance est vide. Ajoute-lui des exercices avant de la démarrer.</div>`}
+                    <div class="row"><button class="btn btn-sm" type="button" data-action="edit-template" data-template-id="${esc(session.id)}">Modifier la séance</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-template" data-template-id="${esc(session.id)}">Supprimer la séance</button></div>
                   </div>
                 </details>`).join("")}
             </div>
+            ${templates.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">＋</span><h2>Programme vide</h2><p class="muted">Crée ta première séance puis ajoute les exercices de ta bibliothèque.</p><button class="btn btn-primary" type="button" data-action="create-template">Créer une séance</button></div></div>`}
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Repères</p><h2>Cibles hebdomadaires</h2></div></div><div class="row">${MUSCLES.map(muscle => `<span class="badge">${muscle.short} · ${muscle.target}</span>`).join("")}</div></div>
+          </section>`;
+      }
+
+      function renderLibrary() {
+        const query = libraryQuery.trim().toLowerCase();
+        const exercises = state.exerciseLibrary
+          .filter(exercise => libraryMuscleFilter === "all" || exercise.muscle === libraryMuscleFilter)
+          .filter(exercise => !query || [exercise.name, exercise.brand, exercise.machineName, exercise.machineModel, exercise.gym, muscleMap[exercise.muscle]?.label].join(" ").toLowerCase().includes(query))
+          .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+        return `
+          <section class="page">
+            <div class="section-head"><div><p class="eyebrow">Base personnelle</p><h1>Bibliothèque d’exercices</h1></div><button class="btn btn-primary" type="button" data-action="open-library-exercise">＋ Ajouter</button></div>
+            <p class="muted">Une machine différente peut être enregistrée comme une variante distincte afin de garder des charges comparables dans l’historique.</p>
+            <div class="card form-grid">
+              <div class="field"><label for="library-search">Rechercher</label><input id="library-search" type="search" value="${esc(libraryQuery)}" data-library-search placeholder="Exercice, marque, machine ou salle"></div>
+              <div class="field"><label for="library-filter-muscle">Muscle principal</label><select id="library-filter-muscle" data-library-muscle><option value="all">Tous les muscles</option>${MUSCLES.map(muscle => `<option value="${muscle.id}" ${libraryMuscleFilter === muscle.id ? "selected" : ""}>${muscle.label}</option>`).join("")}</select></div>
+            </div>
+            <div class="section-head"><div><h2>${exercises.length} exercice${exercises.length > 1 ? "s" : ""}</h2><p class="small muted">${state.exerciseLibrary.length} au total</p></div><button class="btn btn-sm" type="button" data-action="navigate" data-view="program">Retour au programme</button></div>
+            <div class="program-grid">
+              ${exercises.map(exercise => `<article class="card stack"><div class="row-between"><div><p class="eyebrow">${muscleMap[exercise.muscle]?.label || "Autre"}</p><h2>${esc(exercise.name)}</h2></div><span class="badge accent">${equipmentTypeLabel(exercise.equipmentType)}</span></div><div class="row">${exercise.brand ? `<span class="badge">${esc(exercise.brand)}</span>` : ""}${exercise.machineName ? `<span class="badge">${esc(exercise.machineName)}</span>` : ""}${exercise.machineModel ? `<span class="badge">${esc(exercise.machineModel)}</span>` : ""}${exercise.gym ? `<span class="badge">${esc(exercise.gym)}</span>` : ""}</div>${exercise.machineSettings ? `<p class="small muted"><strong>Réglages :</strong> ${esc(exercise.machineSettings)}</p>` : ""}${exercise.notes ? `<p class="small muted">${esc(exercise.notes)}</p>` : ""}<div class="row"><button class="btn btn-sm" type="button" data-action="edit-library-exercise" data-exercise-id="${esc(exercise.id)}">Modifier</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-library-exercise" data-exercise-id="${esc(exercise.id)}">Supprimer</button></div></article>`).join("")}
+            </div>
+            ${exercises.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">⌕</span><h2>Aucun résultat</h2><p class="muted">Modifie les filtres ou ajoute une nouvelle variante.</p></div></div>`}
+          </section>`;
+      }
+
+      function renderTemplateEditor() {
+        const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+        if (!template) return `<section class="page"><div class="card empty"><div class="empty-inner"><h2>Séance introuvable</h2><button class="btn" type="button" data-action="navigate" data-view="program">Retour au programme</button></div></div></section>`;
+        const resolvedExercises = template.exercises.map(resolveTemplateExercise);
+        return `
+          <section class="page">
+            <div class="section-head"><div><p class="eyebrow">Éditeur de séance</p><h1>${esc(template.name)}</h1></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
+            <div class="card stack"><div class="form-grid"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div><div class="field"><label for="template-warmup">Échauffement conseillé</label><input id="template-warmup" value="${esc(template.warmup)}" data-template-field="warmup"></div></div></div>
+            <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
+            <div class="card list-divider">
+              ${resolvedExercises.map((exercise, index) => `<div class="exercise-plan-row template-exercise-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div><div class="row"><input aria-label="Séries prévues pour ${esc(exercise.name)}" type="number" inputmode="numeric" min="1" max="12" value="${exercise.plannedSets}" data-template-sets data-index="${index}" style="width:68px"><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="-1" aria-label="Monter">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="1" aria-label="Descendre">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button></div></div>`).join("") || `<div class="empty-inner" style="margin:28px auto"><p class="muted">Cette séance ne contient encore aucun exercice.</p></div>`}
+            </div>
+            <button class="btn btn-danger btn-block" type="button" data-action="delete-template" data-template-id="${esc(template.id)}">Supprimer cette séance</button>
           </section>`;
       }
 
       function renderWorkout() {
         if (!state.draft) {
-          return `<section class="page"><div><p class="eyebrow">Nouvelle séance</p><h1>Choisis ton entraînement</h1><p class="muted">Le dernier passage est affiché sous chaque exercice dès que tu commences.</p></div><div class="program-grid">${PROGRAM.map(session => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><strong>${session.name}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div></section>`;
+          const templates = getActiveWorkoutTemplates();
+          return `<section class="page"><div><p class="eyebrow">Nouvelle séance</p><h1>Choisis ton entraînement</h1><p class="muted">Le dernier passage est affiché sous chaque exercice dès que tu commences.</p></div><div class="program-grid">${templates.filter(session => session.exercises.length).map(session => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><strong>${esc(session.name)}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div>${templates.some(session => session.exercises.length) ? "" : `<div class="card empty"><div class="empty-inner"><h2>Aucune séance prête</h2><p class="muted">Crée ou complète une séance dans l’onglet Programme.</p><button class="btn" type="button" data-action="navigate" data-view="program">Gérer le programme</button></div></div>`}</section>`;
         }
         const draft = state.draft;
         const liveSets = sessionWorkSets(draft);
@@ -1919,7 +2361,7 @@ svg {
             <div class="stack">
               ${draft.exercises.map((exercise, exerciseIndex) => renderTrackedExercise(exercise, exerciseIndex)).join("")}
             </div>
-            <button class="btn btn-block" type="button" data-action="open-custom">＋ Ajouter un exercice</button>
+            <button class="btn btn-block" type="button" data-action="open-draft-picker">＋ Ajouter un exercice de la bibliothèque</button>
 
             <div class="card stack">
               <div><p class="eyebrow">Ressenti</p><h2>Fin de séance</h2></div>
@@ -1945,8 +2387,8 @@ svg {
           <article class="card exercise-track" data-exercise-index="${exerciseIndex}">
             <div class="exercise-track-head">
               <div class="exercise-title-row">
-                <div><p class="eyebrow">${exerciseIndex + 1} · ${muscleMap[exercise.muscle]?.short || "Autre"}</p><h2>${esc(exercise.name)}</h2></div>
-                <div class="exercise-actions"><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="-1" aria-label="Monter ${esc(exercise.name)}">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="1" aria-label="Descendre ${esc(exercise.name)}">↓</button></div>
+                <div><p class="eyebrow">${exerciseIndex + 1} · ${muscleMap[exercise.muscle]?.short || "Autre"}</p><h2>${esc(exercise.name)}</h2>${exercise.brand || exercise.machineName ? `<p class="small muted">${esc([exercise.brand, exercise.machineName, exercise.machineModel].filter(Boolean).join(" · "))}</p>` : ""}</div>
+                <div class="exercise-actions"><button class="btn btn-icon btn-sm" type="button" data-action="replace-draft-exercise" data-index="${exerciseIndex}" aria-label="Remplacer ${esc(exercise.name)}">⇄</button><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="-1" aria-label="Monter ${esc(exercise.name)}">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="1" aria-label="Descendre ${esc(exercise.name)}">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-draft-exercise" data-index="${exerciseIndex}" aria-label="Retirer ${esc(exercise.name)}">×</button></div>
               </div>
               <p class="previous">Précédent : ${previousText}</p>
             </div>
@@ -2123,7 +2565,7 @@ svg {
             </div>
             <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
             ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
-            ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer toutes les données</button>` : ""}
+            ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}
             <p class="small muted">TRAINING by Yeltcha ${APP_VERSION} · stockage local et synchronisation Supabase</p>
           </section>`;
       }
@@ -2304,14 +2746,45 @@ svg {
             saveState(); render();
           }
         }
-        if (action === "open-custom") {
-          root.querySelector("#custom-muscle").innerHTML = MUSCLES.map(muscle => `<option value="${muscle.id}">${muscle.label}</option>`).join("") + `<option value="other">Autre</option>`;
-          customForm.reset();
-          root.querySelector("#custom-sets").value = 3;
-          if (typeof customDialog.showModal === "function") customDialog.showModal();
-          else customDialog.setAttribute("open", "");
+        if (action === "open-draft-picker") openExercisePicker("draft-add");
+        if (action === "replace-draft-exercise") openExercisePicker("draft-replace", finiteNumber(button.dataset.index));
+        if (action === "remove-draft-exercise" && state.draft) {
+          const index = finiteNumber(button.dataset.index);
+          const exercise = state.draft.exercises[index];
+          if (exercise && (!completedSets(exercise).length || window.confirm(`Retirer « ${exercise.name} » et ses séries déjà saisies de cette séance ?`))) {
+            state.draft.exercises.splice(index, 1);
+            state.draft.exercises.forEach((item, itemIndex) => { item.order = itemIndex + 1; });
+            saveState(); render(); showToast("Exercice retiré de la séance.");
+          }
         }
-        if (action === "close-custom") customDialog.close();
+        if (action === "open-library-exercise") openLibraryExerciseDialog();
+        if (action === "edit-library-exercise") openLibraryExerciseDialog(button.dataset.exerciseId);
+        if (action === "delete-library-exercise") deleteLibraryExercise(button.dataset.exerciseId);
+        if (action === "close-library-exercise") closeDialog(libraryDialog);
+        if (action === "close-exercise-picker") closeDialog(pickerDialog);
+        if (action === "open-template-picker") openExercisePicker("template-add");
+        if (action === "create-template") createTemplate();
+        if (action === "edit-template") { editingTemplateId = button.dataset.templateId; navigate("template-editor"); }
+        if (action === "delete-template") deleteTemplate(button.dataset.templateId);
+        if (action === "move-template-exercise") {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const index = finiteNumber(button.dataset.index);
+          const nextIndex = index + finiteNumber(button.dataset.direction);
+          if (template && nextIndex >= 0 && nextIndex < template.exercises.length) {
+            const [exercise] = template.exercises.splice(index, 1);
+            template.exercises.splice(nextIndex, 0, exercise);
+            template.exercises.forEach((item, itemIndex) => { item.order = itemIndex + 1; });
+            saveState(); render();
+          }
+        }
+        if (action === "remove-template-exercise") {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const index = finiteNumber(button.dataset.index);
+          if (template?.exercises?.[index]) { template.exercises.splice(index, 1); saveState(); render(); }
+        }
+        if (action === "open-program-dialog") openProgramDialog();
+        if (action === "close-program-dialog") closeDialog(programDialog);
+        if (action === "delete-program") deleteProgram(button.dataset.programId);
         if (action === "export-json") exportJson();
         if (action === "export-csv") exportCsv();
         if (action === "import-json") importInput.click();
@@ -2329,9 +2802,8 @@ svg {
         }
         if (action === "reset-data") {
           if (window.confirm("Effacer toutes les séances et la séance en cours ? Cette action est irréversible.")) {
-            const settings = state.settings;
             const deletedSessionIds = [...new Set([...state.deletedSessionIds, ...state.sessions.map(session => session.id).filter(Boolean)])];
-            state = defaultState(); state.settings = settings; state.deletedSessionIds = deletedSessionIds; saveState(); render(); showToast("Toutes les données ont été effacées.");
+            state.sessions = []; state.draft = null; state.deletedSessionIds = deletedSessionIds; saveState(); render(); showToast("L’historique a été effacé. La bibliothèque et les programmes sont conservés.");
           }
         }
         if (action === "install" && installPrompt) {
@@ -2363,6 +2835,25 @@ svg {
         if (target.dataset.setting) {
           state.settings[target.dataset.setting] = finiteNumber(target.value, state.settings[target.dataset.setting]); saveState();
         }
+        if (target.hasAttribute("data-library-search")) {
+          libraryQuery = target.value;
+          render();
+          const search = root.querySelector("#library-search");
+          if (search) { search.focus(); search.setSelectionRange(search.value.length, search.value.length); }
+        }
+        if (target.dataset.templateField) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          if (template) {
+            template[target.dataset.templateField] = target.value;
+            saveState();
+            if (target.dataset.templateField === "name") root.querySelector("h1").textContent = target.value || "Nouvelle séance";
+          }
+        }
+        if (target.hasAttribute("data-template-sets")) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
+          if (exercise) { exercise.plannedSets = Math.max(1, Math.min(12, finiteNumber(target.value, 3))); saveState(); }
+        }
       });
 
       root.addEventListener("change", event => {
@@ -2370,6 +2861,14 @@ svg {
         if (target.dataset.feedbackField && state.draft) { state.draft.feedback[target.dataset.feedbackField] = finiteNumber(target.value); saveState(); }
         if (target.hasAttribute("data-stats-period")) { statsDays = finiteNumber(target.value); render(); }
         if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; render(); }
+        if (target.hasAttribute("data-library-muscle")) { libraryMuscleFilter = target.value; render(); }
+        if (target.hasAttribute("data-active-program")) { state.activeProgramId = target.value; saveState(); render(); }
+        if (target.id === "picker-exercise") updatePickerDetail();
+        if (target.id === "program-type") {
+          const upperLower = target.value === "upperLower";
+          root.querySelector("#split-count-field").hidden = upperLower;
+          root.querySelector("#upper-frequency-field").hidden = !upperLower;
+        }
       });
 
       root.addEventListener("submit", event => {
@@ -2378,18 +2877,65 @@ svg {
         signInCloud();
       });
 
-      customForm.addEventListener("submit", event => {
+      libraryForm.addEventListener("submit", event => {
         event.preventDefault();
-        if (!state.draft) return;
-        const data = new FormData(customForm);
-        const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sets"), 3)));
-        const name = String(data.get("name") || "Exercice").trim();
-        state.draft.exercises.push({
-          id: `custom-${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || uid("exercise")}`,
-          instanceId: uid("exercise"), name, plannedSets, muscle: String(data.get("muscle")), loadType: String(data.get("loadType")), order: state.draft.exercises.length + 1, comments: "",
-          sets: Array.from({ length: plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] }))
+        const data = new FormData(libraryForm);
+        const exercise = normalizeLibraryExercise({
+          id: editingLibraryExerciseId || uid("library"),
+          name: String(data.get("name") || "Exercice").trim(),
+          muscle: String(data.get("muscle") || "other"),
+          secondaryMuscles: String(data.get("secondaryMuscles") || "").split(",").map(value => value.trim()).filter(Boolean),
+          equipmentType: String(data.get("equipmentType") || "other"),
+          loadType: String(data.get("loadType") || "total"),
+          brand: String(data.get("brand") || "").trim(),
+          machineName: String(data.get("machineName") || "").trim(),
+          machineModel: String(data.get("machineModel") || "").trim(),
+          gym: String(data.get("gym") || "").trim(),
+          machineSettings: String(data.get("machineSettings") || "").trim(),
+          notes: String(data.get("notes") || "").trim(),
+          unilateral: data.get("unilateral") === "on"
         });
-        saveState(); customDialog.close(); render(); showToast(`${name} ajouté.`);
+        const index = state.exerciseLibrary.findIndex(item => item.id === exercise.id);
+        if (index >= 0) state.exerciseLibrary[index] = exercise;
+        else state.exerciseLibrary.push(exercise);
+        saveState(); closeDialog(libraryDialog); render(); showToast(`${exercise.name} enregistré dans la bibliothèque.`);
+      });
+
+      pickerForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const data = new FormData(pickerForm);
+        const libraryExercise = getLibraryExercise(String(data.get("exerciseId")));
+        const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sets"), 3)));
+        if (!libraryExercise) return;
+        if (pickerMode === "template-add") {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          if (template) template.exercises.push({ libraryExerciseId: libraryExercise.id, plannedSets, order: template.exercises.length + 1 });
+        } else if (state.draft) {
+          if (pickerMode === "draft-replace" && state.draft.exercises[pickerTargetIndex]) {
+            state.draft.exercises[pickerTargetIndex] = draftExerciseFromLibrary(libraryExercise, plannedSets, state.draft.exercises[pickerTargetIndex]);
+          } else {
+            const exercise = draftExerciseFromLibrary(libraryExercise, plannedSets);
+            exercise.order = state.draft.exercises.length + 1;
+            state.draft.exercises.push(exercise);
+          }
+        }
+        saveState(); closeDialog(pickerDialog); render(); showToast(`${libraryExercise.name} ajouté.`);
+      });
+
+      programForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const data = new FormData(programForm);
+        const type = String(data.get("type")) === "upperLower" ? "upperLower" : "split";
+        const name = String(data.get("name") || "Programme").trim();
+        const sessionNames = type === "upperLower"
+          ? (finiteNumber(data.get("upperFrequency"), 4) === 2 ? ["Upper", "Lower"] : ["Upper A", "Lower A", "Upper B", "Lower B"])
+          : Array.from({ length: Math.max(1, Math.min(10, finiteNumber(data.get("sessionCount"), 4))) }, (_, index) => `Séance ${index + 1}`);
+        const templates = sessionNames.map(sessionName => ({ id: uid("template"), name: sessionName, type: type === "upperLower" ? sessionName.toUpperCase().replace(" ", "-") : "SPLIT", warmup: "Libre", exercises: [] }));
+        const program = { id: uid("program"), name, type, workoutTemplateIds: templates.map(template => template.id) };
+        state.workoutTemplates.push(...templates);
+        state.programs.push(program);
+        state.activeProgramId = program.id;
+        saveState(); closeDialog(programDialog); navigate("program"); showToast(`${name} créé avec ${templates.length} séance(s).`);
       });
 
       importInput.addEventListener("change", () => {

@@ -2,7 +2,7 @@
 
 TRAINING by Yeltcha est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
 
-La version 1.2.0 ajoute un compte Supabase et une synchronisation sécurisée entre appareils. L’app conserve chaque changement localement, reste utilisable sans réseau et synchronise automatiquement les données au retour de la connexion. Elle permet toujours d’ajouter un ou plusieurs drops à une série, comptés comme une seule série de travail.
+La version 1.3.0 ajoute une bibliothèque personnelle d’exercices avec muscles, équipement, marque, machine, modèle, salle, réglages et notes. Les séances modèles peuvent être créées, modifiées ou supprimées, et les programmes peuvent suivre un Split personnalisé ou un Upper / Lower. Pendant une séance, il est possible d’ajouter, remplacer, réordonner ou retirer un exercice. L’ensemble reste disponible hors ligne et synchronisé avec Supabase.
 
 ## Installation recommandée sur iPhone
 
@@ -33,8 +33,11 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - Les données sont d’abord enregistrées dans le stockage du navigateur, puis synchronisées avec le compte Supabase lorsque l’utilisateur est connecté.
 - Sans réseau, les changements restent locaux et sont envoyés automatiquement au retour de la connexion.
 - Utilisez régulièrement **Données → Exporter une sauvegarde** pour créer un fichier JSON restaurable.
+- La bibliothèque, les séances modèles et les programmes sont inclus dans cette sauvegarde JSON et dans la synchronisation Supabase.
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
+
+La bibliothèque utilise la ligne `training_state` déjà créée dans Supabase. Aucune nouvelle table ni nouvelle requête SQL ne sont nécessaires pour passer de la version 1.2.0 à la version 1.3.0.
 
 ## Contenu du dossier
 

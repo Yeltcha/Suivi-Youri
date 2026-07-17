@@ -2,7 +2,7 @@
   "id": "volume-training-log",
   "name": "TRAINING by Yeltcha",
   "short_name": "TRAINING",
-  "description": "Programme et carnet d’entraînement bodybuilding avec synchronisation sécurisée des séances, séries dégressives, volume et progression.",
+  "description": "Carnet bodybuilding avec bibliothèque d’exercices, programmes Split ou Upper/Lower, séries dégressives et synchronisation sécurisée.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
