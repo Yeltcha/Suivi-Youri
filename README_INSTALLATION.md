@@ -2,7 +2,7 @@
 
 VOLUME est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
 
-La version 1.1 permet d’ajouter un ou plusieurs drops à une série. Chaque palier enchaîné cumule ses répétitions et son tonnage, tandis que l’ensemble reste compté comme une seule série de travail.
+La version 1.1.1 permet d’ajouter un ou plusieurs drops à une série. Chaque palier enchaîné cumule ses répétitions et son tonnage, tandis que l’ensemble reste compté comme une seule série de travail. Elle améliore également les espacements, l’affichage des cartes et les formulaires sur les petits écrans.
 
 ## Installation recommandée sur iPhone
 
