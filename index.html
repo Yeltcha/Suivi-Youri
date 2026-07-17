@@ -9,11 +9,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VOLUME">
+<meta name="apple-mobile-web-app-title" content="TRAINING">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
-<title>VOLUME — Training Log</title>
+<title>TRAINING by Yeltcha</title>
 <style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0c0f0d !important; }</style>
 <style>:root {
   color-scheme: light dark;
@@ -1045,10 +1045,10 @@ svg {
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">V</span>
+        <span class="brand-mark" aria-hidden="true">T</span>
         <span class="brand-copy">
-          <span class="brand-name">VOLUME</span>
-          <span class="brand-sub">training log</span>
+          <span class="brand-name">TRAINING</span>
+          <span class="brand-sub">by Yeltcha</span>
         </span>
       </div>
       <div id="header-status" class="header-status">Données locales</div>
@@ -1089,7 +1089,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.1.1";
+      const APP_VERSION = "1.1.2";
       const STORAGE_KEY = "volume-training-log-v1";
       const root = document.getElementById("volume-tracker-app");
       const main = root.querySelector("#app-main");
@@ -1536,7 +1536,7 @@ svg {
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
         if (standalone) return "";
         const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (installPrompt) return `<div class="notice row-between"><span>Installe VOLUME comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
+        if (installPrompt) return `<div class="notice row-between"><span>Installe TRAINING by Yeltcha comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
         if (isIos) return `<div class="notice"><strong>Installation iPhone :</strong> dans Safari, touche Partager puis <em>Sur l’écran d’accueil</em>.</div>`;
         return "";
       }
@@ -1593,7 +1593,6 @@ svg {
           <section class="page">
             <div class="section-head"><div><p class="eyebrow">Programme importé</p><h1>Ton split complet</h1></div><span class="badge accent">${totalWeeklySets} séries / cycle</span></div>
             <p class="muted">L’ordre et le volume reprennent ton tableau Excel. Les volumes musculaires correspondent aux séries principales colorées dans le classeur.</p>
-            <div class="notice warning"><strong>Contrôle du tableau :</strong> chaque PULL est annoncé à 25 séries dans Excel, mais ses lignes totalisent 29 avec les 4 crunchs. L’app retient donc 29 par PULL et 178 séries sur le cycle, ce qui correspond aussi à la somme de tes cibles musculaires.</div>
             <div class="program-grid">
               ${PROGRAM.map((session, sessionIndex) => `
                 <details class="card program-card" ${sessionIndex === 0 ? "open" : ""}>
@@ -1834,12 +1833,12 @@ svg {
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
-              ${standalone ? `<p class="muted">VOLUME est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
+              ${standalone ? `<p class="muted">TRAINING by Yeltcha est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
             <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
             ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
             ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer toutes les données</button>` : ""}
-            <p class="small muted">VOLUME ${APP_VERSION} · stockage local hors ligne</p>
+            <p class="small muted">TRAINING by Yeltcha ${APP_VERSION} · stockage local hors ligne</p>
           </section>`;
       }
 
@@ -1920,8 +1919,8 @@ svg {
       }
 
       function exportJson() {
-        const payload = { app: "VOLUME", exportedAt: new Date().toISOString(), ...state };
-        downloadFile(`volume-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
+        const payload = { app: "TRAINING by Yeltcha", exportedAt: new Date().toISOString(), ...state };
+        downloadFile(`training-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
         showToast("Sauvegarde JSON exportée.");
       }
 
@@ -1943,7 +1942,7 @@ svg {
           ]));
         })));
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
-        downloadFile(`volume-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
+        downloadFile(`training-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
       }
 
@@ -1959,7 +1958,7 @@ svg {
             render();
             showToast("Sauvegarde restaurée.");
           } catch (error) {
-            showToast("Ce fichier n’est pas une sauvegarde VOLUME valide.");
+            showToast("Ce fichier n’est pas une sauvegarde TRAINING valide.");
           }
         };
         reader.readAsText(file);

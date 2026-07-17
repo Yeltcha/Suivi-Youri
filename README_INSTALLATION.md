@@ -1,8 +1,8 @@
-# VOLUME — installation sur téléphone
+# TRAINING by Yeltcha — installation sur téléphone
 
-VOLUME est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
+TRAINING by Yeltcha est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
 
-La version 1.1.1 permet d’ajouter un ou plusieurs drops à une série. Chaque palier enchaîné cumule ses répétitions et son tonnage, tandis que l’ensemble reste compté comme une seule série de travail. Elle améliore également les espacements, l’affichage des cartes et les formulaires sur les petits écrans.
+La version 1.1.2 permet d’ajouter un ou plusieurs drops à une série. Chaque palier enchaîné cumule ses répétitions et son tonnage, tandis que l’ensemble reste compté comme une seule série de travail. Elle améliore également les espacements, l’affichage des cartes et les formulaires sur les petits écrans.
 
 ## Installation recommandée sur iPhone
 
@@ -11,7 +11,7 @@ Safari exige que l’application soit ouverte depuis une adresse web sécurisée
 1. Décompressez le dossier puis placez son contenu sur un hébergement statique HTTPS. Votre hébergement OVH, GitHub Pages ou un hébergeur statique similaire convient : aucun serveur ni aucune base de données ne sont nécessaires.
 2. Ouvrez l’adresse obtenue dans **Safari** sur l’iPhone.
 3. Touchez **Partager**, puis **Sur l’écran d’accueil** et validez l’ouverture comme app web.
-4. Lancez VOLUME une première fois avec une connexion. Ensuite, l’application et vos séances restent disponibles hors ligne.
+4. Lancez TRAINING by Yeltcha une première fois avec une connexion. Ensuite, l’application et vos séances restent disponibles hors ligne.
 
 ## Android
 
