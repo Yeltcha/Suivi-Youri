@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0c0f0d">
-<meta name="description" content="Programme et carnet d’entraînement bodybuilding avec suivi des séries dégressives, du volume, du tonnage et de la progression.">
+<meta name="description" content="Programme et carnet d’entraînement bodybuilding avec synchronisation sécurisée des séances, séries dégressives, volume et progression.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,6 +15,7 @@
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>TRAINING by Yeltcha</title>
 <style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0c0f0d !important; }</style>
+<script src="./supabase-client.js"></script>
 <style>:root {
   color-scheme: light dark;
   background-color: transparent !important;
@@ -861,6 +862,13 @@ svg {
       white-space: nowrap;
     }
     #volume-tracker-app .badge.accent { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); }
+    #volume-tracker-app .sync-line { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    #volume-tracker-app .sync-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--muted); }
+    #volume-tracker-app .sync-dot.synced { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent); }
+    #volume-tracker-app .sync-dot.syncing { background: var(--blue); animation: sync-pulse 1s ease-in-out infinite; }
+    #volume-tracker-app .sync-dot.offline,
+    #volume-tracker-app .sync-dot.error { background: var(--orange); }
+    @keyframes sync-pulse { 50% { opacity: .35; transform: scale(.8); } }
     #volume-tracker-app .progress { height: 8px; overflow: hidden; border-radius: 99px; background: var(--surface-3); }
     #volume-tracker-app .progress > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .25s ease; }
     #volume-tracker-app .progress.over > span { background: var(--orange); }
@@ -1089,8 +1097,11 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.1.2";
+      const APP_VERSION = "1.2.0";
       const STORAGE_KEY = "volume-training-log-v1";
+      const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
+      const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_tYfLsa4TMizDkWppAwhMYw_-2egjN8P";
       const root = document.getElementById("volume-tracker-app");
       const main = root.querySelector("#app-main");
       const toastEl = root.querySelector("#toast");
@@ -1209,13 +1220,22 @@ svg {
       let installPrompt = null;
       let toastTimer = null;
       let state = loadState();
+      let cloudClient = null;
+      let cloudUser = null;
+      let cloudStatus = "local";
+      let cloudStatusDetail = "Données conservées sur cet appareil";
+      let cloudSyncTimer = null;
+      let cloudSyncInFlight = false;
+      let cloudSyncQueued = false;
 
       function defaultState() {
         return {
-          version: 2,
+          version: 3,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6 },
           sessions: [],
-          draft: null
+          draft: null,
+          deletedSessionIds: [],
+          updatedAt: ""
         };
       }
 
@@ -1234,13 +1254,15 @@ svg {
         const base = defaultState();
         if (!input || typeof input !== "object") return base;
         return {
-          version: 2,
+          version: 3,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek)
           },
           sessions: Array.isArray(input.sessions) ? input.sessions.filter(session => session && typeof session === "object").map(normalizeSession) : [],
-          draft: input.draft && typeof input.draft === "object" ? normalizeSession(input.draft) : null
+          draft: input.draft && typeof input.draft === "object" ? normalizeSession(input.draft) : null,
+          deletedSessionIds: Array.isArray(input.deletedSessionIds) ? [...new Set(input.deletedSessionIds.filter(id => typeof id === "string"))] : [],
+          updatedAt: typeof input.updatedAt === "string" ? input.updatedAt : ""
         };
       }
 
@@ -1281,13 +1303,268 @@ svg {
         };
       }
 
-      function saveState() {
+      function loadCloudMeta() {
         try {
+          const parsed = JSON.parse(localStorage.getItem(CLOUD_META_KEY) || "{}");
+          return {
+            userId: typeof parsed.userId === "string" ? parsed.userId : "",
+            cloudUpdatedAt: typeof parsed.cloudUpdatedAt === "string" ? parsed.cloudUpdatedAt : "",
+            lastSyncedAt: typeof parsed.lastSyncedAt === "string" ? parsed.lastSyncedAt : "",
+            dirty: Boolean(parsed.dirty)
+          };
+        } catch (error) {
+          return { userId: "", cloudUpdatedAt: "", lastSyncedAt: "", dirty: false };
+        }
+      }
+
+      function saveCloudMeta(meta) {
+        localStorage.setItem(CLOUD_META_KEY, JSON.stringify(meta));
+      }
+
+      function saveState(markCloudDirty = true) {
+        try {
+          if (markCloudDirty) state.updatedAt = new Date().toISOString();
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          headerStatus.textContent = state.draft ? "Séance en cours" : "Sauvegardé sur l’appareil";
+          if (markCloudDirty) {
+            const meta = loadCloudMeta();
+            meta.dirty = true;
+            if (cloudUser) meta.userId = cloudUser.id;
+            saveCloudMeta(meta);
+            scheduleCloudSync();
+          }
+          updateHeader();
         } catch (error) {
           showToast("Impossible de sauvegarder sur cet appareil.");
         }
+      }
+
+      function stateHasTrainingData(value) {
+        return Boolean(value?.draft || value?.sessions?.length);
+      }
+
+      function mergeTrainingStates(localInput, remoteInput) {
+        const local = normalizeState(localInput);
+        const remote = normalizeState(remoteInput);
+        const localTime = Date.parse(local.updatedAt) || 0;
+        const remoteTime = Date.parse(remote.updatedAt) || 0;
+        const preferred = localTime >= remoteTime ? local : remote;
+        const secondary = preferred === local ? remote : local;
+        const deletedSessionIds = [...new Set([...local.deletedSessionIds, ...remote.deletedSessionIds])];
+        const deleted = new Set(deletedSessionIds);
+        const sessions = new Map();
+        [...secondary.sessions, ...preferred.sessions].forEach(session => {
+          if (session?.id && !deleted.has(session.id)) sessions.set(session.id, session);
+        });
+        return normalizeState({
+          ...preferred,
+          version: 3,
+          settings: preferred.settings,
+          sessions: [...sessions.values()],
+          draft: preferred.draft || secondary.draft || null,
+          deletedSessionIds,
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      function cloudStatusLabel() {
+        if (!cloudUser) return cloudStatus === "error" ? "Cloud indisponible" : "Local · non connecté";
+        return ({ synced: "Synchronisé", syncing: "Synchronisation…", offline: "Hors ligne · local", error: "Sync à vérifier" })[cloudStatus] || "Connecté";
+      }
+
+      function setCloudStatus(status, detail = "") {
+        cloudStatus = status;
+        if (detail) cloudStatusDetail = detail;
+        updateHeader();
+        const badge = root.querySelector("#cloud-status-badge");
+        const detailEl = root.querySelector("#cloud-status-detail");
+        const dot = root.querySelector("#cloud-status-dot");
+        if (badge) badge.textContent = cloudStatusLabel();
+        if (detailEl) detailEl.textContent = cloudStatusDetail;
+        if (dot) dot.className = `sync-dot ${status}`;
+      }
+
+      function scheduleCloudSync(delay = 1200) {
+        if (!cloudUser || !cloudClient) return;
+        clearTimeout(cloudSyncTimer);
+        cloudSyncTimer = setTimeout(() => syncCloud({ silent: true }), delay);
+      }
+
+      function applyCloudState(payload, remoteUpdatedAt) {
+        state = normalizeState(payload);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        saveCloudMeta({
+          userId: cloudUser.id,
+          cloudUpdatedAt: remoteUpdatedAt,
+          lastSyncedAt: new Date().toISOString(),
+          dirty: false
+        });
+        render();
+      }
+
+      async function pushCloudState() {
+        const payload = structuredClone(state);
+        const pushedRevision = state.updatedAt;
+        const { data, error } = await cloudClient
+          .from("training_state")
+          .upsert({ user_id: cloudUser.id, payload }, { onConflict: "user_id" })
+          .select("updated_at")
+          .single();
+        if (error) throw error;
+        const changedDuringPush = state.updatedAt !== pushedRevision;
+        saveCloudMeta({
+          userId: cloudUser.id,
+          cloudUpdatedAt: data.updated_at,
+          lastSyncedAt: new Date().toISOString(),
+          dirty: changedDuringPush
+        });
+        if (changedDuringPush) {
+          cloudSyncQueued = true;
+          setCloudStatus("syncing", "De nouveaux changements attendent leur envoi…");
+        } else {
+          setCloudStatus("synced", `Dernière synchronisation : ${new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date())}`);
+        }
+      }
+
+      async function syncCloud({ silent = false } = {}) {
+        if (!cloudClient || !cloudUser) return;
+        if (navigator.onLine === false) {
+          setCloudStatus("offline", "Les changements seront envoyés au retour du réseau.");
+          return;
+        }
+        if (cloudSyncInFlight) {
+          cloudSyncQueued = true;
+          return;
+        }
+        cloudSyncInFlight = true;
+        setCloudStatus("syncing", "Envoi et vérification des données…");
+        try {
+          const { data: remoteRow, error } = await cloudClient
+            .from("training_state")
+            .select("payload,updated_at")
+            .eq("user_id", cloudUser.id)
+            .maybeSingle();
+          if (error) throw error;
+
+          const meta = loadCloudMeta();
+          const localHasData = stateHasTrainingData(state);
+          const remoteState = remoteRow ? normalizeState(remoteRow.payload) : null;
+          const remoteHasData = stateHasTrainingData(remoteState);
+          const anotherKnownUser = Boolean(meta.userId && meta.userId !== cloudUser.id);
+
+          if (!remoteRow) {
+            if (anotherKnownUser && localHasData && !window.confirm("Les données locales appartiennent à un autre compte déjà utilisé sur cet appareil. Les importer dans ce nouveau compte ?")) {
+              state = defaultState();
+              saveState(false);
+            }
+            await pushCloudState();
+          } else if (anotherKnownUser) {
+            applyCloudState(remoteState, remoteRow.updated_at);
+            setCloudStatus("synced", "Données de ce compte chargées.");
+          } else if (!meta.cloudUpdatedAt) {
+            if (!localHasData && remoteHasData) {
+              applyCloudState(remoteState, remoteRow.updated_at);
+              setCloudStatus("synced", "Données en ligne récupérées sur cet appareil.");
+            } else if (localHasData && !remoteHasData && !remoteState.deletedSessionIds.length) {
+              await pushCloudState();
+            } else {
+              state = mergeTrainingStates(state, remoteState);
+              saveState(false);
+              await pushCloudState();
+            }
+          } else if (meta.dirty) {
+            if (remoteRow.updated_at !== meta.cloudUpdatedAt) {
+              state = mergeTrainingStates(state, remoteState);
+              saveState(false);
+            }
+            await pushCloudState();
+          } else if (remoteRow.updated_at !== meta.cloudUpdatedAt) {
+            applyCloudState(remoteState, remoteRow.updated_at);
+            setCloudStatus("synced", "Modifications en ligne récupérées.");
+          } else {
+            setCloudStatus("synced", meta.lastSyncedAt ? `À jour · ${new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date(meta.lastSyncedAt))}` : "Données à jour.");
+          }
+          if (!silent) showToast("Données synchronisées.");
+        } catch (error) {
+          setCloudStatus(navigator.onLine === false ? "offline" : "error", navigator.onLine === false ? "Les données restent enregistrées localement." : `Synchronisation impossible : ${error.message || "erreur inconnue"}`);
+          if (!silent) showToast("Synchronisation impossible. Les données locales sont conservées.");
+        } finally {
+          cloudSyncInFlight = false;
+          if (cloudSyncQueued) {
+            cloudSyncQueued = false;
+            scheduleCloudSync(250);
+          }
+        }
+      }
+
+      async function signInCloud() {
+        if (!cloudClient) return;
+        const email = root.querySelector("#cloud-email")?.value.trim();
+        const password = root.querySelector("#cloud-password")?.value || "";
+        if (!email || !password) return showToast("Renseigne ton e-mail et ton mot de passe.");
+        setCloudStatus("syncing", "Connexion…");
+        const { error } = await cloudClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          setCloudStatus("error", error.message);
+          showToast("Connexion impossible. Vérifie tes identifiants.");
+        }
+      }
+
+      async function signUpCloud() {
+        if (!cloudClient) return;
+        const email = root.querySelector("#cloud-email")?.value.trim();
+        const password = root.querySelector("#cloud-password")?.value || "";
+        if (!email || password.length < 8) return showToast("Utilise un e-mail valide et un mot de passe d’au moins 8 caractères.");
+        setCloudStatus("syncing", "Création du compte…");
+        const { data, error } = await cloudClient.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: "https://yeltcha.github.io/Suivi-Youri/" }
+        });
+        if (error) {
+          setCloudStatus("error", error.message);
+          showToast("Création du compte impossible.");
+        } else if (!data.session) {
+          setCloudStatus("local", "Compte créé. Confirme l’adresse depuis l’e-mail reçu, puis connecte-toi.");
+          showToast("Compte créé : vérifie tes e-mails.");
+        }
+      }
+
+      async function signOutCloud() {
+        if (!cloudClient) return;
+        if (loadCloudMeta().dirty) {
+          if (navigator.onLine === false) return showToast("Reconnecte-toi au réseau avant de te déconnecter, ou exporte une sauvegarde JSON.");
+          await syncCloud({ silent: true });
+          if (loadCloudMeta().dirty) return showToast("Des changements ne sont pas encore synchronisés. Réessaie avant de te déconnecter.");
+        }
+        const { error } = await cloudClient.auth.signOut();
+        if (error) return showToast("Déconnexion impossible.");
+        cloudUser = null;
+        setCloudStatus("local", "Les données restent disponibles localement sur cet appareil.");
+        render();
+      }
+
+      async function initCloud() {
+        if (!window.trainingSupabase?.createClient) {
+          setCloudStatus("error", "Module de synchronisation indisponible.");
+          return;
+        }
+        cloudClient = window.trainingSupabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "training-by-yeltcha-auth" }
+        });
+        const { data } = await cloudClient.auth.getSession();
+        cloudUser = data.session?.user || null;
+        if (cloudUser) syncCloud({ silent: true });
+        else setCloudStatus("local", "Connecte-toi pour retrouver tes données sur tous tes appareils.");
+        cloudClient.auth.onAuthStateChange((event, session) => {
+          cloudUser = session?.user || null;
+          if (cloudUser) {
+            setCloudStatus("syncing", "Compte connecté. Synchronisation…");
+            setTimeout(() => syncCloud({ silent: true }), 0);
+          } else if (event === "SIGNED_OUT") {
+            setCloudStatus("local", "Données locales · compte déconnecté");
+          }
+          if (currentView === "data") render();
+        });
       }
 
       function finiteNumber(value, fallback = 0) {
@@ -1528,7 +1805,7 @@ svg {
           const elapsed = Math.max(0, Math.round((Date.now() - new Date(state.draft.startedAt).getTime()) / 60000));
           headerStatus.textContent = `${state.draft.name} · ${elapsed} min`;
         } else {
-          headerStatus.textContent = "Sauvegardé sur l’appareil";
+          headerStatus.textContent = cloudStatusLabel();
         }
       }
 
@@ -1818,9 +2095,18 @@ svg {
       function renderData() {
         const sessions = getSortedSessions().reverse();
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
+        const meta = loadCloudMeta();
+        const cloudAccount = cloudUser
+          ? `<div class="stack"><div class="row-between"><div class="sync-line"><span id="cloud-status-dot" class="sync-dot ${cloudStatus}"></span><div><strong>${esc(cloudUser.email || "Compte connecté")}</strong><p id="cloud-status-detail" class="small muted">${esc(cloudStatusDetail)}</p></div></div><span id="cloud-status-badge" class="badge ${cloudStatus === "synced" ? "accent" : ""}">${esc(cloudStatusLabel())}</span></div><div class="row"><button class="btn btn-primary" type="button" data-action="cloud-sync">Synchroniser maintenant</button><button class="btn" type="button" data-action="cloud-signout">Se déconnecter</button></div>${meta.dirty ? `<p class="small muted">Des changements locaux attendent leur synchronisation.</p>` : ""}</div>`
+          : `<form id="cloud-auth-form" class="stack"><div class="form-grid"><div class="field"><label for="cloud-email">Adresse e-mail</label><input id="cloud-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="ton@email.fr"></div><div class="field"><label for="cloud-password">Mot de passe</label><input id="cloud-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum"></div></div><div class="row"><button class="btn btn-primary" type="submit">Se connecter</button><button class="btn" type="button" data-action="cloud-signup">Créer mon compte</button></div><p id="cloud-status-detail" class="small muted">${esc(cloudStatusDetail)}</p></form>`;
         return `
           <section class="page">
-            <div><p class="eyebrow">Sauvegarde et réglages</p><h1>Tes données</h1><p class="muted">Tout reste sur cet appareil. Aucune séance n’est envoyée sur un serveur.</p></div>
+            <div><p class="eyebrow">Sauvegarde et réglages</p><h1>Tes données</h1><p class="muted">Chaque saisie reste d’abord sur cet appareil. Une fois connecté, elle est également synchronisée avec ton compte.</p></div>
+            <div class="card stack">
+              <div class="row-between"><div><p class="eyebrow">Compte et cloud</p><h2>${cloudUser ? "Synchronisation active" : "Retrouver tes séances partout"}</h2></div>${cloudUser ? "" : `<span id="cloud-status-badge" class="badge">${esc(cloudStatusLabel())}</span>`}</div>
+              ${cloudAccount}
+              <div class="notice"><strong>Mode hors ligne :</strong> tu peux continuer ta séance sans réseau. Les changements seront envoyés automatiquement dès le retour de la connexion.</div>
+            </div>
             <div class="card stack">
               <div><p class="eyebrow">Profil</p><h2>Calcul du tonnage</h2></div>
               <div class="form-grid"><div class="field"><label for="bodyweight">Poids du corps (kg)</label><input id="bodyweight" type="number" inputmode="decimal" min="20" max="300" step="0.1" value="${esc(state.settings.bodyweightKg)}" data-setting="bodyweightKg"></div><div class="field"><label for="target-sessions">Séances cibles / semaine</label><input id="target-sessions" type="number" inputmode="numeric" min="1" max="14" value="${esc(state.settings.targetSessionsWeek)}" data-setting="targetSessionsWeek"></div></div>
@@ -1829,7 +2115,7 @@ svg {
             <div class="card stack">
               <div><p class="eyebrow">Sauvegarde</p><h2>Exporter ou restaurer</h2></div>
               <div class="row"><button class="btn btn-primary" type="button" data-action="export-json">Exporter une sauvegarde</button><button class="btn" type="button" data-action="export-csv">Exporter en CSV</button><button class="btn" type="button" data-action="import-json">Restaurer un fichier</button></div>
-              <div class="notice warning"><strong>Important :</strong> les données sont locales. Exporte régulièrement une sauvegarde JSON, surtout avant de changer de téléphone, vider Safari/Chrome ou désinstaller l’app.</div>
+              <div class="notice warning"><strong>Important :</strong> conserve malgré tout des sauvegardes JSON régulières, notamment avant de changer de téléphone ou de supprimer l’app.</div>
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
@@ -1838,7 +2124,7 @@ svg {
             <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
             ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
             ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer toutes les données</button>` : ""}
-            <p class="small muted">TRAINING by Yeltcha ${APP_VERSION} · stockage local hors ligne</p>
+            <p class="small muted">TRAINING by Yeltcha ${APP_VERSION} · stockage local et synchronisation Supabase</p>
           </section>`;
       }
 
@@ -2029,16 +2315,23 @@ svg {
         if (action === "export-json") exportJson();
         if (action === "export-csv") exportCsv();
         if (action === "import-json") importInput.click();
+        if (action === "cloud-signup") signUpCloud();
+        if (action === "cloud-sync") syncCloud();
+        if (action === "cloud-signout") signOutCloud();
         if (action === "duplicate-session") duplicateSession(button.dataset.sessionId);
         if (action === "delete-session") {
           const session = state.sessions.find(item => item.id === button.dataset.sessionId);
           if (session && window.confirm(`Supprimer définitivement ${session.name} du ${formatDate(session.date, true)} ?`)) {
-            state.sessions = state.sessions.filter(item => item.id !== session.id); saveState(); render(); showToast("Séance supprimée.");
+            state.sessions = state.sessions.filter(item => item.id !== session.id);
+            state.deletedSessionIds = [...new Set([...state.deletedSessionIds, session.id])];
+            saveState(); render(); showToast("Séance supprimée.");
           }
         }
         if (action === "reset-data") {
           if (window.confirm("Effacer toutes les séances et la séance en cours ? Cette action est irréversible.")) {
-            const settings = state.settings; state = defaultState(); state.settings = settings; saveState(); render(); showToast("Toutes les données ont été effacées.");
+            const settings = state.settings;
+            const deletedSessionIds = [...new Set([...state.deletedSessionIds, ...state.sessions.map(session => session.id).filter(Boolean)])];
+            state = defaultState(); state.settings = settings; state.deletedSessionIds = deletedSessionIds; saveState(); render(); showToast("Toutes les données ont été effacées.");
           }
         }
         if (action === "install" && installPrompt) {
@@ -2079,6 +2372,12 @@ svg {
         if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; render(); }
       });
 
+      root.addEventListener("submit", event => {
+        if (event.target.id !== "cloud-auth-form") return;
+        event.preventDefault();
+        signInCloud();
+      });
+
       customForm.addEventListener("submit", event => {
         event.preventDefault();
         if (!state.draft) return;
@@ -2103,12 +2402,21 @@ svg {
         event.preventDefault(); installPrompt = event; render();
       });
 
+      window.addEventListener("online", () => {
+        if (cloudUser) {
+          setCloudStatus("syncing", "Connexion revenue. Synchronisation…");
+          scheduleCloudSync(100);
+        }
+      });
+      window.addEventListener("offline", () => setCloudStatus("offline", "Les changements restent enregistrés localement."));
+
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
       }
 
       window.setInterval(updateLiveSummary, 60000);
       render();
+      initCloud();
     })();
   </script>
 </div>
