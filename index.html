@@ -1139,13 +1139,22 @@ svg {
     </form>
   </dialog>
 
+  <dialog id="rename-program-dialog">
+    <form id="rename-program-form" class="dialog-body" method="dialog">
+      <div class="stack"><p class="eyebrow">Programme existant</p><h2>Renommer le programme</h2></div>
+      <div class="field"><label for="rename-program-name">Nouveau nom</label><input id="rename-program-name" name="name" maxlength="80" required autocomplete="off" placeholder="Ex. Hypertrophie 2026"></div>
+      <div class="notice">Seul le nom du programme sera modifié. Ses séances, ses exercices et ton historique resteront inchangés.</div>
+      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-rename-program">Annuler</button><button class="btn btn-primary" type="submit">Enregistrer le nom</button></div>
+    </form>
+  </dialog>
+
   <input id="import-input" class="sr-only" type="file" accept="application/json,.json">
 
   <script>
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.4.0";
+      const APP_VERSION = "1.5.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1160,6 +1169,8 @@ svg {
       const pickerForm = root.querySelector("#exercise-picker-form");
       const programDialog = root.querySelector("#program-dialog");
       const programForm = root.querySelector("#program-form");
+      const renameProgramDialog = root.querySelector("#rename-program-dialog");
+      const renameProgramForm = root.querySelector("#rename-program-form");
       const importInput = root.querySelector("#import-input");
 
       const MUSCLES = [
@@ -1321,6 +1332,7 @@ svg {
       let libraryDialogMode = "library";
       let libraryDraftTargetIndex = -1;
       let editingTemplateId = "";
+      let renamingProgramId = "";
       let pickerMode = "draft-add";
       let pickerTargetIndex = -1;
       let installPrompt = null;
@@ -2042,6 +2054,17 @@ svg {
         openDialog(programDialog);
       }
 
+      function openRenameProgramDialog(programId = state.activeProgramId) {
+        const program = state.programs.find(item => item.id === programId);
+        if (!program) return showToast("Programme introuvable.");
+        renamingProgramId = program.id;
+        renameProgramForm.reset();
+        const nameInput = root.querySelector("#rename-program-name");
+        nameInput.value = program.name;
+        openDialog(renameProgramDialog);
+        requestAnimationFrame(() => { nameInput.focus(); nameInput.select(); });
+      }
+
       function effectiveLoad(weight, loadType) {
         const entered = finiteNumber(weight);
         if (loadType === "perSide") return entered * 2;
@@ -2289,7 +2312,7 @@ svg {
                 <div class="field"><label for="active-program">Programme affiché</label><select id="active-program" data-active-program>${state.programs.map(program => `<option value="${esc(program.id)}" ${program.id === activeProgram.id ? "selected" : ""}>${esc(program.name)} · ${program.type === "upperLower" ? "Upper / Lower" : "Split"}</option>`).join("")}</select></div>
                 <div class="field"><label>Volume du cycle</label><div class="row"><span class="badge accent">${templates.length} séance${templates.length > 1 ? "s" : ""}</span><span class="badge">${totalWeeklySets} séries prévues</span></div></div>
               </div>
-              <div class="row"><button class="btn btn-primary" type="button" data-action="create-template">＋ Créer une séance</button><button class="btn" type="button" data-action="navigate" data-view="library">Bibliothèque d’exercices</button><button class="btn" type="button" data-action="open-program-dialog">Nouveau programme</button><button class="btn btn-danger" type="button" data-action="delete-program" data-program-id="${esc(activeProgram.id)}">Supprimer ce programme</button></div>
+              <div class="row"><button class="btn btn-primary" type="button" data-action="create-template">＋ Créer une séance</button><button class="btn" type="button" data-action="navigate" data-view="library">Bibliothèque d’exercices</button><button class="btn" type="button" data-action="open-program-dialog">Nouveau programme</button><button class="btn" type="button" data-action="open-rename-program" data-program-id="${esc(activeProgram.id)}">Renommer ce programme</button><button class="btn btn-danger" type="button" data-action="delete-program" data-program-id="${esc(activeProgram.id)}">Supprimer ce programme</button></div>
             </div>
             <div class="program-grid">
               ${templates.map((session, sessionIndex) => `
@@ -2815,6 +2838,8 @@ svg {
         }
         if (action === "open-program-dialog") openProgramDialog();
         if (action === "close-program-dialog") closeDialog(programDialog);
+        if (action === "open-rename-program") openRenameProgramDialog(button.dataset.programId);
+        if (action === "close-rename-program") { closeDialog(renameProgramDialog); renamingProgramId = ""; }
         if (action === "delete-program") deleteProgram(button.dataset.programId);
         if (action === "export-json") exportJson();
         if (action === "export-csv") exportCsv();
@@ -2988,6 +3013,25 @@ svg {
         state.programs.push(program);
         state.activeProgramId = program.id;
         saveState(); closeDialog(programDialog); navigate("program"); showToast(`${name} créé avec ${templates.length} séance(s).`);
+      });
+
+      renameProgramForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const program = state.programs.find(item => item.id === renamingProgramId);
+        if (!program) { closeDialog(renameProgramDialog); renamingProgramId = ""; return showToast("Programme introuvable."); }
+        const name = String(new FormData(renameProgramForm).get("name") || "").trim();
+        if (!name) return showToast("Donne un nom au programme.");
+        if (name === program.name) {
+          closeDialog(renameProgramDialog);
+          renamingProgramId = "";
+          return showToast("Le nom du programme est inchangé.");
+        }
+        program.name = name;
+        saveState();
+        closeDialog(renameProgramDialog);
+        renamingProgramId = "";
+        render();
+        showToast(`Programme renommé « ${name} ».`);
       });
 
       importInput.addEventListener("change", () => {
