@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0c0f0d">
-<meta name="description" content="Programme et carnet d’entraînement bodybuilding avec suivi du volume, du tonnage et de la progression.">
+<meta name="description" content="Programme et carnet d’entraînement bodybuilding avec suivi des séries dégressives, du volume, du tonnage et de la progression.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -901,7 +901,7 @@ svg {
     #volume-tracker-app .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     #volume-tracker-app .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     #volume-tracker-app .workout-head { display: grid; gap: 14px; }
-    #volume-tracker-app .live-strip { position: sticky; top: 75px; z-index: 10; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1px; overflow: hidden; padding: 0; background: var(--line); }
+    #volume-tracker-app .live-strip { position: sticky; top: 75px; z-index: 10; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; overflow: hidden; padding: 0; background: var(--line); }
     #volume-tracker-app .live-metric { background: var(--surface); padding: 11px 8px; text-align: center; }
     #volume-tracker-app .live-metric strong { display: block; font-size: 17px; }
     #volume-tracker-app .live-metric span { color: var(--muted); font-size: 10px; }
@@ -915,6 +915,13 @@ svg {
     #volume-tracker-app .set-head { color: var(--muted); font-size: 10px; text-align: center; padding: 0 2px; }
     #volume-tracker-app .set-row input { min-height: 40px; padding: 7px 6px; text-align: center; border-radius: 9px; }
     #volume-tracker-app .set-index { text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; }
+    #volume-tracker-app .set-block { display: grid; gap: 7px; padding: 5px 0 9px; }
+    #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
+    #volume-tracker-app .drop-row { display: grid; grid-template-columns: 30px minmax(64px,1.2fr) minmax(50px,.8fr) minmax(44px,.7fr) 38px; gap: 7px; align-items: center; }
+    #volume-tracker-app .drop-row input { min-height: 38px; padding: 6px; text-align: center; border-radius: 9px; border-color: color-mix(in srgb, var(--accent) 24%, var(--line)); }
+    #volume-tracker-app .drop-index { color: var(--accent); font-size: 10px; font-weight: 850; text-align: center; }
+    #volume-tracker-app .drop-link { color: var(--muted); font-size: 9px; line-height: 1.1; text-align: center; }
+    #volume-tracker-app .drop-add { justify-self: start; min-height: 31px; margin-left: 37px; padding: 5px 9px; color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
     #volume-tracker-app .warmup-toggle[aria-pressed="true"] { color: var(--orange); border-color: color-mix(in srgb, var(--orange) 65%, var(--line)); background: color-mix(in srgb, var(--orange) 10%, var(--surface)); }
     #volume-tracker-app .exercise-foot { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 14px; }
     #volume-tracker-app details.options { width: 100%; border-top: 1px solid var(--line); margin-top: 4px; }
@@ -1002,6 +1009,7 @@ svg {
       #volume-tracker-app .hero .btn { min-width: 200px; }
       #volume-tracker-app .program-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       #volume-tracker-app .set-grid { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
+      #volume-tracker-app .drop-row { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
     }
     @media (prefers-reduced-motion: reduce) {
       #volume-tracker-app *, #volume-tracker-app *::before, #volume-tracker-app *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1055,7 +1063,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.0.0";
+      const APP_VERSION = "1.1.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const root = document.getElementById("volume-tracker-app");
       const main = root.querySelector("#app-main");
@@ -1286,7 +1294,7 @@ svg {
             instanceId: uid("exercise"),
             order: index + 1,
             comments: "",
-            sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false }))
+            sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] }))
           }))
         };
         saveState();
@@ -1300,17 +1308,32 @@ svg {
         return entered;
       }
 
+      function completedDrops(set) {
+        return (set.drops || []).filter(drop => finiteNumber(drop.reps) > 0);
+      }
+
+      function setTotalReps(set) {
+        return finiteNumber(set.reps) + completedDrops(set).reduce((sum, drop) => sum + finiteNumber(drop.reps), 0);
+      }
+
       function completedSets(exercise) {
-        return (exercise.sets || []).filter(set => finiteNumber(set.reps) > 0);
+        return (exercise.sets || []).filter(set => setTotalReps(set) > 0);
       }
 
       function workingSets(exercise) {
         return completedSets(exercise).filter(set => !set.warmup);
       }
 
+      function componentTonnage(weight, reps, exercise, warmup = false) {
+        if (warmup || finiteNumber(reps) <= 0) return 0;
+        return effectiveLoad(weight, exercise.loadType) * finiteNumber(reps);
+      }
+
       function setTonnage(set, exercise) {
-        if (set.warmup || finiteNumber(set.reps) <= 0) return 0;
-        return effectiveLoad(set.weight, exercise.loadType) * finiteNumber(set.reps);
+        if (set.warmup) return 0;
+        const mainTonnage = componentTonnage(set.weight, set.reps, exercise);
+        const dropsTonnage = completedDrops(set).reduce((sum, drop) => sum + componentTonnage(drop.weight, drop.reps, exercise), 0);
+        return mainTonnage + dropsTonnage;
       }
 
       function sessionTonnage(session) {
@@ -1322,7 +1345,21 @@ svg {
       }
 
       function sessionReps(session) {
-        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + finiteNumber(set.reps), 0), 0);
+        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + setTotalReps(set), 0), 0);
+      }
+
+      function sessionDropSets(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).filter(set => completedDrops(set).length > 0).length, 0);
+      }
+
+      function sessionDropSegments(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + completedDrops(set).length, 0), 0);
+      }
+
+      function formatSetSummary(set) {
+        const main = `${esc(set.weight || 0)} kg × ${esc(set.reps || 0)}`;
+        const drops = completedDrops(set).map(drop => `${esc(drop.weight || 0)} kg × ${esc(drop.reps || 0)}`);
+        return [main, ...drops].join(" → ");
       }
 
       function e1rm(weight, reps) {
@@ -1480,7 +1517,7 @@ svg {
             </div>
 
             <div class="section-head"><div><p class="eyebrow">Dernière trace</p><h2>Historique récent</h2></div><button class="btn btn-sm btn-ghost" type="button" data-action="navigate" data-view="data">Voir tout</button></div>
-            ${last ? `<div class="card session-line"><div class="row-between"><div><h3>${esc(last.name)}</h3><p class="small muted">${formatDate(last.date, true)} · ${finiteNumber(last.durationMin)} min</p></div><span class="badge">effort ${finiteNumber(last.feedback?.effort, 0)}/10</span></div><div class="row"><span class="badge accent">${sessionWorkSets(last)} séries</span><span class="badge">${compactWeight(sessionTonnage(last))} kg</span><span class="badge">${sessionReps(last)} reps</span></div>${last.comments ? `<p class="small muted">${esc(last.comments)}</p>` : ""}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
+            ${last ? `<div class="card session-line"><div class="row-between"><div><h3>${esc(last.name)}</h3><p class="small muted">${formatDate(last.date, true)} · ${finiteNumber(last.durationMin)} min</p></div><span class="badge">effort ${finiteNumber(last.feedback?.effort, 0)}/10</span></div><div class="row"><span class="badge accent">${sessionWorkSets(last)} séries</span><span class="badge">${compactWeight(sessionTonnage(last))} kg</span><span class="badge">${sessionReps(last)} reps</span>${sessionDropSegments(last) ? `<span class="badge accent">${sessionDropSegments(last)} drop${sessionDropSegments(last) > 1 ? "s" : ""}</span>` : ""}</div>${last.comments ? `<p class="small muted">${esc(last.comments)}</p>` : ""}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
           </section>`;
       }
 
@@ -1517,6 +1554,7 @@ svg {
         const draft = state.draft;
         const liveSets = sessionWorkSets(draft);
         const liveTonnage = sessionTonnage(draft);
+        const liveDrops = sessionDropSegments(draft);
         const elapsed = Math.max(0, Math.round((Date.now() - new Date(draft.startedAt).getTime()) / 60000));
         return `
           <section class="page">
@@ -1526,12 +1564,13 @@ svg {
                 <div class="field"><label for="workout-date">Date</label><input id="workout-date" type="date" value="${esc(draft.date)}" data-draft-field="date"></div>
                 <div class="field"><label for="workout-duration">Durée (min, optionnel)</label><input id="workout-duration" type="number" inputmode="numeric" min="1" max="600" placeholder="Auto : ${elapsed}" value="${esc(draft.durationOverride)}" data-draft-field="durationOverride"></div>
               </div>
-              <div class="notice"><strong>Échauffement prévu :</strong> ${esc(draft.warmup)}. Active “W” sur une série ajoutée si tu veux l’exclure des statistiques de travail.</div>
+              <div class="notice"><strong>Série dégressive :</strong> utilise « + Drop » sous une série, puis saisis chaque baisse de charge enchaînée sans repos. Tous les paliers cumulent répétitions et tonnage, mais l’ensemble compte comme une seule série de travail. Active “W” pour exclure toute la série et ses drops.</div>
             </div>
 
             <div class="card live-strip" aria-label="Résumé en direct">
               <div class="live-metric"><strong id="live-set-count">${liveSets}</strong><span>séries</span></div>
               <div class="live-metric"><strong id="live-tonnage">${compactWeight(liveTonnage)}</strong><span>kg de tonnage</span></div>
+              <div class="live-metric"><strong id="live-drop-count">${liveDrops}</strong><span>drops</span></div>
               <div class="live-metric"><strong id="live-time">${elapsed}</strong><span>minutes</span></div>
             </div>
 
@@ -1558,7 +1597,7 @@ svg {
       function renderTrackedExercise(exercise, exerciseIndex) {
         const previous = lastExercisePerformance(exercise.id);
         const previousText = previous
-          ? `${formatDate(previous.date)} · ${previous.sets.map(set => `${esc(set.weight || 0)} kg × ${esc(set.reps)}`).join(" · ")}`
+          ? `${formatDate(previous.date)} · ${previous.sets.map(formatSetSummary).join(" · ")}`
           : "Aucun passage précédent";
         return `
           <article class="card exercise-track" data-exercise-index="${exerciseIndex}">
@@ -1573,7 +1612,7 @@ svg {
               <div class="set-grid set-head"><span>N°</span><span>Charge kg</span><span>Reps</span><span>RIR</span><span>W</span></div>
               ${exercise.sets.map((set, setIndex) => {
                 const previousSet = previous?.sets?.[setIndex];
-                return `<div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><input aria-label="RIR série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="10" placeholder="${esc(previousSet?.rir ?? "—")}" value="${esc(set.rir)}" data-set-field="rir" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement">W</button></div>`;
+                return `<div class="set-block"><div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><input aria-label="RIR série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="10" placeholder="${esc(previousSet?.rir ?? "—")}" value="${esc(set.rir)}" data-set-field="rir" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement">W</button></div>${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}"><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}"><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}">×</button></div>`).join("")}<button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">↳ + Drop</button></div>`;
               }).join("")}
             </div>
             <div class="exercise-foot">
@@ -1598,6 +1637,8 @@ svg {
         const totalTonnage = sessions.reduce((sum, session) => sum + sessionTonnage(session), 0);
         const totalSets = sessions.reduce((sum, session) => sum + sessionWorkSets(session), 0);
         const totalReps = sessions.reduce((sum, session) => sum + sessionReps(session), 0);
+        const totalDropSets = sessions.reduce((sum, session) => sum + sessionDropSets(session), 0);
+        const totalDropSegments = sessions.reduce((sum, session) => sum + sessionDropSegments(session), 0);
         const avgDuration = sessions.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0) / sessions.length;
         const earliest = dateFromYmd(sessions[0].date);
         const spanDays = statsDays || Math.max(1, Math.ceil((new Date() - earliest) / 86400000) + 1);
@@ -1622,6 +1663,7 @@ svg {
               <div class="card kpi"><span class="kpi-label">Répétitions / série</span><strong class="kpi-value">${formatNumber(totalSets ? totalReps / totalSets : 0, 1)}</strong><span class="small muted">${totalReps} répétitions</span></div>
               <div class="card kpi"><span class="kpi-label">Fréquence moyenne</span><strong class="kpi-value">${formatNumber(avgWeekSessions, 1)}<span class="kpi-unit">/sem.</span></strong><span class="small muted">durée moy. ${formatNumber(avgDuration, 0)} min</span></div>
             </div>
+            <div class="row"><span class="badge accent">${totalDropSets} série${totalDropSets > 1 ? "s" : ""} dégressive${totalDropSets > 1 ? "s" : ""}</span><span class="badge">${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""} de baisse</span><span class="small muted">Une série avec plusieurs drops reste comptée comme une seule série de travail.</span></div>
 
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Tendance</p><h2>Tonnage par semaine</h2></div><span class="badge">${weekly.length} semaines</span></div>${barChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg")}</div>
 
@@ -1729,7 +1771,7 @@ svg {
               ${standalone ? `<p class="muted">VOLUME est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
             <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
-            ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span></div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
+            ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
             ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer toutes les données</button>` : ""}
             <p class="small muted">VOLUME ${APP_VERSION} · stockage local hors ligne</p>
           </section>`;
@@ -1739,9 +1781,11 @@ svg {
         if (!state.draft) return;
         const setEl = root.querySelector("#live-set-count");
         const tonnageEl = root.querySelector("#live-tonnage");
+        const dropEl = root.querySelector("#live-drop-count");
         const timeEl = root.querySelector("#live-time");
         if (setEl) setEl.textContent = sessionWorkSets(state.draft);
         if (tonnageEl) tonnageEl.textContent = compactWeight(sessionTonnage(state.draft));
+        if (dropEl) dropEl.textContent = sessionDropSegments(state.draft);
         if (timeEl) timeEl.textContent = Math.max(0, Math.round((Date.now() - new Date(state.draft.startedAt).getTime()) / 60000));
         updateHeader();
       }
@@ -1788,7 +1832,7 @@ svg {
             instanceId: uid("exercise"),
             order: exerciseIndex + 1,
             comments: "",
-            sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false }))
+            sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] }))
           }))
         };
         delete state.draft.endedAt;
@@ -1821,11 +1865,17 @@ svg {
       }
 
       function exportCsv() {
-        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "charge_saisie_kg", "repetitions", "rir", "echauffement", "mode_charge", "charge_effective_kg", "tonnage_kg", "effort_global", "energie", "performance", "congestion", "douleur", "commentaire_seance", "commentaire_exercice"];
+        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "echauffement", "mode_charge", "charge_effective_kg", "tonnage_kg", "effort_global", "energie", "performance", "congestion", "douleur", "commentaire_seance", "commentaire_exercice"];
         const rows = [headers];
-        getSortedSessions().forEach(session => (session.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => rows.push([
-          session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, set.weight, set.reps, set.rir, set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), effectiveLoad(set.weight, exercise.loadType), setTonnage(set, exercise), session.feedback?.effort, session.feedback?.energy, session.feedback?.performance, session.feedback?.pump, session.feedback?.pain, session.comments, exercise.comments
-        ]))));
+        getSortedSessions().forEach(session => (session.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => {
+          const components = [
+            { palier: 0, type: "principale", weight: set.weight, reps: set.reps, rir: set.rir },
+            ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
+          ];
+          components.forEach(component => rows.push([
+            session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), session.feedback?.effort, session.feedback?.energy, session.feedback?.performance, session.feedback?.pump, session.feedback?.pain, session.comments, exercise.comments
+          ]));
+        })));
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
         downloadFile(`volume-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
@@ -1861,7 +1911,7 @@ svg {
         }
         if (action === "add-set" && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
-          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false });
+          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] });
           saveState(); render();
         }
         if (action === "remove-last-set" && state.draft) {
@@ -1875,6 +1925,24 @@ svg {
           set.warmup = !set.warmup;
           button.setAttribute("aria-pressed", set.warmup ? "true" : "false");
           saveState(); updateLiveSummary();
+        }
+        if (action === "add-drop" && state.draft) {
+          const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
+          const set = exercise?.sets?.[finiteNumber(button.dataset.setIndex)];
+          if (set) {
+            if (!Array.isArray(set.drops)) set.drops = [];
+            set.drops.push({ id: uid("drop"), weight: "", reps: "" });
+            saveState(); render();
+          }
+        }
+        if (action === "remove-drop" && state.draft) {
+          const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
+          const set = exercise?.sets?.[finiteNumber(button.dataset.setIndex)];
+          const dropIndex = finiteNumber(button.dataset.dropIndex);
+          if (set?.drops?.[dropIndex]) {
+            set.drops.splice(dropIndex, 1);
+            saveState(); render();
+          }
         }
         if (action === "move-exercise" && state.draft) {
           const index = finiteNumber(button.dataset.index);
@@ -1921,6 +1989,12 @@ svg {
           const set = exercise?.sets?.[finiteNumber(target.dataset.setIndex)];
           if (set) { set[target.dataset.setField] = target.value; saveState(); updateLiveSummary(); }
         }
+        if (target.dataset.dropField && state.draft) {
+          const exercise = state.draft.exercises[finiteNumber(target.dataset.exerciseIndex)];
+          const set = exercise?.sets?.[finiteNumber(target.dataset.setIndex)];
+          const drop = set?.drops?.[finiteNumber(target.dataset.dropIndex)];
+          if (drop) { drop[target.dataset.dropField] = target.value; saveState(); updateLiveSummary(); }
+        }
         if (target.dataset.draftField && state.draft) {
           state.draft[target.dataset.draftField] = target.value; saveState();
         }
@@ -1949,7 +2023,7 @@ svg {
         state.draft.exercises.push({
           id: `custom-${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || uid("exercise")}`,
           instanceId: uid("exercise"), name, plannedSets, muscle: String(data.get("muscle")), loadType: String(data.get("loadType")), order: state.draft.exercises.length + 1, comments: "",
-          sets: Array.from({ length: plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false }))
+          sets: Array.from({ length: plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, drops: [] }))
         });
         saveState(); customDialog.close(); render(); showToast(`${name} ajouté.`);
       });

@@ -2,7 +2,7 @@
   "id": "volume-training-log",
   "name": "VOLUME — Training Log",
   "short_name": "VOLUME",
-  "description": "Programme et carnet d’entraînement bodybuilding avec suivi du volume, du tonnage et de la progression.",
+  "description": "Programme et carnet d’entraînement bodybuilding avec suivi des séries dégressives, du volume, du tonnage et de la progression.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",

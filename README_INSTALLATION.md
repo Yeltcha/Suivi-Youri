@@ -2,6 +2,8 @@
 
 VOLUME est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
 
+La version 1.1 permet d’ajouter un ou plusieurs drops à une série. Chaque palier enchaîné cumule ses répétitions et son tonnage, tandis que l’ensemble reste compté comme une seule série de travail.
+
 ## Installation recommandée sur iPhone
 
 Safari exige que l’application soit ouverte depuis une adresse web sécurisée (`https://`) pour l’installation et le fonctionnement hors ligne. Ouvrir directement `index.html` depuis l’app Fichiers ne suffit donc pas.
@@ -38,3 +40,4 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - `manifest.webmanifest` : informations d’installation
 - `service-worker.js` : fonctionnement hors ligne
 - `icons/` : icônes de l’application
+- `.nojekyll` : publication directe et fiable sur GitHub Pages
