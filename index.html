@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0c0f0d">
+<meta name="theme-color" content="#0B0D10">
 <meta name="description" content="Carnet bodybuilding avec bibliothèque d’exercices, programmes personnalisés, séries dégressives et synchronisation sécurisée.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>BODYSSEUS — Forge Your Odyssey.</title>
-<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0c0f0d !important; }</style>
+<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0B0D10 !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
   color-scheme: light dark;
@@ -704,17 +704,17 @@ svg {
 <div id="volume-tracker-app" class="volume-app">
   <style>
     #volume-tracker-app {
-      --bg: #0c0f0d;
-      --surface: #141815;
-      --surface-2: #1b211d;
-      --surface-3: #242b26;
-      --text: #f4f7f4;
-      --muted: #9ca79f;
-      --line: #2b342e;
-      --accent: #d4ff3f;
-      --accent-ink: #11160b;
-      --orange: #ff9b50;
-      --red: #ff6b6b;
+      --bg: #0B0D10;
+      --surface: #14161a;
+      --surface-2: #1c1e23;
+      --surface-3: #26282d;
+      --text: #F3EFE5;
+      --muted: #A59E91;
+      --line: #34312c;
+      --accent: #C6A15B;
+      --accent-ink: #0B0D10;
+      --orange: #d58a45;
+      --red: #C96161;
       --blue: #74b9ff;
       --radius: 18px;
       --radius-sm: 12px;
@@ -1238,7 +1238,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.8.0";
+      const APP_VERSION = "1.9.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1276,7 +1276,7 @@ svg {
 
       const PROGRAM = [
         {
-          id: "leg-1", name: "LEG 1", warmup: "—",
+          id: "leg-1", name: "LEG 1",
           exercises: [
             ["calves-press", "Calves press", 4, "calves", "total"],
             ["squat", "Squat", 4, "quads", "total"],
@@ -1289,7 +1289,7 @@ svg {
           ]
         },
         {
-          id: "push-1", name: "PUSH 1", warmup: "Butterfly",
+          id: "push-1", name: "PUSH 1",
           exercises: [
             ["developpe-incline-halteres", "Développé incliné haltères", 3, "chest", "perSide"],
             ["ecarte-incline-halteres", "Écarté incliné haltères", 3, "chest", "perSide"],
@@ -1304,7 +1304,7 @@ svg {
           ]
         },
         {
-          id: "pull-1", name: "PULL 1", warmup: "Pull-over",
+          id: "pull-1", name: "PULL 1",
           exercises: [
             ["tirage-haut-unilateral", "Tirage poulie haute unilatéral", 3, "back", "perSide"],
             ["tirage-horizontal", "Tirage horizontal", 3, "back", "total"],
@@ -1318,7 +1318,7 @@ svg {
           ]
         },
         {
-          id: "leg-2", name: "LEG 2", warmup: "—",
+          id: "leg-2", name: "LEG 2",
           exercises: [
             ["calves-press", "Calves press", 4, "calves", "total"],
             ["hack-squat", "Hack Squat", 4, "quads", "total"],
@@ -1331,7 +1331,7 @@ svg {
           ]
         },
         {
-          id: "push-2", name: "PUSH 2", warmup: "Butterfly",
+          id: "push-2", name: "PUSH 2",
           exercises: [
             ["developpe-incline-halteres", "Développé incliné haltères", 3, "chest", "perSide"],
             ["ecarte-incline-halteres", "Écarté incliné haltères", 3, "chest", "perSide"],
@@ -1346,7 +1346,7 @@ svg {
           ]
         },
         {
-          id: "pull-2", name: "PULL 2", warmup: "Pull-over",
+          id: "pull-2", name: "PULL 2",
           exercises: [
             ["tirage-haut-unilateral", "Tirage poulie haute unilatéral", 3, "back", "perSide"],
             ["rowing", "Rowing", 3, "back", "total"],
@@ -1400,7 +1400,6 @@ svg {
         return PROGRAM.map(session => ({
           id: session.id,
           name: session.name,
-          warmup: session.warmup,
           exercises: session.exercises.map((exercise, index) => ({ libraryExerciseId: exercise.id, plannedSets: exercise.plannedSets, rirEnabled: true, order: index + 1 }))
         }));
       }
@@ -1520,7 +1519,6 @@ svg {
         return {
           id: String(template.id || uid("template")),
           name: String(template.name || "Nouvelle séance"),
-          warmup: String(template.warmup || "Libre"),
           exercises: Array.isArray(template.exercises) ? template.exercises.filter(Boolean).map((exercise, index) => ({
             libraryExerciseId: String(exercise.libraryExerciseId || exercise.id || ""),
             plannedSets: Math.max(1, Math.min(12, finiteNumber(exercise.plannedSets, 3))),
@@ -1973,7 +1971,6 @@ svg {
           date: localDateString(now),
           startedAt: now.toISOString(),
           durationOverride: "",
-          warmup: template.warmup,
           feedback: { effort: 8, energy: 3, performance: 3, pump: 3, pain: 0 },
           comments: "",
           exercises: template.exercises.map((exercise, index) => ({
@@ -2095,7 +2092,7 @@ svg {
       function createTemplate() {
         const activeProgram = getActiveProgram();
         if (!activeProgram) return openDialog(programDialog);
-        const template = { id: uid("template"), name: `Séance ${activeProgram.workoutTemplateIds.length + 1}`, warmup: "Libre", exercises: [] };
+        const template = { id: uid("template"), name: `Séance ${activeProgram.workoutTemplateIds.length + 1}`, exercises: [] };
         state.workoutTemplates.push(template);
         activeProgram.workoutTemplateIds.push(template.id);
         editingTemplateId = template.id;
@@ -2413,13 +2410,20 @@ svg {
         return "";
       }
 
+      function renderHistoryBlock() {
+        const sessions = getSortedSessions().reverse();
+        return `
+          <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
+          ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
+          ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}`;
+      }
+
       function renderHome() {
         const week = currentWeekSessions();
         const weekSets = week.reduce((sum, session) => sum + sessionWorkSets(session), 0);
         const weekTonnage = week.reduce((sum, session) => sum + sessionTonnage(session), 0);
         const weekMinutes = week.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0);
         const next = nextProgram();
-        const last = latestSession();
         const weekMuscles = muscleSets(week);
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
@@ -2434,7 +2438,7 @@ svg {
               <div class="hero-copy">
                 <p class="eyebrow">Cycle hebdomadaire</p>
                 <h1>${state.draft ? "Ta séance t’attend." : next ? `Prochaine étape : ${esc(next.name)}` : "Construis ton prochain programme."}</h1>
-                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries de travail · chauffe ${esc(next.warmup)}` : "Crée librement ton programme, puis compose chaque séance depuis ta bibliothèque."}</p>
+                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries de travail` : "Crée librement ton programme, puis compose chaque séance depuis ta bibliothèque."}</p>
               </div>
               ${action}
             </div>
@@ -2456,8 +2460,7 @@ svg {
               }).join("")}
             </div>
 
-            <div class="section-head"><div><p class="eyebrow">Dernière trace</p><h2>Historique récent</h2></div><button class="btn btn-sm btn-ghost" type="button" data-action="navigate" data-view="data">Voir tout</button></div>
-            ${last ? `<div class="card session-line"><div class="row-between"><div><h3>${esc(last.name)}</h3><p class="small muted">${formatDate(last.date, true)} · ${finiteNumber(last.durationMin)} min</p></div><span class="badge">effort ${finiteNumber(last.feedback?.effort, 0)}/10</span></div><div class="row"><span class="badge accent">${sessionWorkSets(last)} séries</span><span class="badge">${compactWeight(sessionTonnage(last))} kg</span><span class="badge">${sessionReps(last)} reps</span>${sessionDropSegments(last) ? `<span class="badge accent">${sessionDropSegments(last)} drop${sessionDropSegments(last) > 1 ? "s" : ""}</span>` : ""}</div>${last.comments ? `<p class="small muted">${esc(last.comments)}</p>` : ""}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
+            ${renderHistoryBlock()}
           </section>`;
       }
 
@@ -2489,7 +2492,7 @@ svg {
               ${templates.map((session, sessionIndex) => `
                 <details class="card program-card" ${sessionIndex === 0 ? "open" : ""}>
                   <summary>
-                    <div><h2>${esc(session.name)}</h2><p class="small muted">${session.exercises.length} exercices · chauffe ${esc(session.warmup)}</p></div>
+                    <div><h2>${esc(session.name)}</h2><p class="small muted">${session.exercises.length} exercice${session.exercises.length > 1 ? "s" : ""}</p></div>
                     <span class="badge accent">${sessionPlannedSets(session)} séries</span>
                   </summary>
                   <div class="program-content">
@@ -2535,7 +2538,7 @@ svg {
         return `
           <section class="page">
             <div class="section-head"><div><p class="eyebrow">Éditeur de séance</p><h1>${esc(template.name)}</h1></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
-            <div class="card stack"><div class="form-grid"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div><div class="field"><label for="template-warmup">Échauffement conseillé</label><input id="template-warmup" value="${esc(template.warmup)}" data-template-field="warmup"></div></div></div>
+            <div class="card stack"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div></div>
             <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
             <div class="card list-divider">
               ${resolvedExercises.map((exercise, index) => `<div class="exercise-plan-row template-exercise-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div><div class="row"><input aria-label="Séries prévues pour ${esc(exercise.name)}" type="number" inputmode="numeric" min="1" max="12" value="${exercise.plannedSets}" data-template-sets data-index="${index}" style="width:68px"><label class="row small"><input type="checkbox" data-template-rir data-index="${index}" ${exercise.rirEnabled !== false ? "checked" : ""} style="width:auto;min-height:auto"> RIR</label><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="-1" aria-label="Monter">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="1" aria-label="Descendre">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button></div></div>`).join("") || `<div class="empty-inner" style="margin:28px auto"><p class="muted">Cette séance ne contient encore aucun exercice.</p></div>`}
@@ -2772,7 +2775,6 @@ svg {
       }
 
       function renderData() {
-        const sessions = getSortedSessions().reverse();
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
         const meta = loadCloudMeta();
         const cloudAccount = cloudUser
@@ -2800,9 +2802,6 @@ svg {
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
               ${standalone ? `<p class="muted">BODYSSEUS est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
-            <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
-            ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
-            ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}
             <p class="small muted">BODYSSEUS ${APP_VERSION} · Forge Your Odyssey. · stockage local et synchronisation Supabase</p>
           </section>`;
       }
@@ -3325,7 +3324,7 @@ svg {
         const data = new FormData(programForm);
         const name = String(data.get("name") || "Programme").trim();
         const sessionNames = Array.from({ length: Math.max(1, Math.min(10, finiteNumber(data.get("sessionCount"), 4))) }, (_, index) => `Séance ${index + 1}`);
-        const templates = sessionNames.map(sessionName => ({ id: uid("template"), name: sessionName, warmup: "Libre", exercises: [] }));
+        const templates = sessionNames.map(sessionName => ({ id: uid("template"), name: sessionName, exercises: [] }));
         const program = { id: uid("program"), name, workoutTemplateIds: templates.map(template => template.id) };
         state.workoutTemplates.push(...templates);
         state.programs.push(program);
