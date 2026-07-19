@@ -1,9 +1,10 @@
-const CACHE_NAME = "volume-training-log-v13";
+const CACHE_NAME = "volume-training-log-v14";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./supabase-client.js",
   "./manifest.webmanifest",
+  "./icons/logo-transparent.png",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
