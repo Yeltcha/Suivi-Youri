@@ -762,15 +762,14 @@ svg {
     }
     #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 12px; }
     #volume-tracker-app .brand-mark {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      border-radius: 10px;
-      background: var(--accent);
-      color: var(--accent-ink);
-      font-weight: 900;
-      letter-spacing: -0.08em;
+      width: 42px;
+      height: 42px;
+      display: block;
+      flex: 0 0 42px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: var(--bg);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
     }
     #volume-tracker-app .brand-copy { line-height: 1.05; }
     #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .09em; font-size: 13px; }
@@ -1123,7 +1122,7 @@ svg {
   <div class="app-shell">
     <header class="topbar">
       <button class="brand" type="button" data-action="brand-home" aria-label="Retourner à l’accueil">
-        <span class="brand-mark" aria-hidden="true">B</span>
+        <img class="brand-mark" src="./icons/icon-192.png" alt="" width="42" height="42">
         <span class="brand-copy">
           <span class="brand-name">BODYSSEUS</span>
           <span class="brand-sub">Forge Your Odyssey.</span>
@@ -1238,7 +1237,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.9.0";
+      const APP_VERSION = "1.9.1";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";

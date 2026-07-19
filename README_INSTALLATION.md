@@ -2,7 +2,7 @@
 
 BODYSSEUS — **Forge Your Odyssey.** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 1.9.0 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle centralise l’historique complet sur l’accueil, retire les recommandations générales d’échauffement des séances modèles et applique la palette « Bronze homérique ». Le logo BODYSSEUS renvoie à l’accueil ; s’il reste des saisies non validées dans une séance ou des changements non confirmés dans l’éditeur de séance modèle, un choix de conservation ou d’abandon est proposé avant le départ. Les icônes PWA nécessaires au cache hors ligne et à l’installation sont incluses.
+La version 1.9.1 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle ajoute le nouvel emblème BODYSSEUS : un **B** bronze intégrant une voile ivoire gonflée par le vent, utilisé dans l’en-tête et les icônes PWA. La palette « Bronze homérique », le bouton **W** par série et l’historique complet sur l’accueil restent inchangés.
 
 ## Installation recommandée sur iPhone
 
@@ -37,7 +37,7 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
 
-La bibliothèque, les programmes libres, le réglage RIR, l’état de validation des séries et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.9.0 conserve le schéma de données en version 5 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
+La bibliothèque, les programmes libres, le réglage RIR, l’état de validation des séries et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.9.1 conserve le schéma de données en version 5 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
 
 ## Contenu du dossier
 
