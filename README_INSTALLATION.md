@@ -1,8 +1,8 @@
-# TRAINING by Yeltcha — installation sur téléphone
+# BODYSSEUS — installation sur téléphone
 
-TRAINING by Yeltcha est une application web installable (PWA). Elle ne demande ni compte, ni abonnement, ni application supplémentaire une fois mise en ligne. Toutes les séances restent enregistrées localement sur le téléphone.
+BODYSSEUS — **Forge Your Odyssey.** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 1.7.0 permet de créer librement un programme et ses séances, sans catégorie imposée. Le suivi du RIR peut être désactivé exercice par exercice. Pendant une séance, chaque série peut être validée puis verrouillée, les drops exigent des répétitions sur la série principale, la durée automatique est correctement conservée et les statistiques affichent le tonnage global ainsi que le tonnage par séance du programme actif. Les icônes PWA nécessaires au cache hors ligne et à l’installation sont incluses.
+La version 1.8.0 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle ajoute une vue détaillée en lecture seule pour chaque séance de l’historique. Le logo BODYSSEUS renvoie à l’accueil ; s’il reste des saisies non validées dans une séance ou des changements non confirmés dans l’éditeur de séance modèle, un choix de conservation ou d’abandon est proposé avant le départ. Les icônes PWA nécessaires au cache hors ligne et à l’installation sont incluses.
 
 ## Installation recommandée sur iPhone
 
@@ -11,7 +11,7 @@ Safari exige que l’application soit ouverte depuis une adresse web sécurisée
 1. Décompressez le dossier puis placez son contenu sur un hébergement statique HTTPS. Votre hébergement OVH, GitHub Pages ou un hébergeur statique similaire convient : aucun serveur ni aucune base de données ne sont nécessaires.
 2. Ouvrez l’adresse obtenue dans **Safari** sur l’iPhone.
 3. Touchez **Partager**, puis **Sur l’écran d’accueil** et validez l’ouverture comme app web.
-4. Lancez TRAINING by Yeltcha une première fois avec une connexion. Ensuite, l’application et tes séances restent disponibles hors ligne.
+4. Lancez BODYSSEUS une première fois avec une connexion. Ensuite, l’application et tes séances restent disponibles hors ligne.
 5. Dans **Données**, crée ton compte ou connecte-toi pour activer la synchronisation entre appareils.
 
 ## Android
@@ -37,7 +37,7 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
 
-La bibliothèque, les programmes libres, le réglage RIR et l’état de validation des séries utilisent la ligne `training_state` déjà créée dans Supabase. Aucune nouvelle table ni nouvelle requête SQL ne sont nécessaires pour passer à la version 1.7.0.
+La bibliothèque, les programmes libres, le réglage RIR, l’état de validation des séries et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.8.0 conserve le schéma de données en version 5 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
 
 ## Contenu du dossier
 

@@ -9,11 +9,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TRAINING">
+<meta name="apple-mobile-web-app-title" content="BODYSSEUS">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
-<title>TRAINING by Yeltcha</title>
+<title>BODYSSEUS — Forge Your Odyssey.</title>
 <style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0c0f0d !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
@@ -748,7 +748,19 @@ svg {
       backdrop-filter: blur(18px);
       border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
     }
-    #volume-tracker-app .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    #volume-tracker-app .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 12px; }
     #volume-tracker-app .brand-mark {
       width: 34px;
       height: 34px;
@@ -761,7 +773,7 @@ svg {
       letter-spacing: -0.08em;
     }
     #volume-tracker-app .brand-copy { line-height: 1.05; }
-    #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .12em; font-size: 13px; }
+    #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .09em; font-size: 13px; }
     #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
     #volume-tracker-app .header-status { color: var(--muted); font-size: 12px; text-align: right; }
     #volume-tracker-app main { width: min(100%, 980px); margin: 0 auto; padding: 20px 16px 36px; }
@@ -1049,10 +1061,25 @@ svg {
     #volume-tracker-app .dialog-actions { display: flex; justify-content: end; gap: 8px; }
     #volume-tracker-app .history-item { display: grid; gap: 8px; padding: 14px 0; }
     #volume-tracker-app .history-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    #volume-tracker-app .session-detail-dialog { width: min(calc(100% - 28px), 760px); }
+    #volume-tracker-app .detail-summary { display: grid; gap: 12px; }
+    #volume-tracker-app .detail-exercise { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); }
+    #volume-tracker-app .detail-set { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+    #volume-tracker-app .detail-set-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    #volume-tracker-app .detail-value { display: grid; gap: 2px; padding: 8px; border-radius: 10px; background: var(--surface-2); }
+    #volume-tracker-app .detail-value span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    #volume-tracker-app .detail-drop { padding: 10px; border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; background: color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
+    #volume-tracker-app .detail-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+    #volume-tracker-app .guard-copy { line-height: 1.55; }
     #volume-tracker-app .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     @media (max-width: 420px) {
-      #volume-tracker-app .topbar { padding-left: 14px; padding-right: 14px; }
-      #volume-tracker-app .header-status { max-width: 46%; line-height: 1.25; }
+      #volume-tracker-app .topbar { gap: 10px; padding-left: 14px; padding-right: 14px; }
+      #volume-tracker-app .brand { flex: 1 1 auto; overflow: hidden; }
+      #volume-tracker-app .brand-copy { min-width: 0; overflow: hidden; }
+      #volume-tracker-app .brand-name,
+      #volume-tracker-app .brand-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #volume-tracker-app .brand-sub { font-size: 10px; }
+      #volume-tracker-app .header-status { flex: 0 1 36%; max-width: 36%; font-size: 10px; line-height: 1.25; }
       #volume-tracker-app main { padding-left: 14px; padding-right: 14px; }
       #volume-tracker-app .hero { padding: 20px; }
       #volume-tracker-app .card { padding: 15px; }
@@ -1067,6 +1094,7 @@ svg {
       #volume-tracker-app .program-management-actions .btn { flex-basis: 100%; }
       #volume-tracker-app .dialog-actions { flex-wrap: wrap; }
       #volume-tracker-app .dialog-actions .btn { flex: 1 1 120px; }
+      #volume-tracker-app .detail-set-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 350px) {
       #volume-tracker-app .feedback-grid,
@@ -1094,13 +1122,13 @@ svg {
 
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">T</span>
+      <button class="brand" type="button" data-action="brand-home" aria-label="Retourner à l’accueil">
+        <span class="brand-mark" aria-hidden="true">B</span>
         <span class="brand-copy">
-          <span class="brand-name">TRAINING</span>
-          <span class="brand-sub">by Yeltcha</span>
+          <span class="brand-name">BODYSSEUS</span>
+          <span class="brand-sub">Forge Your Odyssey.</span>
         </span>
-      </div>
+      </button>
       <div id="header-status" class="header-status">Données locales</div>
     </header>
 
@@ -1181,13 +1209,36 @@ svg {
     </form>
   </dialog>
 
+  <dialog id="session-detail-dialog" class="session-detail-dialog" aria-labelledby="session-detail-title">
+    <div class="dialog-body">
+      <div class="row-between">
+        <div class="stack" style="gap:4px"><p class="eyebrow">Historique en lecture seule</p><h2 id="session-detail-title">Détail de la séance</h2></div>
+        <button class="btn btn-icon btn-sm" type="button" data-action="close-session-detail" aria-label="Fermer le détail">×</button>
+      </div>
+      <div id="session-detail-content" class="stack"></div>
+      <div class="dialog-actions"><button class="btn btn-primary" type="button" data-action="close-session-detail">Fermer</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="navigation-guard-dialog" aria-labelledby="navigation-guard-title">
+    <div class="dialog-body">
+      <div class="stack"><p class="eyebrow">Modifications en cours</p><h2 id="navigation-guard-title">Avant de retourner à l’accueil</h2></div>
+      <p id="navigation-guard-copy" class="muted guard-copy"></p>
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" type="button" data-action="cancel-home-navigation">Rester ici</button>
+        <button class="btn btn-danger" type="button" data-action="abandon-home-navigation">Abandonner</button>
+        <button class="btn btn-primary" type="button" data-action="save-home-navigation">Enregistrer et aller à l’accueil</button>
+      </div>
+    </div>
+  </dialog>
+
   <input id="import-input" class="sr-only" type="file" accept="application/json,.json">
 
   <script>
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.7.0";
+      const APP_VERSION = "1.8.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1204,6 +1255,10 @@ svg {
       const programForm = root.querySelector("#program-form");
       const renameProgramDialog = root.querySelector("#rename-program-dialog");
       const renameProgramForm = root.querySelector("#rename-program-form");
+      const sessionDetailDialog = root.querySelector("#session-detail-dialog");
+      const sessionDetailContent = root.querySelector("#session-detail-content");
+      const navigationGuardDialog = root.querySelector("#navigation-guard-dialog");
+      const navigationGuardCopy = root.querySelector("#navigation-guard-copy");
       const importInput = root.querySelector("#import-input");
 
       const MUSCLES = [
@@ -1367,6 +1422,8 @@ svg {
       let renamingProgramId = "";
       let pickerMode = "draft-add";
       let pickerTargetIndex = -1;
+      let templateEditorSnapshot = null;
+      let pendingHomeNavigation = "";
       let installPrompt = null;
       let toastTimer = null;
       let state = loadState();
@@ -1833,6 +1890,11 @@ svg {
         return new Intl.DateTimeFormat("fr-FR", options).format(dateFromYmd(value));
       }
 
+      function formatDateTime(value) {
+        if (!value || Number.isNaN(Date.parse(value))) return "—";
+        return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+      }
+
       function formatNumber(value, digits = 0) {
         return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(finiteNumber(value));
       }
@@ -2248,7 +2310,71 @@ svg {
         toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), 2600);
       }
 
+      function setHasUnvalidatedInput(set) {
+        if (!set || set.validated) return false;
+        return [set.weight, set.reps, set.rir].some(value => String(value ?? "").trim() !== "")
+          || Boolean(set.warmup)
+          || (set.drops || []).length > 0;
+      }
+
+      function hasUnvalidatedWorkoutInput() {
+        return Boolean(state.draft?.exercises?.some(exercise => (exercise.sets || []).some(setHasUnvalidatedInput)));
+      }
+
+      function hasUnconfirmedTemplateChanges() {
+        if (currentView !== "template-editor" || !templateEditorSnapshot) return false;
+        const template = state.workoutTemplates.find(item => item.id === templateEditorSnapshot.id);
+        return Boolean(template && JSON.stringify(template) !== JSON.stringify(templateEditorSnapshot.template));
+      }
+
+      function requestHomeNavigation() {
+        if (currentView === "workout" && hasUnvalidatedWorkoutInput()) {
+          pendingHomeNavigation = "workout";
+          navigationGuardCopy.textContent = "Certaines séries contiennent des saisies qui ne sont pas encore validées. Enregistrer conserve la séance comme brouillon. Abandonner efface uniquement les séries non validées ; les séries déjà validées restent intactes.";
+          openDialog(navigationGuardDialog);
+          return;
+        }
+        if (hasUnconfirmedTemplateChanges()) {
+          pendingHomeNavigation = "template";
+          navigationGuardCopy.textContent = "La séance modèle a été modifiée depuis l’ouverture de l’éditeur. Enregistrer conserve ces changements. Abandonner rétablit la séance telle qu’elle était avant cette édition.";
+          openDialog(navigationGuardDialog);
+          return;
+        }
+        navigate("home");
+      }
+
+      function completeHomeNavigation(choice) {
+        const mode = pendingHomeNavigation;
+        if (!mode) return closeDialog(navigationGuardDialog);
+        if (choice === "abandon" && mode === "workout" && state.draft) {
+          state.draft.exercises.forEach(exercise => exercise.sets.forEach(set => {
+            if (!setHasUnvalidatedInput(set)) return;
+            set.weight = "";
+            set.reps = "";
+            set.rir = "";
+            set.warmup = false;
+            set.drops = [];
+          }));
+          saveState();
+        }
+        if (choice === "abandon" && mode === "template" && templateEditorSnapshot) {
+          const index = state.workoutTemplates.findIndex(item => item.id === templateEditorSnapshot.id);
+          if (index >= 0) state.workoutTemplates[index] = structuredClone(templateEditorSnapshot.template);
+          saveState();
+        }
+        if (choice === "save") saveState();
+        pendingHomeNavigation = "";
+        closeDialog(navigationGuardDialog);
+        navigate("home");
+      }
+
       function navigate(view) {
+        const previousView = currentView;
+        if (view === "template-editor" && (previousView !== "template-editor" || templateEditorSnapshot?.id !== editingTemplateId)) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          templateEditorSnapshot = template ? { id: template.id, template: structuredClone(template) } : null;
+        }
+        if (previousView === "template-editor" && view !== "template-editor") templateEditorSnapshot = null;
         currentView = view;
         root.querySelectorAll(".nav-btn").forEach(button => {
           if (button.dataset.view === view) button.setAttribute("aria-current", "page");
@@ -2282,7 +2408,7 @@ svg {
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
         if (standalone) return "";
         const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (installPrompt) return `<div class="notice row-between"><span>Installe TRAINING by Yeltcha comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
+        if (installPrompt) return `<div class="notice row-between"><span>Installe BODYSSEUS comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
         if (isIos) return `<div class="notice"><strong>Installation iPhone :</strong> dans Safari, touche Partager puis <em>Sur l’écran d’accueil</em>.</div>`;
         return "";
       }
@@ -2672,13 +2798,54 @@ svg {
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
-              ${standalone ? `<p class="muted">TRAINING by Yeltcha est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
+              ${standalone ? `<p class="muted">BODYSSEUS est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
             <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
-            ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
+            ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h3>Aucune séance enregistrée</h3><p class="muted">Ton historique apparaîtra ici.</p></div></div>`}
             ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}
-            <p class="small muted">TRAINING by Yeltcha ${APP_VERSION} · stockage local et synchronisation Supabase</p>
+            <p class="small muted">BODYSSEUS ${APP_VERSION} · Forge Your Odyssey. · stockage local et synchronisation Supabase</p>
           </section>`;
+      }
+
+      function recordedValue(value, suffix = "") {
+        const text = String(value ?? "").trim();
+        return text === "" ? "—" : `${esc(text)}${suffix}`;
+      }
+
+      function renderSessionDetail(session) {
+        const feedback = session.feedback || {};
+        const feedbackItems = [
+          ["Effort", feedback.effort, 10],
+          ["Énergie", feedback.energy, 5],
+          ["Performance", feedback.performance, 5],
+          ["Congestion", feedback.pump, 5],
+          ["Gêne / douleur", feedback.pain, 10]
+        ];
+        const exercises = (session.exercises || []).map((exercise, exerciseIndex) => {
+          const metadata = [
+            muscleMap[exercise.muscle]?.label || exercise.muscle || "Autre",
+            equipmentTypeLabel(exercise.equipmentType),
+            exercise.brand,
+            exercise.machineName,
+            exercise.machineModel,
+            exercise.gym
+          ].filter(Boolean);
+          const sets = (exercise.sets || []).map((set, setIndex) => {
+            const completed = finiteNumber(set.reps) > 0;
+            const drops = (set.drops || []).map((drop, dropIndex) => `<div class="detail-drop row-between"><div><strong>Drop ${dropIndex + 1}</strong><p class="small muted">Enchaîné sans repos</p></div><div class="row"><span class="badge">${recordedValue(drop.weight, " kg")}</span><span class="badge accent">${recordedValue(drop.reps, " reps")}</span></div></div>`).join("");
+            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row">${set.warmup ? `<span class="badge">Échauffement</span>` : `<span class="badge accent">Travail</span>`}<span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Tonnage série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
+          }).join("");
+          return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
+        }).join("");
+        return `<div class="notice"><strong>Lecture seule :</strong> ce relevé restitue la séance enregistrée. Aucun champ de l’historique ne peut être modifié depuis cette vue.</div><div class="detail-summary"><div><p class="eyebrow">${formatDate(session.date, true)}</p><h2>${esc(session.name)}</h2></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries de travail</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span><span class="badge">${sessionDropSegments(session)} drops</span><span class="badge">${finiteNumber(session.durationMin)} min</span></div><div class="form-grid"><div class="detail-value"><span>Début</span><strong>${formatDateTime(session.startedAt)}</strong></div><div class="detail-value"><span>Fin</span><strong>${formatDateTime(session.endedAt)}</strong></div></div><div class="feedback-grid">${feedbackItems.map(([label, value, max]) => `<div class="detail-value"><span>${label}</span><strong>${recordedValue(value)} / ${max}</strong></div>`).join("")}</div>${session.comments ? `<p class="detail-comment"><strong>Commentaire :</strong> ${esc(session.comments)}</p>` : ""}</div><div class="stack"><div><p class="eyebrow">Déroulé complet</p><h2>${(session.exercises || []).length} exercice${(session.exercises || []).length > 1 ? "s" : ""}</h2></div>${exercises || `<div class="card empty"><p class="muted">Aucun exercice enregistré.</p></div>`}</div>`;
+      }
+
+      function openSessionDetail(sessionId) {
+        const session = state.sessions.find(item => item.id === sessionId);
+        if (!session) return showToast("Séance introuvable dans l’historique.");
+        root.querySelector("#session-detail-title").textContent = `${session.name} · ${formatDate(session.date, true)}`;
+        sessionDetailContent.innerHTML = renderSessionDetail(session);
+        openDialog(sessionDetailDialog);
       }
 
       function updateLiveSummary() {
@@ -2782,8 +2949,8 @@ svg {
       }
 
       function exportJson() {
-        const payload = { app: "TRAINING by Yeltcha", exportedAt: new Date().toISOString(), ...state };
-        downloadFile(`training-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
+        const payload = { app: "BODYSSEUS", tagline: "Forge Your Odyssey.", exportedAt: new Date().toISOString(), ...state };
+        downloadFile(`bodysseus-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
         showToast("Sauvegarde JSON exportée.");
       }
 
@@ -2805,7 +2972,7 @@ svg {
           ]));
         })));
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
-        downloadFile(`training-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
+        downloadFile(`bodysseus-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
       }
 
@@ -2821,7 +2988,7 @@ svg {
             render();
             showToast("Sauvegarde restaurée.");
           } catch (error) {
-            showToast("Ce fichier n’est pas une sauvegarde TRAINING valide.");
+            showToast("Ce fichier n’est pas une sauvegarde BODYSSEUS valide.");
           }
         };
         reader.readAsText(file);
@@ -2831,6 +2998,12 @@ svg {
         const button = event.target.closest("[data-action]");
         if (!button) return;
         const action = button.dataset.action;
+        if (action === "brand-home") requestHomeNavigation();
+        if (action === "cancel-home-navigation") { pendingHomeNavigation = ""; closeDialog(navigationGuardDialog); }
+        if (action === "abandon-home-navigation") completeHomeNavigation("abandon");
+        if (action === "save-home-navigation") completeHomeNavigation("save");
+        if (action === "view-session-detail") openSessionDetail(button.dataset.sessionId);
+        if (action === "close-session-detail") closeDialog(sessionDetailDialog);
         if (action === "navigate") navigate(button.dataset.view);
         if (action === "start-session") createDraft(button.dataset.program);
         if (action === "finish-workout") finishWorkout();
