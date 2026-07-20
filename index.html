@@ -1239,7 +1239,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.9.4";
+      const APP_VERSION = "1.10.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1263,16 +1263,25 @@ svg {
       const importInput = root.querySelector("#import-input");
 
       const MUSCLES = [
-        { id: "chest", label: "Pectoraux", short: "Pecs", target: 24 },
-        { id: "sideDelts", label: "Deltoïdes moyens", short: "Deltoïdes M", target: 14 },
-        { id: "triceps", label: "Triceps", short: "Triceps", target: 18 },
-        { id: "back", label: "Dos", short: "Dos", target: 24 },
-        { id: "rearDelts", label: "Deltoïdes postérieurs", short: "Deltoïdes P", target: 8 },
-        { id: "biceps", label: "Biceps", short: "Biceps", target: 18 },
-        { id: "quads", label: "Quadriceps", short: "Quadriceps", target: 20 },
-        { id: "posterior", label: "Chaîne postérieure", short: "Postérieurs", target: 20 },
-        { id: "calves", label: "Mollets", short: "Mollets", target: 8 },
-        { id: "abs", label: "Chaîne abdominale", short: "Abdos", target: 24 }
+        { id: "chest", label: "Pectoraux", short: "Pecs" },
+        { id: "sideDelts", label: "Deltoïdes moyens", short: "Deltoïdes M" },
+        { id: "triceps", label: "Triceps", short: "Triceps" },
+        { id: "back", label: "Dos", short: "Dos" },
+        { id: "rearDelts", label: "Deltoïdes postérieurs", short: "Deltoïdes P" },
+        { id: "biceps", label: "Biceps", short: "Biceps" },
+        { id: "quads", label: "Quadriceps", short: "Quadriceps" },
+        { id: "posterior", label: "Chaîne postérieure", short: "Postérieurs" },
+        { id: "calves", label: "Mollets", short: "Mollets" },
+        { id: "abs", label: "Chaîne abdominale", short: "Abdos" }
+      ];
+
+      const REP_RANGES = [
+        { id: "1-5", label: "1 à 5 reps", min: 1, max: 5 },
+        { id: "6-8", label: "6 à 8 reps", min: 6, max: 8 },
+        { id: "9-12", label: "9 à 12 reps", min: 9, max: 12 },
+        { id: "13-15", label: "13 à 15 reps", min: 13, max: 15 },
+        { id: "16-20", label: "16 à 20 reps", min: 16, max: 20 },
+        { id: "21+", label: "21 reps et plus", min: 21, max: 100 }
       ];
 
       const PROGRAM = [
@@ -1412,8 +1421,9 @@ svg {
 
       const muscleMap = Object.fromEntries(MUSCLES.map(muscle => [muscle.id, muscle]));
       let currentView = "home";
-      let statsDays = 56;
+      let statsDays = 7;
       let selectedExercise = "";
+      let selectedRepRange = "";
       let libraryQuery = "";
       let libraryMuscleFilter = "all";
       let editingLibraryExerciseId = "";
@@ -1440,7 +1450,7 @@ svg {
 
       function defaultState() {
         return {
-          version: 5,
+          version: 6,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6 },
           sessions: [],
           draft: null,
@@ -1481,7 +1491,7 @@ svg {
           : base.programs;
         const requestedActiveProgram = typeof input.activeProgramId === "string" ? input.activeProgramId : base.activeProgramId;
         return {
-          version: 5,
+          version: 6,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek)
@@ -1653,7 +1663,7 @@ svg {
         const activeProgramId = programs.some(program => program.id === preferred.activeProgramId) ? preferred.activeProgramId : (programs[0]?.id || "");
         return normalizeState({
           ...preferred,
-          version: 5,
+          version: 6,
           settings: preferred.settings,
           sessions: mergeById(secondary.sessions, preferred.sessions, deletedSessionIds),
           draft: preferred.draft || secondary.draft || null,
@@ -1949,13 +1959,41 @@ svg {
         return state.programs.find(program => program.id === state.activeProgramId) || null;
       }
 
-      function getActiveWorkoutTemplates() {
-        const program = getActiveProgram();
+      function getProgramWorkoutTemplates(program) {
         if (!program) return [];
         return program.workoutTemplateIds
           .map(id => state.workoutTemplates.find(template => template.id === id))
           .filter(Boolean)
           .map(resolveWorkoutTemplate);
+      }
+
+      function getActiveWorkoutTemplates() {
+        return getProgramWorkoutTemplates(getActiveProgram());
+      }
+
+      function muscleMeta(muscleId) {
+        if (muscleMap[muscleId]) return muscleMap[muscleId];
+        return { id: muscleId || "other", label: muscleId && muscleId !== "other" ? muscleId : "Autre", short: muscleId && muscleId !== "other" ? muscleId : "Autre" };
+      }
+
+      function programMuscleTargets(program = getActiveProgram()) {
+        const totals = {};
+        getProgramWorkoutTemplates(program).forEach(template => template.exercises.forEach(exercise => {
+          if (exercise.warmupDefault) return;
+          const muscleId = exercise.muscle || "other";
+          totals[muscleId] = (totals[muscleId] || 0) + Math.max(1, finiteNumber(exercise.plannedSets, 1));
+        }));
+        return totals;
+      }
+
+      function muscleComparisonRows(targets, actuals = {}) {
+        const knownIds = MUSCLES.map(muscle => muscle.id);
+        const extraIds = [...new Set([...Object.keys(targets || {}), ...Object.keys(actuals || {})])]
+          .filter(id => !knownIds.includes(id))
+          .sort((a, b) => muscleMeta(a).label.localeCompare(muscleMeta(b).label, "fr"));
+        return [...knownIds, ...extraIds]
+          .map(id => ({ ...muscleMeta(id), target: finiteNumber(targets?.[id]), actual: finiteNumber(actuals?.[id]) }))
+          .filter(item => item.target > 0 || item.actual > 0);
       }
 
       function getResolvedWorkoutTemplate(templateId) {
@@ -1985,6 +2023,7 @@ svg {
             ...exercise,
             instanceId: uid("exercise"),
             order: index + 1,
+            bodyweightKg: finiteNumber(state.settings.bodyweightKg),
             comments: "",
             sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, drops: [] }))
           }))
@@ -2132,6 +2171,7 @@ svg {
           plannedSets,
           rirEnabled: rirEnabled !== false,
           warmupDefault: Boolean(warmupDefault),
+          bodyweightKg: finiteNumber(existing?.bodyweightKg, state.settings.bodyweightKg),
           instanceId: existing?.instanceId || uid("exercise"),
           order: existing?.order || 1,
           comments: existing?.comments || "",
@@ -2210,10 +2250,10 @@ svg {
         requestAnimationFrame(() => { nameInput.focus(); nameInput.select(); });
       }
 
-      function effectiveLoad(weight, loadType) {
+      function effectiveLoad(weight, loadType, bodyweightKg = state.settings.bodyweightKg) {
         const entered = finiteNumber(weight);
         if (loadType === "perSide") return entered * 2;
-        if (loadType === "bodyweightPlus") return finiteNumber(state.settings.bodyweightKg) + entered;
+        if (loadType === "bodyweightPlus") return finiteNumber(bodyweightKg, state.settings.bodyweightKg) + entered;
         return entered;
       }
 
@@ -2227,7 +2267,15 @@ svg {
       }
 
       function setTotalReps(set) {
-        return finiteNumber(set.reps) + completedDrops(set).reduce((sum, drop) => sum + finiteNumber(drop.reps), 0);
+        return setMainReps(set) + setDropReps(set);
+      }
+
+      function setMainReps(set) {
+        return finiteNumber(set.reps);
+      }
+
+      function setDropReps(set) {
+        return completedDrops(set).reduce((sum, drop) => sum + finiteNumber(drop.reps), 0);
       }
 
       function completedSets(exercise) {
@@ -2240,14 +2288,29 @@ svg {
 
       function componentTonnage(weight, reps, exercise, warmup = false) {
         if (warmup || finiteNumber(reps) <= 0) return 0;
-        return effectiveLoad(weight, exercise.loadType) * finiteNumber(reps);
+        return effectiveLoad(weight, exercise.loadType, exercise.bodyweightKg) * finiteNumber(reps);
+      }
+
+      function setMainTonnage(set, exercise) {
+        if (set.warmup) return 0;
+        return componentTonnage(set.weight, set.reps, exercise);
+      }
+
+      function setDropTonnage(set, exercise) {
+        if (set.warmup) return 0;
+        return completedDrops(set).reduce((sum, drop) => sum + componentTonnage(drop.weight, drop.reps, exercise), 0);
       }
 
       function setTonnage(set, exercise) {
-        if (set.warmup) return 0;
-        const mainTonnage = componentTonnage(set.weight, set.reps, exercise);
-        const dropsTonnage = completedDrops(set).reduce((sum, drop) => sum + componentTonnage(drop.weight, drop.reps, exercise), 0);
-        return mainTonnage + dropsTonnage;
+        return setMainTonnage(set, exercise) + setDropTonnage(set, exercise);
+      }
+
+      function sessionMainTonnage(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + (exercise.sets || []).reduce((sub, set) => sub + setMainTonnage(set, exercise), 0), 0);
+      }
+
+      function sessionDropTonnage(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + (exercise.sets || []).reduce((sub, set) => sub + setDropTonnage(set, exercise), 0), 0);
       }
 
       function sessionTonnage(session) {
@@ -2259,7 +2322,15 @@ svg {
       }
 
       function sessionReps(session) {
-        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + setTotalReps(set), 0), 0);
+        return sessionMainReps(session) + sessionDropReps(session);
+      }
+
+      function sessionMainReps(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + setMainReps(set), 0), 0);
+      }
+
+      function sessionDropReps(session) {
+        return (session.exercises || []).reduce((sum, exercise) => sum + workingSets(exercise).reduce((sub, set) => sub + setDropReps(set), 0), 0);
       }
 
       function sessionDropSets(session) {
@@ -2276,19 +2347,75 @@ svg {
         return [main, ...drops].join(" → ");
       }
 
-      function e1rm(weight, reps) {
-        const load = finiteNumber(weight);
-        const count = finiteNumber(reps);
-        if (load <= 0 || count <= 0) return 0;
-        return load * (1 + Math.min(count, 15) / 30);
+      function repRangeById(rangeId) {
+        return REP_RANGES.find(range => range.id === rangeId) || null;
       }
 
-      function sessionBestE1rm(session, exerciseId) {
-        let best = 0;
-        (session.exercises || []).filter(exercise => exercise.id === exerciseId).forEach(exercise => {
-          workingSets(exercise).forEach(set => { best = Math.max(best, e1rm(set.weight, set.reps)); });
+      function setIsInRepRange(set, range) {
+        const reps = setMainReps(set);
+        return Boolean(range && reps >= range.min && reps <= range.max);
+      }
+
+      function hasRecordedComparableWeight(set) {
+        return String(set?.weight ?? "").trim() !== "" && finiteNumber(set.weight) >= 0;
+      }
+
+      function comparableWeightUnit(loadType) {
+        if (loadType === "perSide") return "kg par côté";
+        if (loadType === "bodyweightPlus") return "kg de lest";
+        return "kg";
+      }
+
+      function availableRepRanges(sessions, exerciseId, loadType) {
+        return REP_RANGES.map(range => {
+          const passageIds = new Set();
+          let setCount = 0;
+          sessions.forEach(session => (session.exercises || [])
+            .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
+            .forEach(exercise => workingSets(exercise).forEach(set => {
+              if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
+              setCount += 1;
+              passageIds.add(session.id);
+            })));
+          return { ...range, setCount, passageCount: passageIds.size };
+        }).filter(range => range.setCount > 0);
+      }
+
+      function exerciseComparableProgress(sessions, exerciseId, rangeId, loadType) {
+        const range = repRangeById(rangeId);
+        if (!range) return { passages: [], trend: [], best: null };
+        const passages = [];
+        let best = null;
+        sessions.forEach(session => {
+          const entries = [];
+          (session.exercises || [])
+            .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
+            .forEach(exercise => workingSets(exercise).forEach(set => {
+              if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
+              const entry = { weight: finiteNumber(set.weight), reps: setMainReps(set), date: session.date, sessionId: session.id };
+              entries.push(entry);
+              if (!best || entry.weight > best.weight || (entry.weight === best.weight && entry.reps > best.reps)) best = entry;
+            }));
+          if (!entries.length) return;
+          passages.push({
+            label: formatDate(session.date),
+            rawDate: session.date,
+            average: entries.reduce((sum, entry) => sum + entry.weight, 0) / entries.length,
+            best: Math.max(...entries.map(entry => entry.weight)),
+            setCount: entries.length
+          });
         });
-        return best;
+        const trend = passages.map((passage, index) => {
+          const window = passages.slice(Math.max(0, index - 2), index + 1);
+          return {
+            label: passage.label,
+            rawDate: passage.rawDate,
+            rawAverage: passage.average,
+            value: window.reduce((sum, item) => sum + item.average, 0) / window.length,
+            windowSize: window.length
+          };
+        });
+        return { passages, trend, best };
       }
 
       function getSortedSessions() {
@@ -2335,9 +2462,10 @@ svg {
       }
 
       function muscleSets(sessions) {
-        const totals = Object.fromEntries(MUSCLES.map(muscle => [muscle.id, 0]));
+        const totals = {};
         sessions.forEach(session => (session.exercises || []).forEach(exercise => {
-          if (totals[exercise.muscle] !== undefined) totals[exercise.muscle] += workingSets(exercise).length;
+          const muscleId = exercise.muscle || "other";
+          totals[muscleId] = (totals[muscleId] || 0) + workingSets(exercise).length;
         }));
         return totals;
       }
@@ -2360,12 +2488,23 @@ svg {
       function setHasUnvalidatedInput(set) {
         if (!set || set.validated) return false;
         return [set.weight, set.reps, set.rir].some(value => String(value ?? "").trim() !== "")
-          || Boolean(set.warmup)
           || (set.drops || []).length > 0;
       }
 
+      function unvalidatedEnteredSets(session = state.draft) {
+        const pending = [];
+        (session?.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => {
+          if (setHasUnvalidatedInput(set)) pending.push({ exerciseIndex, setIndex, exercise, set });
+        }));
+        return pending;
+      }
+
       function hasUnvalidatedWorkoutInput() {
-        return Boolean(state.draft?.exercises?.some(exercise => (exercise.sets || []).some(setHasUnvalidatedInput)));
+        return unvalidatedEnteredSets().length > 0;
+      }
+
+      function pendingValidationCopy(count) {
+        return `<strong>${count} série${count > 1 ? "s renseignées restent" : " renseignée reste"} à valider.</strong> Valide ou vide ${count > 1 ? "ces séries" : "cette série"} avant d’enregistrer la séance.`;
       }
 
       function hasUnconfirmedTemplateChanges() {
@@ -2465,7 +2604,7 @@ svg {
         const sessions = getSortedSessions().reverse();
         return `
           <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
-          ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
+          ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg volume-charge</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
           ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}`;
       }
 
@@ -2476,6 +2615,9 @@ svg {
         const weekMinutes = week.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0);
         const next = nextProgram();
         const weekMuscles = muscleSets(week);
+        const activeProgram = getActiveProgram();
+        const weeklyTargets = programMuscleTargets(activeProgram);
+        const weeklyMuscleRows = muscleComparisonRows(weeklyTargets, weekMuscles);
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
           : next
@@ -2489,7 +2631,7 @@ svg {
               <div class="hero-copy">
                 <p class="eyebrow">Cycle hebdomadaire</p>
                 <h1>${state.draft ? "Ta séance t’attend." : next ? `Prochaine étape : ${esc(next.name)}` : "Construis ton prochain programme."}</h1>
-                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries de travail` : "Crée librement ton programme, puis compose chaque séance depuis ta bibliothèque."}</p>
+                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries prévues` : "Crée librement ton programme, puis compose chaque séance depuis ta bibliothèque."}</p>
               </div>
               ${action}
             </div>
@@ -2498,17 +2640,17 @@ svg {
             <div class="kpi-grid">
               <div class="card kpi"><span class="kpi-label">Séances</span><strong class="kpi-value">${week.length}</strong><span class="small muted">objectif ${state.settings.targetSessionsWeek}</span></div>
               <div class="card kpi"><span class="kpi-label">Séries de travail</span><strong class="kpi-value">${weekSets}</strong><span class="small muted">échauffement exclu</span></div>
-              <div class="card kpi"><span class="kpi-label">Tonnage</span><strong class="kpi-value">${compactWeight(weekTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">charge × répétitions</span></div>
+              <div class="card kpi"><span class="kpi-label">Volume-charge</span><strong class="kpi-value">${compactWeight(weekTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">repère interne, pas un score de force</span></div>
               <div class="card kpi"><span class="kpi-label">Temps</span><strong class="kpi-value">${weekMinutes}<span class="kpi-unit">min</span></strong><span class="small muted">temps enregistré</span></div>
             </div>
 
-            <div class="section-head"><div><p class="eyebrow">Volume musculaire</p><h2>Cibles de la semaine</h2></div><button class="btn btn-sm btn-ghost" type="button" data-action="navigate" data-view="stats">Détails</button></div>
+            <div class="section-head"><div><p class="eyebrow">Volume musculaire</p><h2>Cibles du programme actif</h2><p class="small muted">Recalculées depuis les séries prévues, hors exercices W par défaut.</p></div><button class="btn btn-sm btn-ghost" type="button" data-action="navigate" data-view="stats">Détails</button></div>
             <div class="card stack">
-              ${MUSCLES.map(muscle => {
-                const value = weekMuscles[muscle.id];
-                const percent = muscle.target ? Math.round(value / muscle.target * 100) : 0;
-                return `<div class="muscle-row"><div class="muscle-row-head"><span>${muscle.short}</span><span class="muted">${value} / ${muscle.target}</span></div><div class="progress ${percent > 110 ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
-              }).join("")}
+              ${weeklyMuscleRows.length ? weeklyMuscleRows.map(muscle => {
+                const percent = muscle.target ? Math.round(muscle.actual / muscle.target * 100) : (muscle.actual ? 100 : 0);
+                const summary = muscle.target ? `${muscle.actual} / ${muscle.target}` : `${muscle.actual} · hors cible`;
+                return `<div class="muscle-row"><div class="muscle-row-head"><span>${esc(muscle.short)}</span><span class="muted">${summary}</span></div><div class="progress ${muscle.actual > muscle.target ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
+              }).join("") : `<p class="muted">Ajoute des séries de travail au programme actif pour créer automatiquement ses cibles musculaires.</p>`}
             </div>
 
             ${renderHistoryBlock()}
@@ -2519,6 +2661,7 @@ svg {
         const activeProgram = getActiveProgram();
         const templates = getActiveWorkoutTemplates();
         const totalWeeklySets = templates.reduce((sum, session) => sum + sessionPlannedSets(session), 0);
+        const targetRows = muscleComparisonRows(programMuscleTargets(activeProgram));
         if (!activeProgram) return `
           <section class="page">
             <div><p class="eyebrow">Programmes</p><h1>Construis ton entraînement</h1><p class="muted">Crée le programme que tu souhaites, nomme ses séances librement puis compose-les avec ta bibliothèque.</p></div>
@@ -2556,7 +2699,7 @@ svg {
                 </details>`).join("")}
             </div>
             ${templates.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">＋</span><h2>Programme vide</h2><p class="muted">Crée ta première séance puis ajoute les exercices de ta bibliothèque.</p><button class="btn btn-primary" type="button" data-action="create-template">Créer une séance</button></div></div>`}
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Repères</p><h2>Cibles hebdomadaires</h2></div></div><div class="row">${MUSCLES.map(muscle => `<span class="badge">${muscle.short} · ${muscle.target}</span>`).join("")}</div></div>
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Volume programmé</p><h2>Cibles musculaires du programme</h2><p class="small muted">Calcul automatique des séries prévues dans les séances ci-dessus. Les exercices W par défaut sont exclus.</p></div></div>${targetRows.length ? `<div class="row">${targetRows.map(muscle => `<span class="badge">${esc(muscle.short)} · ${muscle.target}</span>`).join("")}</div>` : `<p class="muted">Aucune série de travail prévue pour le moment.</p>`}</div>
           </section>`;
       }
 
@@ -2607,6 +2750,7 @@ svg {
         const liveSets = sessionWorkSets(draft);
         const liveTonnage = sessionTonnage(draft);
         const liveDrops = sessionDropSegments(draft);
+        const pendingValidationCount = unvalidatedEnteredSets(draft).length;
         const elapsed = Math.max(0, Math.round((Date.now() - new Date(draft.startedAt).getTime()) / 60000));
         return `
           <section class="page">
@@ -2621,7 +2765,7 @@ svg {
 
             <div class="card live-strip" aria-label="Résumé en direct">
               <div class="live-metric"><strong id="live-set-count">${liveSets}</strong><span>séries</span></div>
-              <div class="live-metric"><strong id="live-tonnage">${compactWeight(liveTonnage)}</strong><span>kg de tonnage</span></div>
+              <div class="live-metric"><strong id="live-tonnage">${compactWeight(liveTonnage)}</strong><span>kg volume-charge</span></div>
               <div class="live-metric"><strong id="live-drop-count">${liveDrops}</strong><span>drops</span></div>
               <div class="live-metric"><strong id="live-time">${elapsed}</strong><span>minutes</span></div>
             </div>
@@ -2644,6 +2788,7 @@ svg {
                 ${feedbackSelect("pain", "Gêne/douleur", 0, 10, draft.feedback.pain)}
               </div>
               <div class="field"><label for="session-comments">Commentaires</label><textarea id="session-comments" data-draft-field="comments" placeholder="Sensations, technique, fatigue, exercice à modifier…">${esc(draft.comments)}</textarea></div>
+              <div id="pending-validation-notice" class="notice warning" ${pendingValidationCount ? "" : "hidden"}>${pendingValidationCount ? pendingValidationCopy(pendingValidationCount) : ""}</div>
               <button class="btn btn-primary btn-block" type="button" data-action="finish-workout">Enregistrer la séance</button>
             </div>
           </section>`;
@@ -2685,7 +2830,7 @@ svg {
             <div class="exercise-foot">
               <button class="btn btn-sm" type="button" data-action="add-set" data-exercise-index="${exerciseIndex}">＋ Série</button>
               ${exercise.sets.length > 1 ? `<button class="btn btn-sm btn-ghost" type="button" data-action="remove-last-set" data-exercise-index="${exerciseIndex}">Retirer la dernière</button>` : ""}
-              <details class="options"><summary>Réglages et note exercice</summary><div class="stack"><div class="field"><label>Mode de charge</label><select data-exercise-field="loadType" data-exercise-index="${exerciseIndex}"><option value="total" ${exercise.loadType === "total" ? "selected" : ""}>Charge totale</option><option value="perSide" ${exercise.loadType === "perSide" ? "selected" : ""}>Charge par côté (tonnage ×2)</option><option value="bodyweightPlus" ${exercise.loadType === "bodyweightPlus" ? "selected" : ""}>Poids du corps + lest</option></select></div><label class="row small"><input type="checkbox" data-exercise-rir data-exercise-index="${exerciseIndex}" ${rirEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label><label class="row small"><input type="checkbox" data-exercise-warmup-default data-exercise-index="${exerciseIndex}" ${exercise.warmupDefault ? "checked" : ""} style="width:auto;min-height:auto"> W par défaut pour les nouvelles séries</label><div class="field"><label>Note</label><textarea data-exercise-field="comments" data-exercise-index="${exerciseIndex}" placeholder="Repères de placement, machine, amplitude…">${esc(exercise.comments)}</textarea></div></div></details>
+              <details class="options"><summary>Réglages et note exercice</summary><div class="stack"><div class="field"><label>Mode de charge</label><select data-exercise-field="loadType" data-exercise-index="${exerciseIndex}"><option value="total" ${exercise.loadType === "total" ? "selected" : ""}>Charge totale</option><option value="perSide" ${exercise.loadType === "perSide" ? "selected" : ""}>Charge par côté (volume-charge ×2)</option><option value="bodyweightPlus" ${exercise.loadType === "bodyweightPlus" ? "selected" : ""}>Poids du corps + lest</option></select></div><label class="row small"><input type="checkbox" data-exercise-rir data-exercise-index="${exerciseIndex}" ${rirEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label><label class="row small"><input type="checkbox" data-exercise-warmup-default data-exercise-index="${exerciseIndex}" ${exercise.warmupDefault ? "checked" : ""} style="width:auto;min-height:auto"> W par défaut pour les nouvelles séries</label><div class="field"><label>Note</label><textarea data-exercise-field="comments" data-exercise-index="${exerciseIndex}" placeholder="Repères de placement, machine, amplitude…">${esc(exercise.comments)}</textarea></div></div></details>
             </div>
           </article>`;
       }
@@ -2696,16 +2841,29 @@ svg {
         return `<div class="field"><label for="feedback-${key}">${label}</label><select id="feedback-${key}" data-feedback-field="${key}">${options.join("")}</select></div>`;
       }
 
+      function statsPeriodControl() {
+        const options = Array.from({ length: 8 }, (_, index) => index + 1)
+          .map(weeks => `<option value="${weeks * 7}" ${statsDays === weeks * 7 ? "selected" : ""}>${weeks} semaine${weeks > 1 ? "s" : ""}</option>`)
+          .join("");
+        return `<div class="field"><label for="stats-period">Période</label><select id="stats-period" data-stats-period>${options}<option value="0" ${statsDays === 0 ? "selected" : ""}>Depuis toujours</option></select></div>`;
+      }
+
       function renderStats() {
         const sessions = sessionsForPeriod(statsDays);
+        const periodControl = statsPeriodControl();
         if (!sessions.length) {
-          return `<section class="page"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div><div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h2>Pas encore assez de données</h2><p class="muted">Une seule séance suffit pour afficher ton tonnage, tes séries et tes premiers records.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
+          return `<section class="page"><div class="section-head"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div>${periodControl}</div><div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h2>Aucune séance sur cette période</h2><p class="muted">Choisis une période plus longue ou enregistre une séance pour afficher tes séries, ton volume-charge et tes progressions.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
         }
-        const totalTonnage = sessions.reduce((sum, session) => sum + sessionTonnage(session), 0);
+
+        const totalMainTonnage = sessions.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
+        const totalDropTonnage = sessions.reduce((sum, session) => sum + sessionDropTonnage(session), 0);
+        const totalTonnage = totalMainTonnage + totalDropTonnage;
         const totalSets = sessions.reduce((sum, session) => sum + sessionWorkSets(session), 0);
-        const totalReps = sessions.reduce((sum, session) => sum + sessionReps(session), 0);
+        const totalMainReps = sessions.reduce((sum, session) => sum + sessionMainReps(session), 0);
+        const totalDropReps = sessions.reduce((sum, session) => sum + sessionDropReps(session), 0);
         const totalDropSets = sessions.reduce((sum, session) => sum + sessionDropSets(session), 0);
         const totalDropSegments = sessions.reduce((sum, session) => sum + sessionDropSegments(session), 0);
+        const dropSetShare = totalSets ? totalDropSets / totalSets * 100 : 0;
         const avgDuration = sessions.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0) / sessions.length;
         const earliest = dateFromYmd(sessions[0].date);
         const spanDays = statsDays || Math.max(1, Math.ceil((new Date() - earliest) / 86400000) + 1);
@@ -2714,48 +2872,73 @@ svg {
         const avgEffort = sessions.reduce((sum, session) => sum + finiteNumber(session.feedback?.effort), 0) / sessions.length;
         const avgPain = sessions.reduce((sum, session) => sum + finiteNumber(session.feedback?.pain), 0) / sessions.length;
         const weekly = weeklyAggregates(sessions);
-        const muscles = muscleSets(sessions);
-        const exerciseOptions = uniqueExercises(sessions);
-        if (!selectedExercise || !exerciseOptions.some(exercise => exercise.id === selectedExercise)) selectedExercise = exerciseOptions[0]?.id || "";
-        const exerciseTrend = exerciseProgress(sessions, selectedExercise);
-        const bestE1rm = Math.max(0, ...exerciseTrend.map(point => point.value));
-        const selectedMeta = exerciseOptions.find(exercise => exercise.id === selectedExercise);
+        const muscleTotals = muscleSets(sessions);
+        const muscleAverages = Object.fromEntries(Object.entries(muscleTotals).map(([id, value]) => [id, value / weeks]));
         const activeProgram = getActiveProgram();
-        const tonnageByTemplate = getActiveWorkoutTemplates().map(template => {
+        const muscleRows = muscleComparisonRows(programMuscleTargets(activeProgram), muscleAverages);
+
+        const exerciseOptions = uniqueExercises(sessions);
+        if (!selectedExercise || !exerciseOptions.some(exercise => exercise.key === selectedExercise)) {
+          selectedExercise = exerciseOptions[0]?.key || "";
+          selectedRepRange = "";
+        }
+        const selectedMeta = exerciseOptions.find(exercise => exercise.key === selectedExercise);
+        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType) : [];
+        if (!repRanges.some(range => range.id === selectedRepRange)) {
+          selectedRepRange = [...repRanges].sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount)[0]?.id || "";
+        }
+        const comparable = selectedMeta
+          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType)
+          : { passages: [], trend: [], best: null };
+        const trendDelta = comparable.trend.length > 1 ? comparable.trend.at(-1).value - comparable.trend[0].value : 0;
+        const comparisonUnit = comparableWeightUnit(selectedMeta?.loadType);
+
+        const workloadByTemplate = getActiveWorkoutTemplates().map(template => {
           const passages = sessions.filter(session => session.programId === template.id);
-          const total = passages.reduce((sum, session) => sum + sessionTonnage(session), 0);
-          return { id: template.id, name: template.name, count: passages.length, total, average: passages.length ? total / passages.length : 0 };
+          const main = passages.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
+          const drops = passages.reduce((sum, session) => sum + sessionDropTonnage(session), 0);
+          const total = main + drops;
+          return { id: template.id, name: template.name, count: passages.length, main, drops, total, average: passages.length ? total / passages.length : 0 };
         });
 
         return `
           <section class="page">
-            <div class="section-head"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div><div class="field"><label for="stats-period">Période</label><select id="stats-period" data-stats-period><option value="28" ${statsDays === 28 ? "selected" : ""}>4 semaines</option><option value="56" ${statsDays === 56 ? "selected" : ""}>8 semaines</option><option value="84" ${statsDays === 84 ? "selected" : ""}>12 semaines</option><option value="0" ${statsDays === 0 ? "selected" : ""}>Tout</option></select></div></div>
+            <div class="section-head"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div>${periodControl}</div>
             <div class="kpi-grid">
-              <div class="card kpi"><span class="kpi-label">Tonnage moyen / séance</span><strong class="kpi-value">${compactWeight(totalTonnage / sessions.length)}<span class="kpi-unit">kg</span></strong><span class="small muted">${compactWeight(totalTonnage)} kg au total</span></div>
+              <div class="card kpi"><span class="kpi-label">Volume-charge moyen / séance</span><strong class="kpi-value">${compactWeight(totalTonnage / sessions.length)}<span class="kpi-unit">kg</span></strong><span class="small muted">${compactWeight(totalTonnage)} kg enregistrés</span></div>
               <div class="card kpi"><span class="kpi-label">Séries moyennes / séance</span><strong class="kpi-value">${formatNumber(totalSets / sessions.length, 1)}</strong><span class="small muted">${totalSets} séries de travail</span></div>
-              <div class="card kpi"><span class="kpi-label">Répétitions / série</span><strong class="kpi-value">${formatNumber(totalSets ? totalReps / totalSets : 0, 1)}</strong><span class="small muted">${totalReps} répétitions</span></div>
+              <div class="card kpi"><span class="kpi-label">Répétitions principales / série</span><strong class="kpi-value">${formatNumber(totalSets ? totalMainReps / totalSets : 0, 1)}</strong><span class="small muted">${totalMainReps} reps principales</span></div>
               <div class="card kpi"><span class="kpi-label">Fréquence moyenne</span><strong class="kpi-value">${formatNumber(avgWeekSessions, 1)}<span class="kpi-unit">/sem.</span></strong><span class="small muted">durée moy. ${formatNumber(avgDuration, 0)} min</span></div>
             </div>
-            <div class="row"><span class="badge accent">${totalDropSets} série${totalDropSets > 1 ? "s" : ""} dégressive${totalDropSets > 1 ? "s" : ""}</span><span class="badge">${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""} de baisse</span><span class="small muted">Une série avec plusieurs drops reste comptée comme une seule série de travail.</span></div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Tendance</p><h2>Tonnage par semaine</h2></div><span class="badge">${weekly.length} semaines</span></div>${barChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg")}</div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Programme actif</p><h2>Tonnage par séance</h2><p class="small muted">Moyenne et total par séance modèle sur la période sélectionnée.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>${tonnageByTemplate.length ? `<div class="list-divider">${tonnageByTemplate.map(item => `<div class="session-line"><div class="row-between"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.count} passage${item.count > 1 ? "s" : ""}</p></div><span class="badge accent">${formatNumber(item.average, 0)} kg / passage</span></div><p class="small muted">${formatNumber(item.total, 0)} kg au total</p></div>`).join("")}</div>` : `<p class="muted">Le programme actif ne contient aucune séance.</p>`}</div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Volume</p><h2>Séries moyennes / semaine</h2></div><span class="badge">repères fixes</span></div><div class="notice"><strong>Comment lire cette statistique :</strong> elle additionne les séries de travail réellement effectuées pour le muscle principal, puis divise ce total par le nombre de semaines de la période. Exemple : 64 séries de pectoraux sur 8 semaines donnent 8 séries/semaine. Elle sert à vérifier la répartition régulière du volume, mais ne mesure ni l’intensité, ni le RIR, ni la qualité d’exécution. Les muscles secondaires ne sont pas comptés.</div>${MUSCLES.map(muscle => {
-              const average = muscles[muscle.id] / weeks;
-              const percent = muscle.target ? average / muscle.target * 100 : 0;
-              return `<div class="muscle-row"><div class="muscle-row-head"><span>${muscle.short}</span><span class="muted">${formatNumber(average, 1)} / ${muscle.target} · ${formatNumber(percent, 0)}%</span></div><div class="progress ${percent > 110 ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
-            }).join("")}</div>
 
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Force estimée</p><h2>Progression par exercice</h2></div></div>
-              <div class="field"><label for="exercise-stat">Exercice</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.id)}" ${exercise.id === selectedExercise ? "selected" : ""}>${esc(exercise.name)}</option>`).join("")}</select></div>
-              ${exerciseTrend.length ? `${lineChart(exerciseTrend, "kg")}<div class="row"><span class="badge accent">Meilleur e1RM : ${formatNumber(bestE1rm, 1)} kg</span><span class="badge">${selectedMeta?.loadType === "perSide" ? "par côté" : "charge saisie"}</span></div>` : `<p class="muted">Renseigne charge et répétitions pour calculer l’e1RM.</p>`}
+              <div class="section-head"><div><p class="eyebrow">Séries dégressives</p><h2>Contribution des drops</h2><p class="small muted">La série principale reste une seule série de travail ; ses paliers sont analysés séparément.</p></div><span class="badge accent">${formatNumber(dropSetShare, 1)} % des séries</span></div>
+              <div class="kpi-grid">
+                <div class="kpi"><span class="kpi-label">Répétitions issues des drops</span><strong class="kpi-value">${totalDropReps}</strong><span class="small muted">${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""}</span></div>
+                <div class="kpi"><span class="kpi-label">Séries avec drop</span><strong class="kpi-value">${totalDropSets}</strong><span class="small muted">sur ${totalSets} séries de travail</span></div>
+                <div class="kpi"><span class="kpi-label">Volume-charge principal</span><strong class="kpi-value">${compactWeight(totalMainTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">hors drops</span></div>
+                <div class="kpi"><span class="kpi-label">Volume-charge des drops</span><strong class="kpi-value">${compactWeight(totalDropTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">${totalTonnage ? formatNumber(totalDropTonnage / totalTonnage * 100, 1) : "0,0"} % du volume-charge</span></div>
+              </div>
+            </div>
+
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Charge de travail</p><h2>Volume-charge par semaine</h2><p class="small muted">Repère interne : charge effective × répétitions, séries W exclues.</p></div><span class="badge">${weekly.length} semaine${weekly.length > 1 ? "s" : ""} renseignée${weekly.length > 1 ? "s" : ""}</span></div>${barChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg")}</div>
+
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Programme actif</p><h2>Volume-charge par séance</h2><p class="small muted">Moyenne et répartition principale/drops par séance modèle sur la période.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>${workloadByTemplate.length ? `<div class="list-divider">${workloadByTemplate.map(item => `<div class="session-line"><div class="row-between"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.count} passage${item.count > 1 ? "s" : ""}</p></div><span class="badge accent">${formatNumber(item.average, 0)} kg / passage</span></div><p class="small muted">Principal ${formatNumber(item.main, 0)} kg · Drops ${formatNumber(item.drops, 0)} kg · Total ${formatNumber(item.total, 0)} kg</p></div>`).join("")}</div>` : `<p class="muted">Le programme actif ne contient aucune séance.</p>`}</div>
+
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Volume musculaire</p><h2>Séries moyennes / semaine</h2><p class="small muted">Comparées aux séries prévues dans le programme actif.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div><div class="notice"><strong>Objectif dynamique :</strong> la cible est recalculée quand tu modifies les séries d’une séance modèle. Ajouter ou retirer une série pendant l’entraînement change uniquement le réalisé ; la cible du programme reste intacte. Les séries W et les muscles secondaires sont exclus.</div>${muscleRows.length ? muscleRows.map(muscle => {
+              const percent = muscle.target ? muscle.actual / muscle.target * 100 : (muscle.actual ? 100 : 0);
+              const summary = muscle.target ? `${formatNumber(muscle.actual, 1)} / ${muscle.target} · ${formatNumber(percent, 0)} %` : `${formatNumber(muscle.actual, 1)} · hors cible`;
+              return `<div class="muscle-row"><div class="muscle-row-head"><span>${esc(muscle.short)}</span><span class="muted">${summary}</span></div><div class="progress ${muscle.actual > muscle.target ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
+            }).join("") : `<p class="muted">Aucune série musculaire à comparer sur cette période.</p>`}</div>
+
+            <div class="card stack">
+              <div class="section-head"><div><p class="eyebrow">Progression comparable</p><h2>Meilleur poids et tendance moyenne</h2><p class="small muted">Comparaison des séries principales dans une même plage de répétitions, sans formule de 1RM.</p></div></div>
+              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et mode de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Répétitions comparables</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
+              ${comparable.trend.length ? `${lineChart(comparable.trend, comparisonUnit)}<div class="row"><span class="badge accent">Meilleur poids : ${formatNumber(comparable.best.weight, 1)} ${comparisonUnit} × ${comparable.best.reps} reps</span><span class="badge">${formatDate(comparable.best.date, true)}</span><span class="badge">Moyenne mobile sur 3 passages : ${trendDelta >= 0 ? "+" : ""}${formatNumber(trendDelta, 1)} ${comparisonUnit}</span></div><p class="small muted">Chaque point représente la moyenne mobile des charges moyennes des trois derniers passages disponibles dans cette plage de répétitions.</p>` : `<p class="muted">Aucune charge comparable n’est disponible pour cet exercice sur la période sélectionnée.</p>`}
             </div>
 
             <div class="card stack"><div><p class="eyebrow">Récupération</p><h2>Signaux moyens</h2></div><div class="kpi-grid"><div class="kpi"><span class="kpi-label">Effort global</span><strong class="kpi-value">${formatNumber(avgEffort, 1)}<span class="kpi-unit">/10</span></strong></div><div class="kpi"><span class="kpi-label">Gêne / douleur</span><strong class="kpi-value">${formatNumber(avgPain, 1)}<span class="kpi-unit">/10</span></strong></div></div>${avgPain >= 4 ? `<div class="notice warning">Ta gêne moyenne est élevée sur la période. Identifie les exercices concernés dans tes commentaires et adapte la charge ou l’amplitude si nécessaire.</div>` : ""}</div>
-            <div class="notice"><strong>Lecture utile :</strong> compare surtout le tonnage et l’e1RM d’un même exercice. Deux machines différentes ne produisent pas des charges directement comparables.</div>
+            <div class="notice"><strong>Lecture utile :</strong> le volume-charge global décrit la quantité de travail enregistrée, pas la force ni la qualité d’une séance. Pour juger ta progression, compare le même exercice, la même machine, le même mode de charge et une plage de répétitions similaire.</div>
           </section>`;
       }
 
@@ -2775,13 +2958,11 @@ svg {
       function uniqueExercises(sessions) {
         const map = new Map();
         sessions.forEach(session => (session.exercises || []).forEach(exercise => {
-          if (!map.has(exercise.id)) map.set(exercise.id, { id: exercise.id, name: exercise.name, loadType: exercise.loadType });
+          const loadType = exercise.loadType || "total";
+          const key = `${exercise.id}::${loadType}`;
+          map.set(key, { key, id: exercise.id, name: exercise.name, loadType });
         }));
         return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-      }
-
-      function exerciseProgress(sessions, exerciseId) {
-        return sessions.map(session => ({ label: formatDate(session.date), rawDate: session.date, value: sessionBestE1rm(session, exerciseId) })).filter(point => point.value > 0);
       }
 
       function barChart(points, unit) {
@@ -2802,7 +2983,7 @@ svg {
           const label = points.length > 8 && index % 2 ? "" : point.label.replace(/\./g, "");
           return `<rect class="chart-bar" x="${x}" y="${y}" width="${barWidth}" height="${h}" rx="5"><title>${esc(point.label)} : ${formatNumber(point.value, 0)} ${unit}</title></rect><text class="chart-axis" x="${x + barWidth / 2}" y="${height - 16}" text-anchor="middle">${esc(label)}</text>`;
         }).join("");
-        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Tonnage hebdomadaire en kilogrammes"><title>Tonnage hebdomadaire</title>${grid}${bars}</svg></div>`;
+        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Volume-charge hebdomadaire en kilogrammes"><title>Volume-charge hebdomadaire</title>${grid}${bars}</svg></div>`;
       }
 
       function lineChart(points, unit) {
@@ -2822,7 +3003,7 @@ svg {
           return `<line class="chart-grid" x1="${left}" y1="${y}" x2="${width - right}" y2="${y}"></line><text class="chart-axis" x="${left - 8}" y="${y + 4}" text-anchor="end">${formatNumber(value, 0)}</text>`;
         }).join("");
         const dots = points.map((point, index) => `<circle class="chart-dot" cx="${xFor(index)}" cy="${yFor(point.value)}" r="5"><title>${esc(point.label)} : ${formatNumber(point.value, 1)} ${unit}</title></circle>${(points.length <= 8 || index === 0 || index === points.length - 1) ? `<text class="chart-axis" x="${xFor(index)}" y="${height - 16}" text-anchor="middle">${esc(point.label.replace(/\./g, ""))}</text>` : ""}`).join("");
-        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Progression de la force estimée"><title>Progression e1RM</title>${grid}<path class="chart-line" d="${path}"></path>${dots}</svg></div>`;
+        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Tendance moyenne des charges à répétitions comparables"><title>Charge moyenne mobile sur trois passages</title>${grid}<path class="chart-line" d="${path}"></path>${dots}</svg></div>`;
       }
 
       function renderData() {
@@ -2840,9 +3021,9 @@ svg {
               <div class="notice"><strong>Mode hors ligne :</strong> tu peux continuer ta séance sans réseau. Les changements seront envoyés automatiquement dès le retour de la connexion.</div>
             </div>
             <div class="card stack">
-              <div><p class="eyebrow">Profil</p><h2>Calcul du tonnage</h2></div>
+              <div><p class="eyebrow">Profil</p><h2>Calcul du volume-charge</h2></div>
               <div class="form-grid"><div class="field"><label for="bodyweight">Poids du corps (kg)</label><input id="bodyweight" type="number" inputmode="decimal" min="20" max="300" step="0.1" value="${esc(state.settings.bodyweightKg)}" data-setting="bodyweightKg"></div><div class="field"><label for="target-sessions">Séances cibles / semaine</label><input id="target-sessions" type="number" inputmode="numeric" min="1" max="14" value="${esc(state.settings.targetSessionsWeek)}" data-setting="targetSessionsWeek"></div></div>
-              <p class="small muted">Le poids du corps est ajouté au lest pour les dips. Les exercices “par côté” multiplient la charge par 2 pour le tonnage.</p>
+              <p class="small muted">Le poids du corps est ajouté au lest pour le volume-charge des mouvements concernés. Les exercices “par côté” multiplient la charge saisie par 2. Ce calcul reste un repère interne, pas une mesure de force.</p>
             </div>
             <div class="card stack">
               <div><p class="eyebrow">Sauvegarde</p><h2>Exporter ou restaurer</h2></div>
@@ -2883,11 +3064,11 @@ svg {
           const sets = (exercise.sets || []).map((set, setIndex) => {
             const completed = finiteNumber(set.reps) > 0;
             const drops = (set.drops || []).map((drop, dropIndex) => `<div class="detail-drop row-between"><div><strong>Drop ${dropIndex + 1}</strong><p class="small muted">Enchaîné sans repos</p></div><div class="row"><span class="badge">${recordedValue(drop.weight, " kg")}</span><span class="badge accent">${recordedValue(drop.reps, " reps")}</span></div></div>`).join("");
-            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row">${set.warmup ? `<span class="badge">Échauffement</span>` : `<span class="badge accent">Travail</span>`}<span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Tonnage série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
+            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row">${set.warmup ? `<span class="badge">Échauffement</span>` : `<span class="badge accent">Travail</span>`}<span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
           }).join("");
           return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
         }).join("");
-        return `<div class="notice"><strong>Lecture seule :</strong> ce relevé restitue la séance enregistrée. Aucun champ de l’historique ne peut être modifié depuis cette vue.</div><div class="detail-summary"><div><p class="eyebrow">${formatDate(session.date, true)}</p><h2>${esc(session.name)}</h2></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries de travail</span><span class="badge">${compactWeight(sessionTonnage(session))} kg</span><span class="badge">${sessionReps(session)} reps</span><span class="badge">${sessionDropSegments(session)} drops</span><span class="badge">${finiteNumber(session.durationMin)} min</span></div><div class="form-grid"><div class="detail-value"><span>Début</span><strong>${formatDateTime(session.startedAt)}</strong></div><div class="detail-value"><span>Fin</span><strong>${formatDateTime(session.endedAt)}</strong></div></div><div class="feedback-grid">${feedbackItems.map(([label, value, max]) => `<div class="detail-value"><span>${label}</span><strong>${recordedValue(value)} / ${max}</strong></div>`).join("")}</div>${session.comments ? `<p class="detail-comment"><strong>Commentaire :</strong> ${esc(session.comments)}</p>` : ""}</div><div class="stack"><div><p class="eyebrow">Déroulé complet</p><h2>${(session.exercises || []).length} exercice${(session.exercises || []).length > 1 ? "s" : ""}</h2></div>${exercises || `<div class="card empty"><p class="muted">Aucun exercice enregistré.</p></div>`}</div>`;
+        return `<div class="notice"><strong>Lecture seule :</strong> ce relevé restitue la séance enregistrée. Aucun champ de l’historique ne peut être modifié depuis cette vue.</div><div class="detail-summary"><div><p class="eyebrow">${formatDate(session.date, true)}</p><h2>${esc(session.name)}</h2></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries de travail</span><span class="badge">${compactWeight(sessionTonnage(session))} kg volume-charge</span><span class="badge">${sessionReps(session)} reps</span><span class="badge">${sessionDropSegments(session)} drops</span><span class="badge">${finiteNumber(session.durationMin)} min</span></div><div class="form-grid"><div class="detail-value"><span>Début</span><strong>${formatDateTime(session.startedAt)}</strong></div><div class="detail-value"><span>Fin</span><strong>${formatDateTime(session.endedAt)}</strong></div></div><div class="feedback-grid">${feedbackItems.map(([label, value, max]) => `<div class="detail-value"><span>${label}</span><strong>${recordedValue(value)} / ${max}</strong></div>`).join("")}</div>${session.comments ? `<p class="detail-comment"><strong>Commentaire :</strong> ${esc(session.comments)}</p>` : ""}</div><div class="stack"><div><p class="eyebrow">Déroulé complet</p><h2>${(session.exercises || []).length} exercice${(session.exercises || []).length > 1 ? "s" : ""}</h2></div>${exercises || `<div class="card empty"><p class="muted">Aucun exercice enregistré.</p></div>`}</div>`;
       }
 
       function openSessionDetail(sessionId) {
@@ -2904,10 +3085,16 @@ svg {
         const tonnageEl = root.querySelector("#live-tonnage");
         const dropEl = root.querySelector("#live-drop-count");
         const timeEl = root.querySelector("#live-time");
+        const pendingEl = root.querySelector("#pending-validation-notice");
         if (setEl) setEl.textContent = sessionWorkSets(state.draft);
         if (tonnageEl) tonnageEl.textContent = compactWeight(sessionTonnage(state.draft));
         if (dropEl) dropEl.textContent = sessionDropSegments(state.draft);
         if (timeEl) timeEl.textContent = Math.max(0, Math.round((Date.now() - new Date(state.draft.startedAt).getTime()) / 60000));
+        if (pendingEl) {
+          const pendingCount = unvalidatedEnteredSets(state.draft).length;
+          pendingEl.hidden = pendingCount === 0;
+          pendingEl.innerHTML = pendingCount ? pendingValidationCopy(pendingCount) : "";
+        }
         updateHeader();
       }
 
@@ -2937,6 +3124,13 @@ svg {
       function finishWorkout() {
         const draft = state.draft;
         if (!draft) return;
+        const pendingSets = unvalidatedEnteredSets(draft);
+        if (pendingSets.length) {
+          const firstPending = pendingSets[0];
+          showToast(`${pendingSets.length} série${pendingSets.length > 1 ? "s renseignées ne sont" : " renseignée n’est"} pas encore validée${pendingSets.length > 1 ? "s" : ""}.`);
+          focusSet(firstPending.exerciseIndex, firstPending.setIndex);
+          return;
+        }
         if (sessionWorkSets(draft) === 0) {
           showToast("Renseigne au moins une série de travail.");
           return;
@@ -2976,6 +3170,7 @@ svg {
             ...structuredClone(exercise),
             instanceId: uid("exercise"),
             order: exerciseIndex + 1,
+            bodyweightKg: finiteNumber(state.settings.bodyweightKg),
             comments: "",
             sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, drops: [] }))
           }))
@@ -3010,7 +3205,7 @@ svg {
       }
 
       function exportCsv() {
-        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "echauffement", "mode_charge", "charge_effective_kg", "tonnage_kg", "effort_global", "energie", "performance", "congestion", "douleur", "commentaire_seance", "commentaire_exercice"];
+        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "effort_global", "energie", "performance", "congestion", "douleur", "commentaire_seance", "commentaire_exercice"];
         const rows = [headers];
         getSortedSessions().forEach(session => (session.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => {
           const components = [
@@ -3018,7 +3213,7 @@ svg {
             ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
           ];
           components.forEach(component => rows.push([
-            session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), session.feedback?.effort, session.feedback?.energy, session.feedback?.performance, session.feedback?.pump, session.feedback?.pain, session.comments, exercise.comments
+            session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), session.feedback?.effort, session.feedback?.energy, session.feedback?.performance, session.feedback?.pump, session.feedback?.pain, session.comments, exercise.comments
           ]));
         })));
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
@@ -3307,7 +3502,8 @@ svg {
           if (exercise) { exercise.warmupDefault = target.checked; saveState(); render(); }
         }
         if (target.hasAttribute("data-stats-period")) { statsDays = finiteNumber(target.value); render(); }
-        if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; render(); }
+        if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; selectedRepRange = ""; render(); }
+        if (target.hasAttribute("data-rep-range-stat")) { selectedRepRange = target.value; render(); }
         if (target.hasAttribute("data-library-muscle")) { libraryMuscleFilter = target.value; render(); }
         if (target.hasAttribute("data-active-program")) { state.activeProgramId = target.value; saveState(); render(); }
         if (target.id === "picker-exercise") { updatePickerDetail(); syncPickerWarmupDefault(); }
