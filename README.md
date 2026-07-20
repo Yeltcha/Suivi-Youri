@@ -4,6 +4,6 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
-La version 1.9.2 affiche le **B** et sa voile sur un fond entièrement transparent dans l’en-tête. Le carré sombre et le contour doré ont été supprimés ; les icônes PWA restent indépendantes du logo d’interface. La palette « Bronze homérique », l’historique complet sur l’accueil et le bouton **W** par série restent inchangés.
+La version 1.9.3 unifie la bibliothèque et tous les sélecteurs d’exercices. Un exercice créé devient immédiatement recherchable et disponible dans l’éditeur de séance, dans une séance en cours et dans le sélecteur de remplacement. La création directe depuis une séance modèle ou une séance active est également sécurisée sur mobile.
 
 Voir [README_INSTALLATION.md](README_INSTALLATION.md) pour la mise en ligne sur GitHub Pages et l’installation sur téléphone.

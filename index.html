@@ -1178,7 +1178,9 @@ svg {
   <dialog id="exercise-picker-dialog">
     <form id="exercise-picker-form" class="dialog-body" method="dialog">
       <div class="stack"><p class="eyebrow">Choix de l’exercice</p><h2 id="picker-dialog-title">Ajouter à la séance</h2></div>
+      <div class="field"><label for="picker-search">Rechercher dans la bibliothèque</label><input id="picker-search" type="search" autocomplete="off" placeholder="Nom, muscle, marque ou machine"></div>
       <div class="field"><label for="picker-exercise">Exercice de la bibliothèque</label><select id="picker-exercise" name="exerciseId" required></select></div>
+      <p id="picker-exercise-count" class="small muted"></p>
       <div class="field"><label for="picker-sets">Nombre de séries prévues</label><input id="picker-sets" name="sets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
       <label class="row small"><input id="picker-rir-enabled" name="rirEnabled" type="checkbox" checked style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label>
       <p id="picker-exercise-detail" class="small muted"></p>
@@ -1235,7 +1237,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.9.2";
+      const APP_VERSION = "1.9.3";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1418,6 +1420,8 @@ svg {
       let renamingProgramId = "";
       let pickerMode = "draft-add";
       let pickerTargetIndex = -1;
+      let pickerSearchQuery = "";
+      let lastCreatedLibraryExerciseId = "";
       let templateEditorSnapshot = null;
       let pendingHomeNavigation = "";
       let installPrompt = null;
@@ -1992,21 +1996,35 @@ svg {
         else dialog.removeAttribute("open");
       }
 
+      function switchDialog(dialog, openNext) {
+        closeDialog(dialog);
+        requestAnimationFrame(() => openNext());
+      }
+
+      function isExerciseCreationMode(mode) {
+        return mode === "template-add" || mode === "draft-add" || mode === "draft-replace";
+      }
+
       function openLibraryExerciseDialog(exerciseId = "", options = {}) {
         editingLibraryExerciseId = exerciseId;
         libraryDialogMode = options.mode || "library";
         libraryDraftTargetIndex = finiteNumber(options.targetIndex, -1);
         const exercise = getLibraryExercise(exerciseId);
-        const isDraftCreation = !exercise && (libraryDialogMode === "draft-add" || libraryDialogMode === "draft-replace");
+        const isContextCreation = !exercise && isExerciseCreationMode(libraryDialogMode);
+        const isTemplateCreation = !exercise && libraryDialogMode === "template-add";
         libraryForm.reset();
-        root.querySelector("#library-dialog-eyebrow").textContent = isDraftCreation ? "Séance en cours" : "Bibliothèque";
-        root.querySelector("#library-dialog-title").textContent = exercise ? "Modifier l’exercice" : isDraftCreation ? "Créer et utiliser un exercice" : "Ajouter un exercice";
-        root.querySelector("#library-session-context").hidden = !isDraftCreation;
-        root.querySelector("#library-session-sets-field").hidden = !isDraftCreation;
-        root.querySelector("#library-session-rir-field").hidden = !isDraftCreation;
+        root.querySelector("#library-dialog-eyebrow").textContent = isTemplateCreation ? "Séance modèle" : isContextCreation ? "Séance en cours" : "Bibliothèque";
+        root.querySelector("#library-dialog-title").textContent = exercise ? "Modifier l’exercice" : isContextCreation ? "Créer et utiliser un exercice" : "Ajouter un exercice";
+        const contextNotice = root.querySelector("#library-session-context");
+        contextNotice.hidden = !isContextCreation;
+        contextNotice.textContent = isTemplateCreation
+          ? "Ce nouvel exercice sera enregistré dans ta bibliothèque et ajouté à cette séance modèle. Les autres séances et programmes ne seront pas modifiés."
+          : "Ce nouvel exercice sera enregistré dans ta bibliothèque et ajouté uniquement à la séance en cours. Tes programmes ne seront pas modifiés.";
+        root.querySelector("#library-session-sets-field").hidden = !isContextCreation;
+        root.querySelector("#library-session-rir-field").hidden = !isContextCreation;
         root.querySelector("#library-session-sets").value = Math.max(1, Math.min(12, finiteNumber(options.plannedSets, 3)));
         root.querySelector("#library-session-rir-enabled").checked = options.rirEnabled !== false;
-        root.querySelector("#library-submit-button").textContent = isDraftCreation ? (libraryDialogMode === "draft-replace" ? "Enregistrer et remplacer" : "Enregistrer et ajouter") : "Enregistrer";
+        root.querySelector("#library-submit-button").textContent = isContextCreation ? (libraryDialogMode === "draft-replace" ? "Enregistrer et remplacer" : "Enregistrer et ajouter") : "Enregistrer";
         root.querySelector("#library-muscle").innerHTML = MUSCLES.map(muscle => `<option value="${muscle.id}">${muscle.label}</option>`).join("") + `<option value="other">Autre</option>`;
         if (exercise) {
           const values = {
@@ -2031,11 +2049,25 @@ svg {
         openDialog(libraryDialog);
       }
 
-      function pickerExerciseOptions(selectedId = "") {
+      function pickerLibraryExercises(query = pickerSearchQuery) {
+        const needle = query.trim().toLocaleLowerCase("fr");
         return [...state.exerciseLibrary]
-          .sort((a, b) => `${a.muscle}-${a.name}`.localeCompare(`${b.muscle}-${b.name}`, "fr"))
-          .map(exercise => `<option value="${esc(exercise.id)}" ${exercise.id === selectedId ? "selected" : ""}>${esc(muscleMap[exercise.muscle]?.short || "Autre")} · ${esc(exercise.name)}${exercise.brand ? ` · ${esc(exercise.brand)}` : ""}</option>`)
-          .join("");
+          .filter(exercise => !needle || [exercise.name, muscleMap[exercise.muscle]?.label, exercise.brand, exercise.machineName, exercise.machineModel, exercise.gym].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(needle))
+          .sort((a, b) => `${a.muscle}-${a.name}`.localeCompare(`${b.muscle}-${b.name}`, "fr"));
+      }
+
+      function refreshExercisePickerOptions(selectedId = "") {
+        const select = root.querySelector("#picker-exercise");
+        if (!select) return;
+        const previousId = selectedId || select.value;
+        const exercises = pickerLibraryExercises();
+        select.innerHTML = exercises.length
+          ? exercises.map(exercise => `<option value="${esc(exercise.id)}">${esc(muscleMap[exercise.muscle]?.short || "Autre")} · ${esc(exercise.name)}${exercise.brand ? ` · ${esc(exercise.brand)}` : ""}${exercise.machineName ? ` · ${esc(exercise.machineName)}` : ""}</option>`).join("")
+          : `<option value="" disabled>Aucun exercice correspondant</option>`;
+        if (exercises.some(exercise => exercise.id === previousId)) select.value = previousId;
+        const count = root.querySelector("#picker-exercise-count");
+        if (count) count.textContent = `${exercises.length} exercice${exercises.length > 1 ? "s" : ""} affiché${exercises.length > 1 ? "s" : ""} · ${state.exerciseLibrary.length} dans la bibliothèque`;
+        updatePickerDetail();
       }
 
       function updatePickerDetail() {
@@ -2047,7 +2079,7 @@ svg {
 
       function openExercisePicker(mode, targetIndex = -1) {
         if (!state.exerciseLibrary.length) {
-          if (mode === "draft-add" || mode === "draft-replace") {
+          if (isExerciseCreationMode(mode)) {
             const existing = mode === "draft-replace" ? state.draft?.exercises?.[targetIndex] : null;
             openLibraryExerciseDialog("", { mode, targetIndex, plannedSets: existing?.sets?.length || 3, rirEnabled: existing?.rirEnabled !== false });
             showToast("Crée ton premier exercice pour l’ajouter à cette séance.");
@@ -2059,13 +2091,15 @@ svg {
         }
         pickerMode = mode;
         pickerTargetIndex = targetIndex;
+        pickerSearchQuery = "";
         const existing = mode === "draft-replace" ? state.draft?.exercises?.[targetIndex] : null;
         root.querySelector("#picker-dialog-title").textContent = mode === "draft-replace" ? "Remplacer l’exercice" : mode === "template-add" ? "Ajouter à la séance modèle" : "Ajouter à la séance en cours";
-        root.querySelector("#picker-exercise").innerHTML = pickerExerciseOptions(existing?.libraryExerciseId || existing?.id || "");
+        root.querySelector("#picker-search").value = "";
+        const preferredExerciseId = existing?.libraryExerciseId || existing?.id || (getLibraryExercise(lastCreatedLibraryExerciseId) ? lastCreatedLibraryExerciseId : "");
+        refreshExercisePickerOptions(preferredExerciseId);
         root.querySelector("#picker-sets").value = existing?.sets?.length || 3;
         root.querySelector("#picker-rir-enabled").checked = existing?.rirEnabled !== false;
-        root.querySelector("#picker-create-exercise").hidden = mode !== "draft-add" && mode !== "draft-replace";
-        updatePickerDetail();
+        root.querySelector("#picker-create-exercise").hidden = false;
         openDialog(pickerDialog);
       }
 
@@ -2386,6 +2420,7 @@ svg {
         else if (currentView === "stats") main.innerHTML = renderStats();
         else if (currentView === "data") main.innerHTML = renderData();
         else main.innerHTML = renderHome();
+        if (pickerDialog.open) refreshExercisePickerOptions();
         updateHeader();
       }
 
@@ -3080,13 +3115,12 @@ svg {
         if (action === "open-draft-picker") openExercisePicker("draft-add");
         if (action === "replace-draft-exercise") openExercisePicker("draft-replace", finiteNumber(button.dataset.index));
         if (action === "create-draft-exercise" && state.draft) openLibraryExerciseDialog("", { mode: "draft-add", plannedSets: 3, rirEnabled: true });
-        if (action === "create-exercise-from-picker" && state.draft && (pickerMode === "draft-add" || pickerMode === "draft-replace")) {
+        if (action === "create-exercise-from-picker" && isExerciseCreationMode(pickerMode) && (pickerMode === "template-add" || state.draft)) {
           const plannedSets = Math.max(1, Math.min(12, finiteNumber(root.querySelector("#picker-sets")?.value, 3)));
           const mode = pickerMode;
           const targetIndex = pickerTargetIndex;
-          closeDialog(pickerDialog);
           const rirEnabled = root.querySelector("#picker-rir-enabled")?.checked !== false;
-          openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, rirEnabled });
+          switchDialog(pickerDialog, () => openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, rirEnabled }));
         }
         if (action === "remove-draft-exercise" && state.draft) {
           const index = finiteNumber(button.dataset.index);
@@ -3156,6 +3190,10 @@ svg {
 
       root.addEventListener("input", event => {
         const target = event.target;
+        if (target.id === "picker-search") {
+          pickerSearchQuery = target.value;
+          refreshExercisePickerOptions();
+        }
         if (target.dataset.setField && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(target.dataset.exerciseIndex)];
           const set = exercise?.sets?.[finiteNumber(target.dataset.setIndex)];
@@ -3270,19 +3308,29 @@ svg {
         const index = state.exerciseLibrary.findIndex(item => item.id === exercise.id);
         if (index >= 0) state.exerciseLibrary[index] = exercise;
         else state.exerciseLibrary.push(exercise);
-        let draftAction = "";
+        if (isNewExercise) lastCreatedLibraryExerciseId = exercise.id;
+        let contextAction = "";
+        if (isNewExercise && libraryDialogMode === "template-add") {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          if (template) {
+            const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sessionSets"), 3)));
+            const rirEnabled = data.get("sessionRirEnabled") === "on";
+            template.exercises.push({ libraryExerciseId: exercise.id, plannedSets, rirEnabled, order: template.exercises.length + 1 });
+            contextAction = `ajouté à « ${template.name} »`;
+          }
+        }
         if (isNewExercise && state.draft && (libraryDialogMode === "draft-add" || libraryDialogMode === "draft-replace")) {
           const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sessionSets"), 3)));
           const rirEnabled = data.get("sessionRirEnabled") === "on";
           if (libraryDialogMode === "draft-replace" && state.draft.exercises[libraryDraftTargetIndex]) {
             const existing = state.draft.exercises[libraryDraftTargetIndex];
             state.draft.exercises[libraryDraftTargetIndex] = draftExerciseFromLibrary(exercise, plannedSets, existing, rirEnabled);
-            draftAction = "remplacé dans la séance";
+            contextAction = "remplacé dans la séance en cours";
           } else {
             const draftExercise = draftExerciseFromLibrary(exercise, plannedSets, null, rirEnabled);
             draftExercise.order = state.draft.exercises.length + 1;
             state.draft.exercises.push(draftExercise);
-            draftAction = "ajouté à la séance";
+            contextAction = "ajouté à la séance en cours";
           }
           state.draft.exercises.forEach((item, itemIndex) => { item.order = itemIndex + 1; });
         }
@@ -3291,7 +3339,7 @@ svg {
         libraryDialogMode = "library";
         libraryDraftTargetIndex = -1;
         render();
-        showToast(draftAction ? `${exercise.name} enregistré dans la bibliothèque et ${draftAction}.` : `${exercise.name} enregistré dans la bibliothèque.`);
+        showToast(contextAction ? `${exercise.name} enregistré dans la bibliothèque et ${contextAction}.` : `${exercise.name} enregistré dans la bibliothèque.`);
       });
 
       pickerForm.addEventListener("submit", event => {
