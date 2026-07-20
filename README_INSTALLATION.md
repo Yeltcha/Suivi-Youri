@@ -2,7 +2,7 @@
 
 BODYSSEUS — **Forge Your Odyssey.** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 1.9.3 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle unifie la bibliothèque avec les sélecteurs de l’éditeur et des séances actives, ajoute une recherche et sécurise la création directe d’un exercice sur mobile.
+La version 1.9.4 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle ajoute à chaque exercice de la bibliothèque un réglage **W par défaut**, repris lors de son ajout à une séance modèle ou active. Ce réglage initialise les séries comme échauffement, sans empêcher de modifier W série par série pendant l’entraînement.
 
 ## Installation recommandée sur iPhone
 
@@ -37,7 +37,7 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
 
-La bibliothèque, les programmes libres, le réglage RIR, l’état de validation des séries et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.9.3 conserve le schéma de données en version 5 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
+La bibliothèque, les programmes libres, les réglages RIR et W, l’état de validation des séries et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.9.4 conserve le schéma de données en version 5 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
 
 ## Contenu du dossier
 

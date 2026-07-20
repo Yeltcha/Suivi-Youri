@@ -1169,6 +1169,7 @@ svg {
       <div class="field"><label for="library-settings">Réglages personnels</label><input id="library-settings" name="machineSettings" placeholder="Ex. siège 3 · dossier 2"></div>
       <div class="field"><label for="library-notes">Notes techniques</label><textarea id="library-notes" name="notes" placeholder="Placement, amplitude, repères…"></textarea></div>
       <label class="row small"><input name="unilateral" type="checkbox" style="width:auto;min-height:auto"> Exercice unilatéral</label>
+      <label class="row small"><input id="library-warmup-default" name="warmupDefault" type="checkbox" style="width:auto;min-height:auto"> Activer W par défaut pour les séries de cet exercice</label>
       <div id="library-session-sets-field" class="field" hidden><label for="library-session-sets">Nombre de séries pour cette séance</label><input id="library-session-sets" name="sessionSets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
       <label id="library-session-rir-field" class="row small" hidden><input id="library-session-rir-enabled" name="sessionRirEnabled" type="checkbox" checked style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice dans cette séance</label>
       <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-library-exercise">Annuler</button><button id="library-submit-button" class="btn btn-primary" type="submit">Enregistrer</button></div>
@@ -1183,6 +1184,7 @@ svg {
       <p id="picker-exercise-count" class="small muted"></p>
       <div class="field"><label for="picker-sets">Nombre de séries prévues</label><input id="picker-sets" name="sets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
       <label class="row small"><input id="picker-rir-enabled" name="rirEnabled" type="checkbox" checked style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label>
+      <label class="row small"><input id="picker-warmup-default" name="warmupDefault" type="checkbox" style="width:auto;min-height:auto"> Activer W par défaut pour les séries ajoutées</label>
       <p id="picker-exercise-detail" class="small muted"></p>
       <button id="picker-create-exercise" class="btn btn-block" type="button" data-action="create-exercise-from-picker" hidden>＋ Créer un nouvel exercice</button>
       <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-exercise-picker">Annuler</button><button class="btn btn-primary" type="submit">Valider</button></div>
@@ -1237,7 +1239,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.9.3";
+      const APP_VERSION = "1.9.4";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1389,6 +1391,7 @@ svg {
             notes: "",
             loadType: exercise.loadType,
             unilateral: /unilatéral/i.test(exercise.name),
+            warmupDefault: false,
             favorite: false
           });
         }));
@@ -1399,7 +1402,7 @@ svg {
         return PROGRAM.map(session => ({
           id: session.id,
           name: session.name,
-          exercises: session.exercises.map((exercise, index) => ({ libraryExerciseId: exercise.id, plannedSets: exercise.plannedSets, rirEnabled: true, order: index + 1 }))
+          exercises: session.exercises.map((exercise, index) => ({ libraryExerciseId: exercise.id, plannedSets: exercise.plannedSets, rirEnabled: true, warmupDefault: false, order: index + 1 }))
         }));
       }
 
@@ -1512,6 +1515,7 @@ svg {
           notes: String(exercise.notes || ""),
           loadType: String(exercise.loadType || "total"),
           unilateral: Boolean(exercise.unilateral),
+          warmupDefault: Boolean(exercise.warmupDefault),
           favorite: Boolean(exercise.favorite)
         };
       }
@@ -1524,6 +1528,7 @@ svg {
             libraryExerciseId: String(exercise.libraryExerciseId || exercise.id || ""),
             plannedSets: Math.max(1, Math.min(12, finiteNumber(exercise.plannedSets, 3))),
             rirEnabled: exercise.rirEnabled !== false,
+            warmupDefault: Boolean(exercise.warmupDefault),
             order: finiteNumber(exercise.order, index + 1),
             name: exercise.name,
             muscle: exercise.muscle,
@@ -1553,6 +1558,7 @@ svg {
         return {
           ...exercise,
           rirEnabled: exercise.rirEnabled !== false,
+          warmupDefault: Boolean(exercise.warmupDefault),
           sets: Array.isArray(exercise.sets)
             ? exercise.sets.filter(set => set && typeof set === "object").map(normalizeSet)
             : []
@@ -1930,7 +1936,8 @@ svg {
           muscle: libraryExercise?.muscle || templateExercise.muscle || "other",
           loadType: libraryExercise?.loadType || templateExercise.loadType || "total",
           plannedSets: Math.max(1, finiteNumber(templateExercise.plannedSets, 3)),
-          rirEnabled: templateExercise.rirEnabled !== false
+          rirEnabled: templateExercise.rirEnabled !== false,
+          warmupDefault: Boolean(templateExercise.warmupDefault)
         };
       }
 
@@ -1979,7 +1986,7 @@ svg {
             instanceId: uid("exercise"),
             order: index + 1,
             comments: "",
-            sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, validated: false, drops: [] }))
+            sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, drops: [] }))
           }))
         };
         saveState();
@@ -2024,6 +2031,7 @@ svg {
         root.querySelector("#library-session-rir-field").hidden = !isContextCreation;
         root.querySelector("#library-session-sets").value = Math.max(1, Math.min(12, finiteNumber(options.plannedSets, 3)));
         root.querySelector("#library-session-rir-enabled").checked = options.rirEnabled !== false;
+        root.querySelector("#library-warmup-default").checked = Boolean(exercise?.warmupDefault ?? options.warmupDefault);
         root.querySelector("#library-submit-button").textContent = isContextCreation ? (libraryDialogMode === "draft-replace" ? "Enregistrer et remplacer" : "Enregistrer et ajouter") : "Enregistrer";
         root.querySelector("#library-muscle").innerHTML = MUSCLES.map(muscle => `<option value="${muscle.id}">${muscle.label}</option>`).join("") + `<option value="other">Autre</option>`;
         if (exercise) {
@@ -2045,6 +2053,7 @@ svg {
             if (field) field.value = value;
           });
           libraryForm.elements.namedItem("unilateral").checked = exercise.unilateral;
+          libraryForm.elements.namedItem("warmupDefault").checked = Boolean(exercise.warmupDefault);
         }
         openDialog(libraryDialog);
       }
@@ -2059,6 +2068,7 @@ svg {
       function refreshExercisePickerOptions(selectedId = "") {
         const select = root.querySelector("#picker-exercise");
         if (!select) return;
+        const selectedBeforeRefresh = select.value;
         const previousId = selectedId || select.value;
         const exercises = pickerLibraryExercises();
         select.innerHTML = exercises.length
@@ -2068,20 +2078,27 @@ svg {
         const count = root.querySelector("#picker-exercise-count");
         if (count) count.textContent = `${exercises.length} exercice${exercises.length > 1 ? "s" : ""} affiché${exercises.length > 1 ? "s" : ""} · ${state.exerciseLibrary.length} dans la bibliothèque`;
         updatePickerDetail();
+        if (select.value !== selectedBeforeRefresh) syncPickerWarmupDefault();
       }
 
       function updatePickerDetail() {
         const exercise = getLibraryExercise(root.querySelector("#picker-exercise")?.value);
         const detail = root.querySelector("#picker-exercise-detail");
         if (!detail) return;
-        detail.textContent = exercise ? [equipmentTypeLabel(exercise.equipmentType), exercise.brand, exercise.machineName, exercise.machineModel, loadTypeLabel(exercise.loadType)].filter(Boolean).join(" · ") : "";
+        detail.textContent = exercise ? [equipmentTypeLabel(exercise.equipmentType), exercise.brand, exercise.machineName, exercise.machineModel, loadTypeLabel(exercise.loadType), exercise.warmupDefault ? "W par défaut" : ""].filter(Boolean).join(" · ") : "";
+      }
+
+      function syncPickerWarmupDefault() {
+        const exercise = getLibraryExercise(root.querySelector("#picker-exercise")?.value);
+        const checkbox = root.querySelector("#picker-warmup-default");
+        if (checkbox) checkbox.checked = Boolean(exercise?.warmupDefault);
       }
 
       function openExercisePicker(mode, targetIndex = -1) {
         if (!state.exerciseLibrary.length) {
           if (isExerciseCreationMode(mode)) {
             const existing = mode === "draft-replace" ? state.draft?.exercises?.[targetIndex] : null;
-            openLibraryExerciseDialog("", { mode, targetIndex, plannedSets: existing?.sets?.length || 3, rirEnabled: existing?.rirEnabled !== false });
+            openLibraryExerciseDialog("", { mode, targetIndex, plannedSets: existing?.sets?.length || 3, rirEnabled: existing?.rirEnabled !== false, warmupDefault: existing?.warmupDefault });
             showToast("Crée ton premier exercice pour l’ajouter à cette séance.");
           } else {
             showToast("Ajoute d’abord un exercice à la bibliothèque.");
@@ -2099,13 +2116,14 @@ svg {
         refreshExercisePickerOptions(preferredExerciseId);
         root.querySelector("#picker-sets").value = existing?.sets?.length || 3;
         root.querySelector("#picker-rir-enabled").checked = existing?.rirEnabled !== false;
+        root.querySelector("#picker-warmup-default").checked = existing ? Boolean(existing.warmupDefault) : Boolean(getLibraryExercise(root.querySelector("#picker-exercise")?.value)?.warmupDefault);
         root.querySelector("#picker-create-exercise").hidden = false;
         openDialog(pickerDialog);
       }
 
-      function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null, rirEnabled = true) {
+      function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null, rirEnabled = true, warmupDefault = libraryExercise.warmupDefault) {
         const sets = existing ? [...existing.sets] : [];
-        while (sets.length < plannedSets) sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, validated: false, drops: [] });
+        while (sets.length < plannedSets) sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(warmupDefault), validated: false, drops: [] });
         if (sets.length > plannedSets) sets.length = plannedSets;
         return {
           ...libraryExercise,
@@ -2113,6 +2131,7 @@ svg {
           libraryExerciseId: libraryExercise.id,
           plannedSets,
           rirEnabled: rirEnabled !== false,
+          warmupDefault: Boolean(warmupDefault),
           instanceId: existing?.instanceId || uid("exercise"),
           order: existing?.order || 1,
           comments: existing?.comments || "",
@@ -2529,7 +2548,7 @@ svg {
                   </summary>
                   <div class="program-content">
                     <div class="list-divider">
-                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · RIR désactivé" : ""}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
+                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · RIR désactivé" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
                     </div>
                     ${session.exercises.length ? `<button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${esc(session.name)}</button>` : `<div class="notice">Cette séance est vide. Ajoute-lui des exercices avant de la démarrer.</div>`}
                     <div class="row session-template-actions"><button class="btn btn-sm" type="button" data-action="edit-template" data-template-id="${esc(session.id)}">Modifier la séance</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-template" data-template-id="${esc(session.id)}">Supprimer la séance</button></div>
@@ -2557,7 +2576,7 @@ svg {
             </div>
             <div class="section-head"><div><h2>${exercises.length} exercice${exercises.length > 1 ? "s" : ""}</h2><p class="small muted">${state.exerciseLibrary.length} au total</p></div><button class="btn btn-sm" type="button" data-action="navigate" data-view="program">Retour au programme</button></div>
             <div class="program-grid">
-              ${exercises.map(exercise => `<article class="card stack"><div class="row-between"><div><p class="eyebrow">${muscleMap[exercise.muscle]?.label || "Autre"}</p><h2>${esc(exercise.name)}</h2></div><span class="badge accent">${equipmentTypeLabel(exercise.equipmentType)}</span></div><div class="row">${exercise.brand ? `<span class="badge">${esc(exercise.brand)}</span>` : ""}${exercise.machineName ? `<span class="badge">${esc(exercise.machineName)}</span>` : ""}${exercise.machineModel ? `<span class="badge">${esc(exercise.machineModel)}</span>` : ""}${exercise.gym ? `<span class="badge">${esc(exercise.gym)}</span>` : ""}</div>${exercise.machineSettings ? `<p class="small muted"><strong>Réglages :</strong> ${esc(exercise.machineSettings)}</p>` : ""}${exercise.notes ? `<p class="small muted">${esc(exercise.notes)}</p>` : ""}<div class="row"><button class="btn btn-sm" type="button" data-action="edit-library-exercise" data-exercise-id="${esc(exercise.id)}">Modifier</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-library-exercise" data-exercise-id="${esc(exercise.id)}">Supprimer</button></div></article>`).join("")}
+              ${exercises.map(exercise => `<article class="card stack"><div class="row-between"><div><p class="eyebrow">${muscleMap[exercise.muscle]?.label || "Autre"}</p><h2>${esc(exercise.name)}</h2></div><span class="badge accent">${equipmentTypeLabel(exercise.equipmentType)}</span></div><div class="row">${exercise.warmupDefault ? `<span class="badge accent">W par défaut</span>` : ""}${exercise.brand ? `<span class="badge">${esc(exercise.brand)}</span>` : ""}${exercise.machineName ? `<span class="badge">${esc(exercise.machineName)}</span>` : ""}${exercise.machineModel ? `<span class="badge">${esc(exercise.machineModel)}</span>` : ""}${exercise.gym ? `<span class="badge">${esc(exercise.gym)}</span>` : ""}</div>${exercise.machineSettings ? `<p class="small muted"><strong>Réglages :</strong> ${esc(exercise.machineSettings)}</p>` : ""}${exercise.notes ? `<p class="small muted">${esc(exercise.notes)}</p>` : ""}<div class="row"><button class="btn btn-sm" type="button" data-action="edit-library-exercise" data-exercise-id="${esc(exercise.id)}">Modifier</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-library-exercise" data-exercise-id="${esc(exercise.id)}">Supprimer</button></div></article>`).join("")}
             </div>
             ${exercises.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">⌕</span><h2>Aucun résultat</h2><p class="muted">Modifie les filtres ou ajoute une nouvelle variante.</p></div></div>`}
           </section>`;
@@ -2573,7 +2592,7 @@ svg {
             <div class="card stack"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div></div>
             <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
             <div class="card list-divider">
-              ${resolvedExercises.map((exercise, index) => `<div class="exercise-plan-row template-exercise-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div><div class="row"><input aria-label="Séries prévues pour ${esc(exercise.name)}" type="number" inputmode="numeric" min="1" max="12" value="${exercise.plannedSets}" data-template-sets data-index="${index}" style="width:68px"><label class="row small"><input type="checkbox" data-template-rir data-index="${index}" ${exercise.rirEnabled !== false ? "checked" : ""} style="width:auto;min-height:auto"> RIR</label><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="-1" aria-label="Monter">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="1" aria-label="Descendre">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button></div></div>`).join("") || `<div class="empty-inner" style="margin:28px auto"><p class="muted">Cette séance ne contient encore aucun exercice.</p></div>`}
+              ${resolvedExercises.map((exercise, index) => `<div class="exercise-plan-row template-exercise-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div><div class="row"><input aria-label="Séries prévues pour ${esc(exercise.name)}" type="number" inputmode="numeric" min="1" max="12" value="${exercise.plannedSets}" data-template-sets data-index="${index}" style="width:68px"><label class="row small"><input type="checkbox" data-template-rir data-index="${index}" ${exercise.rirEnabled !== false ? "checked" : ""} style="width:auto;min-height:auto"> RIR</label><label class="row small"><input type="checkbox" data-template-warmup data-index="${index}" ${exercise.warmupDefault ? "checked" : ""} style="width:auto;min-height:auto"> W défaut</label><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="-1" aria-label="Monter">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="1" aria-label="Descendre">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button></div></div>`).join("") || `<div class="empty-inner" style="margin:28px auto"><p class="muted">Cette séance ne contient encore aucun exercice.</p></div>`}
             </div>
             <button class="btn btn-danger btn-block" type="button" data-action="delete-template" data-template-id="${esc(template.id)}">Supprimer cette séance</button>
           </section>`;
@@ -2666,7 +2685,7 @@ svg {
             <div class="exercise-foot">
               <button class="btn btn-sm" type="button" data-action="add-set" data-exercise-index="${exerciseIndex}">＋ Série</button>
               ${exercise.sets.length > 1 ? `<button class="btn btn-sm btn-ghost" type="button" data-action="remove-last-set" data-exercise-index="${exerciseIndex}">Retirer la dernière</button>` : ""}
-              <details class="options"><summary>Réglages et note exercice</summary><div class="stack"><div class="field"><label>Mode de charge</label><select data-exercise-field="loadType" data-exercise-index="${exerciseIndex}"><option value="total" ${exercise.loadType === "total" ? "selected" : ""}>Charge totale</option><option value="perSide" ${exercise.loadType === "perSide" ? "selected" : ""}>Charge par côté (tonnage ×2)</option><option value="bodyweightPlus" ${exercise.loadType === "bodyweightPlus" ? "selected" : ""}>Poids du corps + lest</option></select></div><label class="row small"><input type="checkbox" data-exercise-rir data-exercise-index="${exerciseIndex}" ${rirEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label><div class="field"><label>Note</label><textarea data-exercise-field="comments" data-exercise-index="${exerciseIndex}" placeholder="Repères de placement, machine, amplitude…">${esc(exercise.comments)}</textarea></div></div></details>
+              <details class="options"><summary>Réglages et note exercice</summary><div class="stack"><div class="field"><label>Mode de charge</label><select data-exercise-field="loadType" data-exercise-index="${exerciseIndex}"><option value="total" ${exercise.loadType === "total" ? "selected" : ""}>Charge totale</option><option value="perSide" ${exercise.loadType === "perSide" ? "selected" : ""}>Charge par côté (tonnage ×2)</option><option value="bodyweightPlus" ${exercise.loadType === "bodyweightPlus" ? "selected" : ""}>Poids du corps + lest</option></select></div><label class="row small"><input type="checkbox" data-exercise-rir data-exercise-index="${exerciseIndex}" ${rirEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label><label class="row small"><input type="checkbox" data-exercise-warmup-default data-exercise-index="${exerciseIndex}" ${exercise.warmupDefault ? "checked" : ""} style="width:auto;min-height:auto"> W par défaut pour les nouvelles séries</label><div class="field"><label>Note</label><textarea data-exercise-field="comments" data-exercise-index="${exerciseIndex}" placeholder="Repères de placement, machine, amplitude…">${esc(exercise.comments)}</textarea></div></div></details>
             </div>
           </article>`;
       }
@@ -2958,7 +2977,7 @@ svg {
             instanceId: uid("exercise"),
             order: exerciseIndex + 1,
             comments: "",
-            sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, validated: false, drops: [] }))
+            sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, drops: [] }))
           }))
         };
         delete state.draft.endedAt;
@@ -3043,7 +3062,7 @@ svg {
         }
         if (action === "add-set" && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
-          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: false, validated: false, drops: [] });
+          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, drops: [] });
           saveState(); render();
         }
         if (action === "remove-last-set" && state.draft) {
@@ -3114,13 +3133,14 @@ svg {
         }
         if (action === "open-draft-picker") openExercisePicker("draft-add");
         if (action === "replace-draft-exercise") openExercisePicker("draft-replace", finiteNumber(button.dataset.index));
-        if (action === "create-draft-exercise" && state.draft) openLibraryExerciseDialog("", { mode: "draft-add", plannedSets: 3, rirEnabled: true });
+        if (action === "create-draft-exercise" && state.draft) openLibraryExerciseDialog("", { mode: "draft-add", plannedSets: 3, rirEnabled: true, warmupDefault: false });
         if (action === "create-exercise-from-picker" && isExerciseCreationMode(pickerMode) && (pickerMode === "template-add" || state.draft)) {
           const plannedSets = Math.max(1, Math.min(12, finiteNumber(root.querySelector("#picker-sets")?.value, 3)));
           const mode = pickerMode;
           const targetIndex = pickerTargetIndex;
           const rirEnabled = root.querySelector("#picker-rir-enabled")?.checked !== false;
-          switchDialog(pickerDialog, () => openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, rirEnabled }));
+          const warmupDefault = root.querySelector("#picker-warmup-default")?.checked === true;
+          switchDialog(pickerDialog, () => openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, rirEnabled, warmupDefault }));
         }
         if (action === "remove-draft-exercise" && state.draft) {
           const index = finiteNumber(button.dataset.index);
@@ -3268,16 +3288,29 @@ svg {
             render();
           }
         }
+        if (target.hasAttribute("data-exercise-warmup-default") && state.draft) {
+          const exercise = state.draft.exercises[finiteNumber(target.dataset.exerciseIndex)];
+          if (exercise) {
+            exercise.warmupDefault = target.checked;
+            saveState();
+            showToast(target.checked ? "Les nouvelles séries seront marquées W." : "Les nouvelles séries seront des séries de travail.");
+          }
+        }
         if (target.hasAttribute("data-template-rir")) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
           if (exercise) { exercise.rirEnabled = target.checked; saveState(); render(); }
         }
+        if (target.hasAttribute("data-template-warmup")) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
+          if (exercise) { exercise.warmupDefault = target.checked; saveState(); render(); }
+        }
         if (target.hasAttribute("data-stats-period")) { statsDays = finiteNumber(target.value); render(); }
         if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; render(); }
         if (target.hasAttribute("data-library-muscle")) { libraryMuscleFilter = target.value; render(); }
         if (target.hasAttribute("data-active-program")) { state.activeProgramId = target.value; saveState(); render(); }
-        if (target.id === "picker-exercise") updatePickerDetail();
+        if (target.id === "picker-exercise") { updatePickerDetail(); syncPickerWarmupDefault(); }
       });
 
       root.addEventListener("submit", event => {
@@ -3303,7 +3336,8 @@ svg {
           gym: String(data.get("gym") || "").trim(),
           machineSettings: String(data.get("machineSettings") || "").trim(),
           notes: String(data.get("notes") || "").trim(),
-          unilateral: data.get("unilateral") === "on"
+          unilateral: data.get("unilateral") === "on",
+          warmupDefault: data.get("warmupDefault") === "on"
         });
         const index = state.exerciseLibrary.findIndex(item => item.id === exercise.id);
         if (index >= 0) state.exerciseLibrary[index] = exercise;
@@ -3315,7 +3349,7 @@ svg {
           if (template) {
             const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sessionSets"), 3)));
             const rirEnabled = data.get("sessionRirEnabled") === "on";
-            template.exercises.push({ libraryExerciseId: exercise.id, plannedSets, rirEnabled, order: template.exercises.length + 1 });
+            template.exercises.push({ libraryExerciseId: exercise.id, plannedSets, rirEnabled, warmupDefault: exercise.warmupDefault, order: template.exercises.length + 1 });
             contextAction = `ajouté à « ${template.name} »`;
           }
         }
@@ -3324,10 +3358,10 @@ svg {
           const rirEnabled = data.get("sessionRirEnabled") === "on";
           if (libraryDialogMode === "draft-replace" && state.draft.exercises[libraryDraftTargetIndex]) {
             const existing = state.draft.exercises[libraryDraftTargetIndex];
-            state.draft.exercises[libraryDraftTargetIndex] = draftExerciseFromLibrary(exercise, plannedSets, existing, rirEnabled);
+            state.draft.exercises[libraryDraftTargetIndex] = draftExerciseFromLibrary(exercise, plannedSets, existing, rirEnabled, exercise.warmupDefault);
             contextAction = "remplacé dans la séance en cours";
           } else {
-            const draftExercise = draftExerciseFromLibrary(exercise, plannedSets, null, rirEnabled);
+            const draftExercise = draftExerciseFromLibrary(exercise, plannedSets, null, rirEnabled, exercise.warmupDefault);
             draftExercise.order = state.draft.exercises.length + 1;
             state.draft.exercises.push(draftExercise);
             contextAction = "ajouté à la séance en cours";
@@ -3348,15 +3382,16 @@ svg {
         const libraryExercise = getLibraryExercise(String(data.get("exerciseId")));
         const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sets"), 3)));
         const rirEnabled = data.get("rirEnabled") === "on";
+        const warmupDefault = data.get("warmupDefault") === "on";
         if (!libraryExercise) return;
         if (pickerMode === "template-add") {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
-          if (template) template.exercises.push({ libraryExerciseId: libraryExercise.id, plannedSets, rirEnabled, order: template.exercises.length + 1 });
+          if (template) template.exercises.push({ libraryExerciseId: libraryExercise.id, plannedSets, rirEnabled, warmupDefault, order: template.exercises.length + 1 });
         } else if (state.draft) {
           if (pickerMode === "draft-replace" && state.draft.exercises[pickerTargetIndex]) {
-            state.draft.exercises[pickerTargetIndex] = draftExerciseFromLibrary(libraryExercise, plannedSets, state.draft.exercises[pickerTargetIndex], rirEnabled);
+            state.draft.exercises[pickerTargetIndex] = draftExerciseFromLibrary(libraryExercise, plannedSets, state.draft.exercises[pickerTargetIndex], rirEnabled, warmupDefault);
           } else {
-            const exercise = draftExerciseFromLibrary(libraryExercise, plannedSets, null, rirEnabled);
+            const exercise = draftExerciseFromLibrary(libraryExercise, plannedSets, null, rirEnabled, warmupDefault);
             exercise.order = state.draft.exercises.length + 1;
             state.draft.exercises.push(exercise);
           }
