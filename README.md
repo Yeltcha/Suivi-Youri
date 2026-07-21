@@ -4,7 +4,17 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
-La version 1.12.1 affine la lecture des statistiques :
+La version 1.12.2 rend le suivi du ressenti plus personnel et moins biaisé :
+
+- aucun critère de fin de séance n’est présélectionné ;
+- les anciennes notes abstraites sont remplacées par des choix facultatifs et clairement définis pour la difficulté, l’énergie, la performance et la congestion ;
+- la gêne ou la douleur est enregistrée selon son impact réel sur le mouvement, avec une zone et un contexte facultatifs ;
+- les statistiques comparent les passages récents à la référence propre de l’utilisateur au lieu d’afficher une moyenne universelle ;
+- la douleur n’est plus moyennée : l’app compte les séances concernées et fait ressortir les zones ou exercices récurrents ;
+- les anciennes évaluations numériques restent visibles dans l’historique mais sont exclues des nouvelles tendances ;
+- les ressentis contextualisent les données objectives sans pouvoir déclencher seuls une hausse de charge.
+
+La version 1.12.1 avait affiné la lecture des statistiques :
 
 - la charge de travail hebdomadaire est désormais représentée par une courbe à points ;
 - le volume-charge global est visualisé dans un graphique en anneau, réparti entre séries effectives et drops ;

@@ -56,6 +56,7 @@ mainScript = mainScript.replace(
         adaptiveRecommendation,
         applyAdaptiveLoad,
         availableRepRanges,
+        blankSessionFeedback,
         defaultState,
         exerciseComparableProgress,
         exerciseAdaptivePassages,
@@ -66,11 +67,15 @@ mainScript = mainScript.replace(
         muscleComparisonRows,
         normalizeAdaptiveSettings,
         normalizePractitionerProfile,
+        normalizeSessionFeedback,
         programMuscleTargets,
         renderData,
         renderHome,
+        renderSessionDetail,
+        renderStats,
         renderTemplateExerciseRow,
         renderTrackedExercise,
+        renderWorkout,
         sessionDropReps,
         sessionDropTonnage,
         sessionDropSets,
@@ -81,7 +86,9 @@ mainScript = mainScript.replace(
         setReachedFailure,
         setState: value => { state = normalizeState(value); },
         statsPeriodControl,
+        subjectiveFeedbackSummary,
         unvalidatedEnteredSets,
+        updateDraftFeedback,
         lineChart,
         volumeCompositionChart
       };`
@@ -116,6 +123,35 @@ const baseState = {
   sessions: [],
   draft: null
 };
+assert.equal(api.defaultState().version, 9, "Le nouveau schéma de ressenti doit incrémenter la version des données.");
+assert.deepEqual(api.blankSessionFeedback(), {
+  schemaVersion: 2,
+  difficulty: "",
+  energy: "",
+  performance: "",
+  pump: "",
+  painImpact: "",
+  painArea: "",
+  painNote: ""
+}, "Aucun ressenti ne doit être présélectionné.");
+assert.deepEqual(api.normalizeSessionFeedback({ effort: 8, energy: 3, performance: 3, pump: 3, pain: 0 }), {
+  schemaVersion: 1,
+  effort: 8,
+  energy: 3,
+  performance: 3,
+  pump: 3,
+  pain: 0
+}, "Les anciennes évaluations numériques doivent rester lisibles sans être converties silencieusement.");
+assert.deepEqual(api.normalizeSessionFeedback({ schemaVersion: 2, difficulty: "hard", energy: "low", performance: "above", pump: "high", painImpact: "none", painArea: "Épaule", painNote: "À surveiller" }), {
+  schemaVersion: 2,
+  difficulty: "hard",
+  energy: "low",
+  performance: "above",
+  pump: "high",
+  painImpact: "none",
+  painArea: "",
+  painNote: ""
+}, "Une absence de gêne ne doit conserver aucune zone ou note obsolète.");
 api.setState(baseState);
 assert.deepEqual(api.programMuscleTargets(), { chest: 3, back: 4 }, "Les cibles doivent venir du programme et exclure W.");
 const editedProgramState = structuredClone(baseState);
@@ -143,10 +179,64 @@ stateWithDraft.draft = {
   }]
 };
 api.setState(stateWithDraft);
+const blankFeedbackWorkoutHtml = api.renderWorkout();
+assert.match(blankFeedbackWorkoutHtml, /Difficulté de la séance/);
+assert.match(blankFeedbackWorkoutHtml, /Non renseigné · facultatif/);
+assert.doesNotMatch(blankFeedbackWorkoutHtml, /Effort global/);
+const painFeedbackState = structuredClone(stateWithDraft);
+painFeedbackState.draft.feedback = { schemaVersion: 2, difficulty: "hard", energy: "", performance: "", pump: "", painImpact: "modified", painArea: "Épaule droite", painNote: "Développé incliné" };
+api.setState(painFeedbackState);
+const painFeedbackWorkoutHtml = api.renderWorkout();
+assert.match(painFeedbackWorkoutHtml, /Zone concernée/);
+assert.match(painFeedbackWorkoutHtml, /Épaule droite/);
+api.updateDraftFeedback("painImpact", "none");
+assert.equal(api.getState().draft.feedback.painArea, "");
+assert.equal(api.getState().draft.feedback.painNote, "");
+api.setState(stateWithDraft);
 assert.equal(api.unvalidatedEnteredSets().length, 1, "Une série renseignée non validée doit être détectée.");
 api.finishWorkout();
 assert.equal(api.getState().sessions.length, 0, "La fin de séance doit être bloquée tant qu’une saisie n’est pas validée.");
 assert.deepEqual(api.programMuscleTargets(), { chest: 3, back: 4 }, "Le brouillon ne doit pas modifier les cibles du programme.");
+
+const subjectiveSessions = [
+  ["easy", "below", "none", ""],
+  ["normal", "expected", "none", ""],
+  ["normal", "expected", "present", "Épaule droite"],
+  ["hard", "above", "modified", "Épaule droite"],
+  ["hard", "expected", "none", ""],
+  ["maximal", "above", "stopped", "Genou gauche"]
+].map(([difficulty, performance, painImpact, painArea], index) => ({
+  id: `feedback-${index}`,
+  date: `2026-07-${String(10 + index).padStart(2, "0")}`,
+  name: "Test",
+  durationMin: 60,
+  feedback: { schemaVersion: 2, difficulty, energy: "normal", performance, pump: "normal", painImpact, painArea, painNote: painImpact === "none" ? "" : "Contexte" },
+  exercises: [{ id: "press", name: "Press", muscle: "chest", loadType: "total", sets: [{ weight: 80, reps: 8, validated: true, warmup: false, stopReason: index === 5 ? "pain" : "", drops: [] }] }]
+}));
+subjectiveSessions.push({ id: "legacy-feedback", date: "2026-07-09", feedback: { effort: 8, pain: 0 }, exercises: [] });
+const subjectiveSummary = api.subjectiveFeedbackSummary(subjectiveSessions);
+assert.equal(subjectiveSummary.baselineLabel, "Normale à difficile");
+assert.equal(subjectiveSummary.trend, "harder", "La tendance doit comparer les passages récents au propre historique de l’utilisateur.");
+assert.equal(subjectiveSummary.performanceOnTrack, 5);
+assert.equal(subjectiveSummary.energyCount, 6);
+assert.equal(subjectiveSummary.lowEnergyCount, 0);
+assert.equal(subjectiveSummary.pumpCount, 6);
+assert.equal(subjectiveSummary.highPumpCount, 0);
+assert.equal(subjectiveSummary.painCount, 3);
+assert.equal(subjectiveSummary.impactfulPainCount, 2);
+assert.equal(subjectiveSummary.stoppedPainCount, 1);
+assert.equal(subjectiveSummary.painAreas[0][0], "Épaule droite");
+assert.equal(subjectiveSummary.painExercises[0][0], "Press");
+assert.equal(subjectiveSummary.legacyCount, 1);
+api.setState({ ...baseState, sessions: subjectiveSessions });
+const subjectiveStatsHtml = api.renderStats();
+assert.match(subjectiveStatsHtml, /Comparé à ton niveau habituel/);
+assert.match(subjectiveStatsHtml, /Signal de sécurité/);
+assert.doesNotMatch(subjectiveStatsHtml, /Signaux moyens/);
+const subjectiveDetailHtml = api.renderSessionDetail(subjectiveSessions[3]);
+assert.match(subjectiveDetailHtml, /Difficile · fatigue supérieure à l’habitude/);
+assert.match(subjectiveDetailHtml, /Épaule droite/);
+api.setState(baseState);
 
 const exercise = {
   id: "press",
@@ -354,4 +444,4 @@ const nextOnlyExercise = { sets: [{ weight: "", warmup: false, validated: false 
 assert.equal(api.applyAdaptiveLoad(nextOnlyExercise, 82.5, "next"), 1);
 assert.deepEqual(nextOnlyExercise.sets.map(set => set.weight), ["82.5", ""], "L’ajustement en direct ne doit préremplir que la prochaine série.");
 
-console.log("Régressions BODYSSEUS v1.12.1 : OK");
+console.log("Régressions BODYSSEUS v1.12.2 : OK");

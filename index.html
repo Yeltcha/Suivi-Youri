@@ -957,7 +957,8 @@ svg {
     #volume-tracker-app input::placeholder,
     #volume-tracker-app textarea::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
     #volume-tracker-app .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    #volume-tracker-app .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    #volume-tracker-app .feedback-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    #volume-tracker-app .kpi-value.textual { font-size: clamp(18px, 5vw, 24px); line-height: 1.12; letter-spacing: -.02em; overflow-wrap: anywhere; }
     #volume-tracker-app .workout-head { display: grid; gap: 14px; }
     #volume-tracker-app .live-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; overflow: hidden; padding: 8px; background: var(--surface); }
     #volume-tracker-app .live-metric { background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; padding: 10px 7px; text-align: center; }
@@ -1135,7 +1136,7 @@ svg {
     @media (min-width: 680px) {
       #volume-tracker-app main { padding: 28px 24px 56px; }
       #volume-tracker-app .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      #volume-tracker-app .feedback-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      #volume-tracker-app .feedback-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #volume-tracker-app .hero { grid-template-columns: minmax(0, 1.4fr) auto; align-items: end; }
       #volume-tracker-app .hero .btn { min-width: 200px; }
       #volume-tracker-app .program-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1274,7 +1275,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.12.1";
+      const APP_VERSION = "1.12.2";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1318,6 +1319,38 @@ svg {
         { id: "16-20", label: "16 à 20 reps", min: 16, max: 20 },
         { id: "21+", label: "21 reps et plus", min: 21, max: 100 }
       ];
+
+      const SESSION_FEEDBACK_OPTIONS = {
+        difficulty: [
+          ["easy", "Facile · beaucoup de marge générale"],
+          ["normal", "Normale · exigeante mais habituelle"],
+          ["hard", "Difficile · fatigue supérieure à l’habitude"],
+          ["maximal", "Maximale · exceptionnellement éprouvante"]
+        ],
+        energy: [
+          ["low", "Basse · sous mon niveau habituel"],
+          ["normal", "Normale · comme d’habitude"],
+          ["high", "Haute · au-dessus de mon niveau habituel"]
+        ],
+        performance: [
+          ["below", "Moins bien que prévu"],
+          ["expected", "Conforme à mes attentes"],
+          ["above", "Mieux que prévu"]
+        ],
+        pump: [
+          ["low", "Faible"],
+          ["normal", "Normale"],
+          ["high", "Forte"]
+        ],
+        painImpact: [
+          ["none", "Aucune gêne"],
+          ["present", "Gêne présente sans modifier le mouvement"],
+          ["modified", "Gêne ayant modifié mon exécution"],
+          ["stopped", "Douleur ayant imposé l’arrêt"]
+        ]
+      };
+
+      const DIFFICULTY_SCORES = { easy: 1, normal: 2, hard: 3, maximal: 4 };
 
       const DEFAULT_PRACTITIONER_PROFILE = {
         configured: true,
@@ -1501,7 +1534,7 @@ svg {
 
       function defaultState() {
         return {
-          version: 8,
+          version: 9,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6, practitionerProfile: { ...DEFAULT_PRACTITIONER_PROFILE } },
           sessions: [],
           draft: null,
@@ -1542,7 +1575,7 @@ svg {
           : base.programs;
         const requestedActiveProgram = typeof input.activeProgramId === "string" ? input.activeProgramId : base.activeProgramId;
         return {
-          version: 8,
+          version: 9,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek),
@@ -1611,10 +1644,60 @@ svg {
       function normalizeSession(session) {
         return {
           ...session,
+          feedback: normalizeSessionFeedback(session.feedback),
           exercises: Array.isArray(session.exercises)
             ? session.exercises.filter(exercise => exercise && typeof exercise === "object").map(normalizeExercise)
             : []
         };
+      }
+
+      function blankSessionFeedback() {
+        return {
+          schemaVersion: 2,
+          difficulty: "",
+          energy: "",
+          performance: "",
+          pump: "",
+          painImpact: "",
+          painArea: "",
+          painNote: ""
+        };
+      }
+
+      function normalizeSessionFeedback(feedback = {}) {
+        const input = feedback && typeof feedback === "object" ? feedback : {};
+        const usesCurrentSchema = finiteNumber(input.schemaVersion) >= 2
+          || ["difficulty", "painImpact", "painArea", "painNote"].some(key => Object.prototype.hasOwnProperty.call(input, key));
+        if (usesCurrentSchema) {
+          const normalized = blankSessionFeedback();
+          Object.keys(SESSION_FEEDBACK_OPTIONS).forEach(key => {
+            const allowed = SESSION_FEEDBACK_OPTIONS[key].map(([value]) => value);
+            normalized[key] = allowed.includes(input[key]) ? input[key] : "";
+          });
+          normalized.painArea = String(input.painArea || "").trim();
+          normalized.painNote = String(input.painNote || "").trim();
+          if (normalized.painImpact === "none" || !normalized.painImpact) {
+            normalized.painArea = "";
+            normalized.painNote = "";
+          }
+          return normalized;
+        }
+        const optionalNumber = (value, min, max) => {
+          if (String(value ?? "").trim() === "") return "";
+          return Math.max(min, Math.min(max, finiteNumber(value)));
+        };
+        return {
+          schemaVersion: 1,
+          effort: optionalNumber(input.effort, 1, 10),
+          energy: optionalNumber(input.energy, 1, 5),
+          performance: optionalNumber(input.performance, 1, 5),
+          pump: optionalNumber(input.pump, 1, 5),
+          pain: optionalNumber(input.pain, 0, 10)
+        };
+      }
+
+      function feedbackValueLabel(key, value) {
+        return SESSION_FEEDBACK_OPTIONS[key]?.find(([option]) => option === value)?.[1] || "Non renseigné";
       }
 
       function normalizeExercise(exercise) {
@@ -1747,7 +1830,7 @@ svg {
         const activeProgramId = programs.some(program => program.id === preferred.activeProgramId) ? preferred.activeProgramId : (programs[0]?.id || "");
         return normalizeState({
           ...preferred,
-          version: 8,
+          version: 9,
           settings: preferred.settings,
           sessions: mergeById(secondary.sessions, preferred.sessions, deletedSessionIds),
           draft: preferred.draft || secondary.draft || null,
@@ -2152,7 +2235,7 @@ svg {
           date: localDateString(now),
           startedAt: now.toISOString(),
           durationOverride: "",
-          feedback: { effort: 8, energy: 3, performance: 3, pump: 3, pain: 0 },
+          feedback: blankSessionFeedback(),
           comments: "",
           exercises: template.exercises.map((exercise, index) => ({
             ...exercise,
@@ -2585,7 +2668,7 @@ svg {
       }
 
       function stopReasonLabel(reason) {
-        return ({ muscularFailure: "échec musculaire", technicalFailure: "échec technique", pain: "gêne / douleur", voluntary: "arrêt volontaire" })[reason] || "non précisé";
+        return ({ muscularFailure: "échec musculaire", technicalFailure: "échec technique", pain: "gêne / douleur ayant limité la série", voluntary: "arrêt volontaire" })[reason] || "non précisé";
       }
 
       function setReachedFailure(set) {
@@ -2823,6 +2906,82 @@ svg {
           painEnds: passages.filter(passage => passage.lastSet.stopReason === "pain").length,
           documentedEnds: passages.filter(passage => hasRecordedValue(passage.lastSet.rir) || hasRecordedValue(passage.lastSet.stopReason)).length,
           compliant: passages.filter(passage => passage.compliant).length
+        };
+      }
+
+      function subjectiveFeedbackSummary(sessions) {
+        const modern = sessions.filter(session => finiteNumber(session.feedback?.schemaVersion) >= 2);
+        const difficultyEntries = modern
+          .filter(session => DIFFICULTY_SCORES[session.feedback?.difficulty])
+          .map(session => ({ date: session.date, value: DIFFICULTY_SCORES[session.feedback.difficulty] }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+        const sortedDifficulty = difficultyEntries.map(entry => entry.value).sort((a, b) => a - b);
+        const middle = Math.floor(sortedDifficulty.length / 2);
+        const medianDifficulty = sortedDifficulty.length
+          ? (sortedDifficulty.length % 2 ? sortedDifficulty[middle] : (sortedDifficulty[middle - 1] + sortedDifficulty[middle]) / 2)
+          : 0;
+        const scoreLabels = ["", "Facile", "Normale", "Difficile", "Maximale"];
+        const baselineLabel = !medianDifficulty
+          ? ""
+          : Number.isInteger(medianDifficulty)
+            ? scoreLabels[medianDifficulty]
+            : `${scoreLabels[Math.floor(medianDifficulty)]} à ${scoreLabels[Math.ceil(medianDifficulty)].toLowerCase()}`;
+        let trend = "building";
+        let trendDelta = 0;
+        if (difficultyEntries.length >= 4) {
+          const sampleSize = Math.min(3, Math.floor(difficultyEntries.length / 2));
+          const recent = difficultyEntries.slice(-sampleSize);
+          const previous = difficultyEntries.slice(-sampleSize * 2, -sampleSize);
+          const average = entries => entries.reduce((sum, entry) => sum + entry.value, 0) / entries.length;
+          trendDelta = average(recent) - average(previous);
+          trend = trendDelta > .35 ? "harder" : trendDelta < -.35 ? "easier" : "stable";
+        }
+        const performanceAnswered = modern.filter(session => ["below", "expected", "above"].includes(session.feedback?.performance));
+        const performanceOnTrack = performanceAnswered.filter(session => ["expected", "above"].includes(session.feedback.performance)).length;
+        const energyAnswered = modern.filter(session => ["low", "normal", "high"].includes(session.feedback?.energy));
+        const pumpAnswered = modern.filter(session => ["low", "normal", "high"].includes(session.feedback?.pump));
+        const painAnswered = modern.filter(session => ["none", "present", "modified", "stopped"].includes(session.feedback?.painImpact));
+        const painSessions = modern.filter(session => ["present", "modified", "stopped"].includes(session.feedback?.painImpact));
+        const impactfulPainSessions = painSessions.filter(session => ["modified", "stopped"].includes(session.feedback.painImpact));
+        const stoppedPainSessions = painSessions.filter(session => session.feedback.painImpact === "stopped");
+        const painAreas = new Map();
+        painSessions.forEach(session => {
+          const area = String(session.feedback?.painArea || "").trim();
+          if (area) painAreas.set(area, (painAreas.get(area) || 0) + 1);
+        });
+        const painExercises = new Map();
+        sessions.forEach(session => (session.exercises || []).forEach(exercise => {
+          const occurrences = (exercise.sets || []).filter(set => set.stopReason === "pain").length;
+          if (occurrences) painExercises.set(exercise.name || "Exercice", (painExercises.get(exercise.name || "Exercice") || 0) + occurrences);
+        }));
+        const answeredSessions = modern.filter(session => {
+          const feedback = session.feedback || {};
+          return [feedback.difficulty, feedback.energy, feedback.performance, feedback.pump, feedback.painImpact].some(hasRecordedValue);
+        }).length;
+        const legacyCount = sessions.filter(session => {
+          const feedback = session.feedback || {};
+          return finiteNumber(feedback.schemaVersion) < 2 && [feedback.effort, feedback.energy, feedback.performance, feedback.pump, feedback.pain].some(hasRecordedValue);
+        }).length;
+        return {
+          modernCount: modern.length,
+          answeredSessions,
+          difficultyCount: difficultyEntries.length,
+          baselineLabel,
+          trend,
+          trendDelta,
+          performanceCount: performanceAnswered.length,
+          performanceOnTrack,
+          energyCount: energyAnswered.length,
+          lowEnergyCount: energyAnswered.filter(session => session.feedback.energy === "low").length,
+          pumpCount: pumpAnswered.length,
+          highPumpCount: pumpAnswered.filter(session => session.feedback.pump === "high").length,
+          painAnsweredCount: painAnswered.length,
+          painCount: painSessions.length,
+          impactfulPainCount: impactfulPainSessions.length,
+          stoppedPainCount: stoppedPainSessions.length,
+          painAreas: [...painAreas.entries()].sort((a, b) => b[1] - a[1]),
+          painExercises: [...painExercises.entries()].sort((a, b) => b[1] - a[1]),
+          legacyCount
         };
       }
 
@@ -3129,6 +3288,7 @@ svg {
         const liveDrops = sessionDropSegments(draft);
         const pendingValidationCount = unvalidatedEnteredSets(draft).length;
         const elapsed = Math.max(0, Math.round((Date.now() - new Date(draft.startedAt).getTime()) / 60000));
+        const feedback = draft.feedback?.schemaVersion >= 2 ? draft.feedback : blankSessionFeedback();
         return `
           <section class="page">
             <div class="workout-head">
@@ -3157,13 +3317,15 @@ svg {
 
             <div class="card stack">
               <div><p class="eyebrow">Ressenti</p><h2>Fin de séance</h2></div>
+              <p class="small muted">Tous les critères sont facultatifs et comparés uniquement à ton niveau habituel. Ils contextualisent tes performances, mais ne déclenchent jamais seuls une hausse de charge.</p>
               <div class="feedback-grid">
-                ${feedbackSelect("effort", "Effort global", 1, 10, draft.feedback.effort)}
-                ${feedbackSelect("energy", "Énergie", 1, 5, draft.feedback.energy)}
-                ${feedbackSelect("performance", "Performance", 1, 5, draft.feedback.performance)}
-                ${feedbackSelect("pump", "Congestion", 1, 5, draft.feedback.pump)}
-                ${feedbackSelect("pain", "Gêne/douleur", 0, 10, draft.feedback.pain)}
+                ${feedbackSelect("difficulty", "Difficulté de la séance", feedback.difficulty)}
+                ${feedbackSelect("energy", "Énergie disponible", feedback.energy)}
+                ${feedbackSelect("performance", "Performance perçue", feedback.performance)}
+                ${feedbackSelect("pump", "Congestion", feedback.pump)}
+                ${feedbackSelect("painImpact", "Gêne / douleur", feedback.painImpact)}
               </div>
+              ${feedback.painImpact && feedback.painImpact !== "none" ? `<div class="notice warning stack"><div><strong>Précise seulement si cela t’aide à suivre une récurrence.</strong><p class="small muted">Ce signal est séparé de la fatigue musculaire et ne constitue pas un diagnostic.</p></div><div class="form-grid"><div class="field"><label for="feedback-pain-area">Zone concernée</label><input id="feedback-pain-area" maxlength="80" value="${esc(feedback.painArea)}" data-feedback-field="painArea" placeholder="Ex. épaule droite, genou gauche…"></div><div class="field"><label for="feedback-pain-note">Contexte facultatif</label><input id="feedback-pain-note" maxlength="180" value="${esc(feedback.painNote)}" data-feedback-field="painNote" placeholder="Mouvement, amplitude, sensation…"></div></div></div>` : ""}
               <div class="field"><label for="session-comments">Commentaires</label><textarea id="session-comments" data-draft-field="comments" placeholder="Sensations, technique, fatigue, exercice à modifier…">${esc(draft.comments)}</textarea></div>
               <div id="pending-validation-notice" class="notice warning" ${pendingValidationCount ? "" : "hidden"}>${pendingValidationCount ? pendingValidationCopy(pendingValidationCount) : ""}</div>
               <button class="btn btn-primary btn-block" type="button" data-action="finish-workout">Enregistrer la séance</button>
@@ -3204,7 +3366,7 @@ svg {
                 const validation = locked
                   ? `<span class="badge accent">✓ Série validée</span>${set.stopReason ? `<span class="badge">${esc(stopReasonLabel(set.stopReason))}</span>` : ""}<button class="btn btn-sm" type="button" data-action="unlock-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">Modifier</button>`
                   : `${failureExpected ? `<button class="btn btn-sm btn-primary" type="button" data-action="validate-set-failure" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>✓ Valider à l’échec</button><button class="btn btn-sm" type="button" data-action="validate-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>Valider autrement</button>` : `<button class="btn btn-sm btn-primary" type="button" data-action="validate-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>✓ Valider et continuer</button><button class="btn btn-sm" type="button" data-action="validate-set-failure" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>Échec atteint</button>`}`;
-                const stopReasonOptions = [["", "Non précisé"], ["muscularFailure", "Échec musculaire"], ["technicalFailure", "Échec technique"], ["pain", "Gêne / douleur"], ["voluntary", "Arrêt volontaire"]];
+                const stopReasonOptions = [["", "Non précisé"], ["muscularFailure", "Échec musculaire"], ["technicalFailure", "Échec technique"], ["pain", "Gêne / douleur ayant limité la série"], ["voluntary", "Arrêt volontaire"]];
                 const stopReasonControl = locked ? "" : `<details class="set-stop-details" ${set.stopReason ? "open" : ""}><summary>Pourquoi la série s’est arrêtée ? ${set.stopReason ? `· ${esc(stopReasonLabel(set.stopReason))}` : "· optionnel"}</summary><select aria-label="Raison d’arrêt série ${setIndex + 1}" data-set-stop-reason data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">${stopReasonOptions.map(([value, label]) => `<option value="${value}" ${set.stopReason === value ? "selected" : ""}>${label}</option>`).join("")}</select></details>`;
                 return `<div class="set-block ${locked ? "validated" : ""}" data-set-block data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>${rirCell}<button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement" ${lockedAttr}>W</button></div>${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}" ${dropLockedAttr}>×</button></div>`).join("")}<button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${dropLockedAttr}>${mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop"}</button>${stopReasonControl}<div class="set-validation-row">${validation}</div></div>`;
               }).join("")}
@@ -3217,10 +3379,22 @@ svg {
           </article>`;
       }
 
-      function feedbackSelect(key, label, min, max, value) {
-        const options = [];
-        for (let index = min; index <= max; index += 1) options.push(`<option value="${index}" ${finiteNumber(value) === index ? "selected" : ""}>${index}/${max}</option>`);
-        return `<div class="field"><label for="feedback-${key}">${label}</label><select id="feedback-${key}" data-feedback-field="${key}">${options.join("")}</select></div>`;
+      function feedbackSelect(key, label, value) {
+        const options = SESSION_FEEDBACK_OPTIONS[key] || [];
+        return `<div class="field"><label for="feedback-${key}">${label}</label><select id="feedback-${key}" data-feedback-field="${key}"><option value="" ${value ? "" : "selected"}>Non renseigné · facultatif</option>${options.map(([option, copy]) => `<option value="${option}" ${value === option ? "selected" : ""}>${esc(copy)}</option>`).join("")}</select></div>`;
+      }
+
+      function updateDraftFeedback(field, value) {
+        if (!state.draft) return;
+        if (state.draft.feedback?.schemaVersion < 2) state.draft.feedback = blankSessionFeedback();
+        state.draft.feedback = state.draft.feedback || blankSessionFeedback();
+        state.draft.feedback.schemaVersion = 2;
+        state.draft.feedback[field] = String(value ?? "");
+        if (field === "painImpact" && (!value || value === "none")) {
+          state.draft.feedback.painArea = "";
+          state.draft.feedback.painNote = "";
+        }
+        saveState();
       }
 
       function statsPeriodControl() {
@@ -3251,14 +3425,19 @@ svg {
         const spanDays = statsDays || Math.max(1, Math.ceil((new Date() - earliest) / 86400000) + 1);
         const weeks = Math.max(1, spanDays / 7);
         const avgWeekSessions = sessions.length / weeks;
-        const avgEffort = sessions.reduce((sum, session) => sum + finiteNumber(session.feedback?.effort), 0) / sessions.length;
-        const avgPain = sessions.reduce((sum, session) => sum + finiteNumber(session.feedback?.pain), 0) / sessions.length;
         const weekly = weeklyAggregates(sessions);
         const muscleTotals = muscleSets(sessions);
         const muscleAverages = Object.fromEntries(Object.entries(muscleTotals).map(([id, value]) => [id, value / weeks]));
         const activeProgram = getActiveProgram();
         const muscleRows = muscleComparisonRows(programMuscleTargets(activeProgram), muscleAverages);
         const effortTracking = effortTrackingSummary(sessions);
+        const subjectiveFeedback = subjectiveFeedbackSummary(sessions);
+        const difficultyLabel = subjectiveFeedback.baselineLabel || "—";
+        const feedbackTrendLabel = ({ harder: "Plus difficile", easier: "Plus facile", stable: "Stable", building: "Base en construction" })[subjectiveFeedback.trend];
+        const painContext = [
+          subjectiveFeedback.painAreas.length ? `Zones : ${subjectiveFeedback.painAreas.slice(0, 3).map(([name, count]) => `${name}${count > 1 ? ` (${count})` : ""}`).join(", ")}` : "",
+          subjectiveFeedback.painExercises.length ? `Exercices ayant limité une série : ${subjectiveFeedback.painExercises.slice(0, 3).map(([name, count]) => `${name}${count > 1 ? ` (${count})` : ""}`).join(", ")}` : ""
+        ].filter(Boolean).join(". ");
 
         const exerciseOptions = uniqueExercises(sessions);
         if (!selectedExercise || !exerciseOptions.some(exercise => exercise.key === selectedExercise)) {
@@ -3321,7 +3500,7 @@ svg {
 
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Intensité personnelle</p><h2>Comment tes exercices se terminent</h2><p class="small muted">Repère individuel lié à ton profil, jamais un classement.</p></div><span class="badge accent">${esc(failureStrategyLabel(normalizePractitionerProfile(state.settings.practitionerProfile).failureStrategy))}</span></div>${effortTracking.total ? `<div class="kpi-grid"><div class="kpi"><span class="kpi-label">Exercices alignés avec le profil</span><strong class="kpi-value">${formatNumber(effortTracking.compliant / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">${effortTracking.compliant}/${effortTracking.total} passages</span></div><div class="kpi"><span class="kpi-label">Dernière série à l’échec</span><strong class="kpi-value">${formatNumber(effortTracking.failureEnds / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">échec musculaire ou technique</span></div><div class="kpi"><span class="kpi-label">Effort documenté</span><strong class="kpi-value">${formatNumber(effortTracking.documentedEnds / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">RIR ou raison d’arrêt</span></div><div class="kpi"><span class="kpi-label">Arrêts par gêne</span><strong class="kpi-value">${effortTracking.painEnds}</strong><span class="small muted">à distinguer d’un échec musculaire</span></div></div>` : `<p class="muted">Valide quelques séries avec leur RIR ou le bouton d’échec pour construire ce repère.</p>`}</div>
 
-            <div class="card stack"><div><p class="eyebrow">Récupération</p><h2>Signaux moyens</h2></div><div class="kpi-grid"><div class="kpi"><span class="kpi-label">Effort global</span><strong class="kpi-value">${formatNumber(avgEffort, 1)}<span class="kpi-unit">/10</span></strong></div><div class="kpi"><span class="kpi-label">Gêne / douleur</span><strong class="kpi-value">${formatNumber(avgPain, 1)}<span class="kpi-unit">/10</span></strong></div></div>${avgPain >= 4 ? `<div class="notice warning">Ta gêne moyenne est élevée sur la période. Identifie les exercices concernés dans tes commentaires et adapte la charge ou l’amplitude si nécessaire.</div>` : ""}</div>
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Ressenti personnel</p><h2>Comparé à ton niveau habituel</h2><p class="small muted">Ces signaux donnent du contexte aux performances objectives ; ils ne sont jamais utilisés seuls pour augmenter une charge.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div><div class="kpi-grid"><div class="kpi"><span class="kpi-label">Difficulté habituelle</span><strong class="kpi-value textual">${esc(difficultyLabel)}</strong><span class="small muted">médiane de ${subjectiveFeedback.difficultyCount} ressenti${subjectiveFeedback.difficultyCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Tendance récente</span><strong class="kpi-value textual">${esc(feedbackTrendLabel)}</strong><span class="small muted">derniers passages vs précédents</span></div><div class="kpi"><span class="kpi-label">Performance conforme ou mieux</span><strong class="kpi-value">${subjectiveFeedback.performanceCount ? formatNumber(subjectiveFeedback.performanceOnTrack / subjectiveFeedback.performanceCount * 100, 0) : "—"}${subjectiveFeedback.performanceCount ? `<span class="kpi-unit">%</span>` : ""}</strong><span class="small muted">${subjectiveFeedback.performanceCount} réponse${subjectiveFeedback.performanceCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Séances avec gêne</span><strong class="kpi-value">${subjectiveFeedback.painCount}</strong><span class="small muted">${subjectiveFeedback.impactfulPainCount} ayant modifié ou arrêté le mouvement</span></div></div>${subjectiveFeedback.energyCount || subjectiveFeedback.pumpCount ? `<div class="row">${subjectiveFeedback.energyCount ? `<span class="badge">Énergie basse : ${subjectiveFeedback.lowEnergyCount}/${subjectiveFeedback.energyCount}</span>` : ""}${subjectiveFeedback.pumpCount ? `<span class="badge">Congestion forte : ${subjectiveFeedback.highPumpCount}/${subjectiveFeedback.pumpCount}</span>` : ""}</div><p class="small muted">L’énergie et la congestion restent des éléments de contexte : elles ne valident ni n’invalident à elles seules la qualité d’une séance.</p>` : ""}${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>Signal de sécurité :</strong> ${subjectiveFeedback.painCount} séance${subjectiveFeedback.painCount > 1 ? "s ont" : " a"} comporté une gêne${subjectiveFeedback.stoppedPainCount ? `, dont ${subjectiveFeedback.stoppedPainCount} avec arrêt` : ""}.${painContext ? ` ${esc(painContext)}.` : ""} Ce suivi aide à repérer une récurrence, sans poser de diagnostic.</div>` : subjectiveFeedback.painAnsweredCount ? `<div class="notice"><strong>Aucune gêne déclarée</strong> sur les ${subjectiveFeedback.painAnsweredCount} séance${subjectiveFeedback.painAnsweredCount > 1 ? "s" : ""} où ce critère a été renseigné.</div>` : `<div class="notice">Le ressenti reste facultatif. Quelques réponses suffiront pour construire progressivement ta référence personnelle.</div>`}${subjectiveFeedback.legacyCount ? `<p class="small muted">${subjectiveFeedback.legacyCount} ancienne${subjectiveFeedback.legacyCount > 1 ? "s" : ""} évaluation${subjectiveFeedback.legacyCount > 1 ? "s numériques sont conservées" : " numérique est conservée"} dans l’historique, mais exclue${subjectiveFeedback.legacyCount > 1 ? "s" : ""} de cette analyse pour éviter de mélanger deux échelles.</p>` : ""}</div>
             <div class="notice"><strong>Lecture utile :</strong> le volume-charge global décrit la quantité de travail enregistrée, pas la force ni la qualité d’une séance. Pour juger ta progression, compare le même exercice, la même machine, le même mode de charge et une plage de répétitions similaire.</div>
           </section>`;
       }
@@ -3435,13 +3614,24 @@ svg {
 
       function renderSessionDetail(session) {
         const feedback = session.feedback || {};
-        const feedbackItems = [
-          ["Effort", feedback.effort, 10],
-          ["Énergie", feedback.energy, 5],
-          ["Performance", feedback.performance, 5],
-          ["Congestion", feedback.pump, 5],
-          ["Gêne / douleur", feedback.pain, 10]
-        ];
+        const feedbackItems = finiteNumber(feedback.schemaVersion) >= 2
+          ? [
+              ["Difficulté", feedbackValueLabel("difficulty", feedback.difficulty)],
+              ["Énergie", feedbackValueLabel("energy", feedback.energy)],
+              ["Performance", feedbackValueLabel("performance", feedback.performance)],
+              ["Congestion", feedbackValueLabel("pump", feedback.pump)],
+              ["Gêne / douleur", feedbackValueLabel("painImpact", feedback.painImpact)]
+            ]
+          : [
+              ["Effort · ancienne échelle", hasRecordedValue(feedback.effort) ? `${feedback.effort} / 10` : "Non renseigné"],
+              ["Énergie · ancienne échelle", hasRecordedValue(feedback.energy) ? `${feedback.energy} / 5` : "Non renseigné"],
+              ["Performance · ancienne échelle", hasRecordedValue(feedback.performance) ? `${feedback.performance} / 5` : "Non renseigné"],
+              ["Congestion · ancienne échelle", hasRecordedValue(feedback.pump) ? `${feedback.pump} / 5` : "Non renseigné"],
+              ["Gêne / douleur · ancienne échelle", hasRecordedValue(feedback.pain) ? `${feedback.pain} / 10` : "Non renseigné"]
+            ];
+        const painDetail = finiteNumber(feedback.schemaVersion) >= 2 && feedback.painImpact && feedback.painImpact !== "none"
+          ? `<div class="notice warning"><strong>Signal de gêne :</strong> ${esc(feedbackValueLabel("painImpact", feedback.painImpact))}${feedback.painArea ? ` · ${esc(feedback.painArea)}` : ""}${feedback.painNote ? `<p class="small muted detail-comment">${esc(feedback.painNote)}</p>` : ""}</div>`
+          : "";
         const exercises = (session.exercises || []).map((exercise, exerciseIndex) => {
           const metadata = [
             muscleMap[exercise.muscle]?.label || exercise.muscle || "Autre",
@@ -3458,7 +3648,7 @@ svg {
           }).join("");
           return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
         }).join("");
-        return `<div class="notice"><strong>Lecture seule :</strong> ce relevé restitue la séance enregistrée. Aucun champ de l’historique ne peut être modifié depuis cette vue.</div><div class="detail-summary"><div><p class="eyebrow">${formatDate(session.date, true)}</p><h2>${esc(session.name)}</h2></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries de travail</span><span class="badge">${compactWeight(sessionTonnage(session))} kg volume-charge</span><span class="badge">${sessionReps(session)} reps</span><span class="badge">${sessionDropSegments(session)} drops</span><span class="badge">${finiteNumber(session.durationMin)} min</span></div><div class="form-grid"><div class="detail-value"><span>Début</span><strong>${formatDateTime(session.startedAt)}</strong></div><div class="detail-value"><span>Fin</span><strong>${formatDateTime(session.endedAt)}</strong></div></div><div class="feedback-grid">${feedbackItems.map(([label, value, max]) => `<div class="detail-value"><span>${label}</span><strong>${recordedValue(value)} / ${max}</strong></div>`).join("")}</div>${session.comments ? `<p class="detail-comment"><strong>Commentaire :</strong> ${esc(session.comments)}</p>` : ""}</div><div class="stack"><div><p class="eyebrow">Déroulé complet</p><h2>${(session.exercises || []).length} exercice${(session.exercises || []).length > 1 ? "s" : ""}</h2></div>${exercises || `<div class="card empty"><p class="muted">Aucun exercice enregistré.</p></div>`}</div>`;
+        return `<div class="notice"><strong>Lecture seule :</strong> ce relevé restitue la séance enregistrée. Aucun champ de l’historique ne peut être modifié depuis cette vue.</div><div class="detail-summary"><div><p class="eyebrow">${formatDate(session.date, true)}</p><h2>${esc(session.name)}</h2></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries de travail</span><span class="badge">${compactWeight(sessionTonnage(session))} kg volume-charge</span><span class="badge">${sessionReps(session)} reps</span><span class="badge">${sessionDropSegments(session)} drops</span><span class="badge">${finiteNumber(session.durationMin)} min</span></div><div class="form-grid"><div class="detail-value"><span>Début</span><strong>${formatDateTime(session.startedAt)}</strong></div><div class="detail-value"><span>Fin</span><strong>${formatDateTime(session.endedAt)}</strong></div></div><div class="feedback-grid">${feedbackItems.map(([label, value]) => `<div class="detail-value"><span>${label}</span><strong>${esc(value)}</strong></div>`).join("")}</div>${painDetail}${session.comments ? `<p class="detail-comment"><strong>Commentaire :</strong> ${esc(session.comments)}</p>` : ""}</div><div class="stack"><div><p class="eyebrow">Déroulé complet</p><h2>${(session.exercises || []).length} exercice${(session.exercises || []).length > 1 ? "s" : ""}</h2></div>${exercises || `<div class="card empty"><p class="muted">Aucun exercice enregistré.</p></div>`}</div>`;
       }
 
       function openSessionDetail(sessionId) {
@@ -3555,6 +3745,7 @@ svg {
           date: localDateString(now),
           startedAt: now.toISOString(),
           durationOverride: "",
+          feedback: blankSessionFeedback(),
           comments: "",
           exercises: source.exercises.map((exercise, exerciseIndex) => ({
             ...structuredClone(exercise),
@@ -3595,17 +3786,21 @@ svg {
       }
 
       function exportCsv() {
-        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "effort_global", "energie", "performance", "congestion", "douleur", "commentaire_seance", "commentaire_exercice"];
+        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "difficulte_seance", "energie_percue", "performance_percue", "congestion_percue", "impact_gene_douleur", "zone_gene_douleur", "note_gene_douleur", "effort_ancienne_echelle", "douleur_ancienne_echelle", "commentaire_seance", "commentaire_exercice"];
         const rows = [headers];
-        getSortedSessions().forEach(session => (session.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => {
-          const components = [
-            { palier: 0, type: "principale", weight: set.weight, reps: set.reps, rir: exercise.rirEnabled === false ? "" : set.rir },
-            ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
-          ];
-          components.forEach(component => rows.push([
-            session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), session.feedback?.effort, session.feedback?.energy, session.feedback?.performance, session.feedback?.pump, session.feedback?.pain, session.comments, exercise.comments
-          ]));
-        })));
+        getSortedSessions().forEach(session => {
+          const feedback = session.feedback || {};
+          const modern = finiteNumber(feedback.schemaVersion) >= 2;
+          (session.exercises || []).forEach((exercise, exerciseIndex) => (exercise.sets || []).forEach((set, setIndex) => {
+            const components = [
+              { palier: 0, type: "principale", weight: set.weight, reps: set.reps, rir: exercise.rirEnabled === false ? "" : set.rir },
+              ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
+            ];
+            components.forEach(component => rows.push([
+              session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), modern && feedback.difficulty ? feedbackValueLabel("difficulty", feedback.difficulty) : "", modern && feedback.energy ? feedbackValueLabel("energy", feedback.energy) : "", modern && feedback.performance ? feedbackValueLabel("performance", feedback.performance) : "", modern && feedback.pump ? feedbackValueLabel("pump", feedback.pump) : "", modern && feedback.painImpact ? feedbackValueLabel("painImpact", feedback.painImpact) : "", modern ? feedback.painArea : "", modern ? feedback.painNote : "", modern ? "" : feedback.effort, modern ? "" : feedback.pain, session.comments, exercise.comments
+            ]));
+          }));
+        });
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
         downloadFile(`bodysseus-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
@@ -3860,6 +4055,7 @@ svg {
         if (target.dataset.draftField && state.draft) {
           state.draft[target.dataset.draftField] = target.value; saveState();
         }
+        if (target.dataset.feedbackField && state.draft) updateDraftFeedback(target.dataset.feedbackField, target.value);
         if (target.dataset.exerciseField && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(target.dataset.exerciseIndex)];
           if (exercise) { exercise[target.dataset.exerciseField] = target.value; saveState(); updateLiveSummary(); }
@@ -3898,7 +4094,10 @@ svg {
 
       root.addEventListener("change", event => {
         const target = event.target;
-        if (target.dataset.feedbackField && state.draft) { state.draft.feedback[target.dataset.feedbackField] = finiteNumber(target.value); saveState(); }
+        if (target.dataset.feedbackField && state.draft) {
+          updateDraftFeedback(target.dataset.feedbackField, target.value);
+          if (target.dataset.feedbackField === "painImpact") render();
+        }
         if (target.hasAttribute("data-set-stop-reason") && state.draft) {
           const exerciseIndex = finiteNumber(target.dataset.exerciseIndex);
           const setIndex = finiteNumber(target.dataset.setIndex);
