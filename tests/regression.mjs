@@ -53,17 +53,23 @@ let mainScript = html.slice(scriptStart + "<script>".length, scriptEnd);
 mainScript = mainScript.replace(
   "      window.setInterval(updateLiveSummary, 60000);\n      render();\n      initCloud();",
   `      globalThis.__bodysseusTests = {
-        applyProgressionLoad,
+        adaptiveRecommendation,
+        applyAdaptiveLoad,
         availableRepRanges,
         defaultState,
         exerciseComparableProgress,
-        exerciseProgressionPassages,
+        exerciseAdaptivePassages,
+        effortTrackingSummary,
+        failureExpectedForSet,
         finishWorkout,
         getState: () => state,
         muscleComparisonRows,
-        normalizeProgressionSettings,
-        progressionRecommendation,
+        normalizeAdaptiveSettings,
+        normalizePractitionerProfile,
         programMuscleTargets,
+        renderData,
+        renderTemplateExerciseRow,
+        renderTrackedExercise,
         sessionDropReps,
         sessionDropTonnage,
         sessionDropSets,
@@ -71,6 +77,7 @@ mainScript = mainScript.replace(
         sessionMainTonnage,
         sessionTonnage,
         sessionWorkSets,
+        setReachedFailure,
         setState: value => { state = normalizeState(value); },
         statsPeriodControl,
         unvalidatedEnteredSets
@@ -190,75 +197,129 @@ assert.match(periodHtml, /value="7" selected/);
 for (let week = 1; week <= 8; week += 1) assert.match(periodHtml, new RegExp(`>${week} semaine`));
 assert.match(periodHtml, /Depuis toujours/);
 
-const normalizedProgression = api.normalizeProgressionSettings({ repMin: 12, repMax: 8, plannedLoadKg: "", loadIncrementKg: 0 });
-assert.equal(normalizedProgression.repMin, 12);
-assert.equal(normalizedProgression.repMax, 12, "La borne haute ne doit jamais être inférieure à la borne basse.");
-assert.equal(normalizedProgression.plannedLoadKg, "", "Une charge de départ doit rester optionnelle.");
-assert.equal(normalizedProgression.loadIncrementKg, 0.25, "L’incrément doit rester strictement positif.");
+const profile = api.normalizePractitionerProfile({});
+assert.equal(profile.goal, "hypertrophy");
+assert.equal(profile.effortStyle, "highIntensity");
+assert.equal(profile.failureStrategy, "lastSet");
+assert.deepEqual([profile.minRepsGuardrail, profile.maxRepsGuardrail], [4, 15]);
+assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "trackOnly" }).assistantEnabled, false, "L’ancien mode sans recommandation doit être migré.");
+assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "double" }).useProfileDefaults, true, "Les anciens objectifs rigides doivent migrer vers le profil.");
+api.setState(baseState);
+assert.match(api.renderData(), /Profil pratiquant/);
+assert.match(api.renderData(), /Haute intensité/);
 
-const progressionExercise = {
+const adaptiveExercise = {
   id: "press",
   name: "Press",
   loadType: "total",
-  repMin: 6,
-  repMax: 10,
-  targetRirMin: 1,
-  targetRirMax: 2,
-  loadIncrementKg: 2.5,
-  progressionMode: "double",
+  equipmentType: "machine",
+  assistantEnabled: true,
+  useProfileDefaults: true,
   rirEnabled: true,
-  warmupDefault: false
+  warmupDefault: false,
+  sets: []
 };
-const progressionState = structuredClone(baseState);
-progressionState.sessions = [
+const adaptiveState = structuredClone(baseState);
+adaptiveState.sessions = [
   {
-    id: "progress-old",
+    id: "adaptive-old",
     date: "2026-07-10",
-    exercises: [{ ...progressionExercise, sets: [{ weight: 77.5, reps: 9, rir: 2, validated: true, warmup: false, drops: [] }] }]
+    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 7, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
   },
   {
-    id: "progress-latest",
+    id: "adaptive-latest",
     date: "2026-07-17",
-    exercises: [{ ...progressionExercise, sets: [
-      { weight: 80, reps: 10, rir: 1, validated: true, warmup: false, drops: [] },
-      { weight: 80, reps: 11, rir: 2, validated: true, warmup: false, drops: [] }
-    ] }]
+    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
   }
 ];
-api.setState(progressionState);
-const increaseRecommendation = api.progressionRecommendation(progressionExercise);
+api.setState(adaptiveState);
+const increaseRecommendation = api.adaptiveRecommendation(adaptiveExercise);
 assert.equal(increaseRecommendation.kind, "increase");
-assert.equal(increaseRecommendation.recommendedLoadKg, 82.5, "Le haut de plage validé doit proposer un seul incrément.");
-assert.match(increaseRecommendation.why, /Toutes les séries/);
+assert.equal(increaseRecommendation.recommendedLoadKg, 82.5, "Une performance améliorée à charge et effort identiques doit proposer un palier.");
+assert.match(increaseRecommendation.why, /passée de 7 à 8/);
 
-const missingRirState = structuredClone(progressionState);
-missingRirState.sessions.at(-1).exercises[0].sets[1].rir = "";
-api.setState(missingRirState);
-const missingRirRecommendation = api.progressionRecommendation(progressionExercise);
-assert.equal(missingRirRecommendation.kind, "hold");
-assert.equal(missingRirRecommendation.recommendedLoadKg, 80);
-assert.match(missingRirRecommendation.why, /RIR manque/, "Une hausse doit être bloquée si le RIR requis est incomplet.");
+const freeRepState = structuredClone(baseState);
+freeRepState.sessions = [{
+  id: "five-reps",
+  date: "2026-07-17",
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 5, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+}];
+api.setState(freeRepState);
+const fiveRepRecommendation = api.adaptiveRecommendation(adaptiveExercise);
+assert.equal(fiveRepRecommendation.kind, "hold");
+assert.equal(fiveRepRecommendation.recommendedLoadKg, 80, "Cinq répétitions à l’échec doivent rester valides sans cible rigide.");
 
-const difficultState = structuredClone(baseState);
-difficultState.sessions = ["2026-07-10", "2026-07-17"].map((date, index) => ({
-  id: `difficult-${index}`,
-  date,
-  exercises: [{ ...progressionExercise, sets: [
-    { weight: 80, reps: 5, rir: 0, validated: true, warmup: false, drops: [] },
-    { weight: 80, reps: 4, rir: 0, validated: true, warmup: false, drops: [] }
-  ] }]
-}));
-api.setState(difficultState);
-const decreaseRecommendation = api.progressionRecommendation(progressionExercise);
+const tooHeavyState = structuredClone(baseState);
+tooHeavyState.sessions = [{
+  id: "too-heavy",
+  date: "2026-07-17",
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 3, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+}];
+api.setState(tooHeavyState);
+const decreaseRecommendation = api.adaptiveRecommendation(adaptiveExercise);
 assert.equal(decreaseRecommendation.kind, "caution");
-assert.equal(decreaseRecommendation.recommendedLoadKg, 77.5, "Deux passages difficiles doivent proposer une baisse limitée à un incrément.");
-assert.match(decreaseRecommendation.why, /Deux passages consécutifs/);
+assert.equal(decreaseRecommendation.recommendedLoadKg, 77.5, "Un échec sous le garde-fou doit retirer un seul palier.");
 
-const plannedExercise = { ...progressionExercise, id: "new-exercise", plannedLoadKg: 40 };
+const highRirState = structuredClone(baseState);
+highRirState.sessions = [{
+  id: "too-easy",
+  date: "2026-07-17",
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 3, stopReason: "voluntary", validated: true, warmup: false, drops: [] }] }]
+}];
+api.setState(highRirState);
+const highRirRecommendation = api.adaptiveRecommendation(adaptiveExercise);
+assert.equal(highRirRecommendation.kind, "increase");
+assert.equal(highRirRecommendation.recommendedLoadKg, 82.5, "Le profil haute intensité doit réagir à un RIR trop élevé.");
+
+const painState = structuredClone(baseState);
+painState.sessions = [{
+  id: "pain-limited",
+  date: "2026-07-17",
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "pain", validated: true, warmup: false, drops: [] }] }]
+}];
+api.setState(painState);
+const painRecommendation = api.adaptiveRecommendation(adaptiveExercise);
+assert.equal(painRecommendation.recommendedLoadKg, null, "Une série limitée par la douleur ne doit jamais déclencher une hausse.");
+
+const failureSets = {
+  ...adaptiveExercise,
+  sets: [
+    { weight: "", reps: "", warmup: true, validated: false, drops: [] },
+    { weight: "", reps: "", warmup: false, validated: false, drops: [] },
+    { weight: "", reps: "", warmup: false, validated: false, drops: [] }
+  ]
+};
 api.setState(baseState);
-const baselineRecommendation = api.progressionRecommendation(plannedExercise);
-assert.equal(baselineRecommendation.kind, "baseline");
-assert.equal(baselineRecommendation.recommendedLoadKg, 40);
+assert.equal(api.failureExpectedForSet(failureSets, 1), false);
+assert.equal(api.failureExpectedForSet(failureSets, 2), true, "Le profil par défaut doit réserver l’échec à la dernière série de travail.");
+assert.equal(api.setReachedFailure({ rir: 0 }), true);
+assert.equal(api.setReachedFailure({ rir: "", stopReason: "technicalFailure" }), true);
+const templateExerciseHtml = api.renderTemplateExerciseRow({ ...failureSets, plannedSets: 3, muscle: "chest" }, 0);
+assert.match(templateExerciseHtml, /Utiliser automatiquement mon profil pratiquant/);
+assert.doesNotMatch(templateExerciseHtml, /Répétitions minimum|Double progression/);
+const trackedExerciseHtml = api.renderTrackedExercise({ ...failureSets, name: "Press", muscle: "chest" }, 0);
+assert.match(trackedExerciseHtml, /Valider à l’échec/);
+assert.match(trackedExerciseHtml, /Pourquoi la série s’est arrêtée/);
+
+const liveExercise = {
+  ...adaptiveExercise,
+  sets: [
+    { weight: 80, reps: 8, rir: 3, stopReason: "voluntary", warmup: false, validated: true, drops: [] },
+    { weight: "", reps: "", rir: "", stopReason: "", warmup: false, validated: false, drops: [] }
+  ]
+};
+api.setState(baseState);
+const liveRecommendation = api.adaptiveRecommendation(liveExercise);
+assert.equal(liveRecommendation.applyScope, "next");
+assert.equal(liveRecommendation.recommendedLoadKg, 82.5, "L’ajustement en direct doit réagir après une série trop loin de l’échec.");
+
+const effortSummary = api.effortTrackingSummary([
+  { exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "muscularFailure", warmup: false, validated: true, drops: [] }] }] },
+  { exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "pain", warmup: false, validated: true, drops: [] }] }] }
+]);
+assert.equal(effortSummary.total, 2);
+assert.equal(effortSummary.failureEnds, 1, "La douleur ne doit pas être comptée comme un échec musculaire.");
+assert.equal(effortSummary.painEnds, 1);
 
 const prefillExercise = {
   sets: [
@@ -268,7 +329,11 @@ const prefillExercise = {
     { weight: "", warmup: false, validated: true }
   ]
 };
-assert.equal(api.applyProgressionLoad(prefillExercise, 80), 1);
+assert.equal(api.applyAdaptiveLoad(prefillExercise, 80), 1);
 assert.deepEqual(prefillExercise.sets.map(set => set.weight), ["80", "75", "", ""], "Le préremplissage ne doit écraser aucune saisie ni toucher aux séries W ou validées.");
 
-console.log("Régressions BODYSSEUS v1.11.0 : OK");
+const nextOnlyExercise = { sets: [{ weight: "", warmup: false, validated: false }, { weight: "", warmup: false, validated: false }] };
+assert.equal(api.applyAdaptiveLoad(nextOnlyExercise, 82.5, "next"), 1);
+assert.deepEqual(nextOnlyExercise.sets.map(set => set.weight), ["82.5", ""], "L’ajustement en direct ne doit préremplir que la prochaine série.");
+
+console.log("Régressions BODYSSEUS v1.12.0 : OK");

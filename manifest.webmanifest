@@ -2,7 +2,7 @@
   "id": "volume-training-log",
   "name": "BODYSSEUS — Ton assistant de progression",
   "short_name": "BODYSSEUS",
-  "description": "Assistant de progression en bodybuilding avec programmes libres, objectifs par exercice, recommandations explicables, séries dégressives et synchronisation sécurisée.",
+  "description": "Assistant de progression en musculation avec profil pratiquant, recommandations de charge adaptatives, programmes libres, séries dégressives et synchronisation sécurisée.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",

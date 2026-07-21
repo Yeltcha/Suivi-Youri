@@ -2,7 +2,7 @@
 
 BODYSSEUS — **ton assistant de progression** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 1.9.4 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle ajoute à chaque exercice de la bibliothèque un réglage **W par défaut**, repris lors de son ajout à une séance modèle ou active. Ce réglage initialise les séries comme échauffement, sans empêcher de modifier W série par série pendant l’entraînement.
+La version 1.12.0 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques. Elle ajoute le profil pratiquant, les recommandations de charge adaptatives, la validation rapide à l’échec et des réglages simplifiés qui s’appliquent automatiquement aux exercices.
 
 ## Installation recommandée sur iPhone
 
