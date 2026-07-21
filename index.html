@@ -998,9 +998,27 @@ svg {
     #volume-tracker-app .chart-wrap svg { display: block; width: 100%; height: auto; min-height: 190px; }
     #volume-tracker-app .chart-grid { stroke: var(--line); stroke-width: 1; }
     #volume-tracker-app .chart-axis { fill: var(--muted); font-size: 11px; }
-    #volume-tracker-app .chart-bar { fill: var(--accent); }
     #volume-tracker-app .chart-line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
     #volume-tracker-app .chart-dot { fill: var(--bg); stroke: var(--accent); stroke-width: 3; }
+    #volume-tracker-app .volume-composition { display: grid; gap: 18px; align-items: center; }
+    #volume-tracker-app .volume-donut { position: relative; width: min(220px, 68vw); aspect-ratio: 1; margin: 0 auto; }
+    #volume-tracker-app .volume-donut svg { display: block; width: 100%; height: 100%; }
+    #volume-tracker-app .volume-donut-track { fill: none; stroke: var(--surface-3); stroke-width: 26; }
+    #volume-tracker-app .volume-donut-main,
+    #volume-tracker-app .volume-donut-drops { fill: none; stroke-width: 26; transform: rotate(-90deg); transform-origin: 110px 110px; }
+    #volume-tracker-app .volume-donut-main { stroke: var(--accent); }
+    #volume-tracker-app .volume-donut-drops { stroke: var(--blue); }
+    #volume-tracker-app .volume-donut-center { position: absolute; inset: 25%; z-index: 1; display: grid; place-content: center; gap: 3px; text-align: center; }
+    #volume-tracker-app .volume-donut-center span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    #volume-tracker-app .volume-donut-center strong { font-size: clamp(22px, 7vw, 31px); line-height: 1; letter-spacing: -.04em; }
+    #volume-tracker-app .volume-donut-center small { color: var(--muted); font-size: 11px; }
+    #volume-tracker-app .volume-legend { display: grid; gap: 10px; }
+    #volume-tracker-app .volume-legend-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+    #volume-tracker-app .volume-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+    #volume-tracker-app .volume-legend-dot.drops { background: var(--blue); }
+    #volume-tracker-app .volume-legend-value { text-align: right; }
+    #volume-tracker-app .volume-legend-value strong { display: block; font-size: 14px; }
+    #volume-tracker-app .volume-legend-value span { color: var(--muted); font-size: 11px; }
     #volume-tracker-app .empty { min-height: 220px; display: grid; place-items: center; text-align: center; padding: 28px; }
     #volume-tracker-app .empty-inner { max-width: 420px; display: grid; justify-items: center; gap: 12px; }
     #volume-tracker-app .empty-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 18px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); font-size: 26px; }
@@ -1127,6 +1145,7 @@ svg {
       #volume-tracker-app .template-exercise-row { grid-template-columns: 28px minmax(0,1fr) auto; }
       #volume-tracker-app .template-exercise-row > .row { grid-column: auto; justify-content: end; }
       #volume-tracker-app .template-progress-options { grid-column: 2 / -1; }
+      #volume-tracker-app .volume-composition { grid-template-columns: minmax(200px, .8fr) minmax(0, 1.2fr); }
     }
     @media (prefers-reduced-motion: reduce) {
       #volume-tracker-app *, #volume-tracker-app *::before, #volume-tracker-app *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1255,7 +1274,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.12.0";
+      const APP_VERSION = "1.12.1";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -2953,10 +2972,6 @@ svg {
         const weekMinutes = week.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0);
         const weekStreak = activeWeekStreak();
         const next = nextProgram();
-        const weekMuscles = muscleSets(week);
-        const activeProgram = getActiveProgram();
-        const weeklyTargets = programMuscleTargets(activeProgram);
-        const weeklyMuscleRows = muscleComparisonRows(weeklyTargets, weekMuscles);
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
           : next
@@ -2982,15 +2997,6 @@ svg {
               <div class="card kpi"><span class="kpi-label">Séries de travail</span><strong class="kpi-value">${weekSets}</strong><span class="small muted">échauffement exclu</span></div>
               <div class="card kpi"><span class="kpi-label">Volume-charge</span><strong class="kpi-value">${compactWeight(weekTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">repère interne, pas un score de force</span></div>
               <div class="card kpi"><span class="kpi-label">Temps</span><strong class="kpi-value">${weekMinutes}<span class="kpi-unit">min</span></strong><span class="small muted">temps enregistré</span></div>
-            </div>
-
-            <div class="section-head"><div><p class="eyebrow">Volume musculaire</p><h2>Cibles du programme actif</h2><p class="small muted">Recalculées depuis les séries prévues, hors exercices W par défaut.</p></div><button class="btn btn-sm btn-ghost" type="button" data-action="navigate" data-view="stats">Détails</button></div>
-            <div class="card stack">
-              ${weeklyMuscleRows.length ? weeklyMuscleRows.map(muscle => {
-                const percent = muscle.target ? Math.round(muscle.actual / muscle.target * 100) : (muscle.actual ? 100 : 0);
-                const summary = muscle.target ? `${muscle.actual} / ${muscle.target}` : `${muscle.actual} · hors cible`;
-                return `<div class="muscle-row"><div class="muscle-row-head"><span>${esc(muscle.short)}</span><span class="muted">${summary}</span></div><div class="progress ${muscle.actual > muscle.target ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
-              }).join("") : `<p class="muted">Ajoute des séries de travail au programme actif pour créer automatiquement ses cibles musculaires.</p>`}
             </div>
 
             ${renderHistoryBlock()}
@@ -3289,16 +3295,15 @@ svg {
             </div>
 
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Séries dégressives</p><h2>Contribution des drops</h2><p class="small muted">La série principale reste une seule série de travail ; ses paliers sont analysés séparément.</p></div><span class="badge accent">${formatNumber(dropSetShare, 1)} % des séries</span></div>
+              <div class="section-head"><div><p class="eyebrow">Composition du volume</p><h2>Séries effectives et drops</h2><p class="small muted">Le volume-charge global est réparti entre le travail principal et les paliers dégressifs.</p></div><span class="badge accent">${formatNumber(dropSetShare, 1)} % des séries avec drop</span></div>
+              ${volumeCompositionChart(totalMainTonnage, totalDropTonnage)}
               <div class="kpi-grid">
                 <div class="kpi"><span class="kpi-label">Répétitions issues des drops</span><strong class="kpi-value">${totalDropReps}</strong><span class="small muted">${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""}</span></div>
                 <div class="kpi"><span class="kpi-label">Séries avec drop</span><strong class="kpi-value">${totalDropSets}</strong><span class="small muted">sur ${totalSets} séries de travail</span></div>
-                <div class="kpi"><span class="kpi-label">Volume-charge principal</span><strong class="kpi-value">${compactWeight(totalMainTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">hors drops</span></div>
-                <div class="kpi"><span class="kpi-label">Volume-charge des drops</span><strong class="kpi-value">${compactWeight(totalDropTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">${totalTonnage ? formatNumber(totalDropTonnage / totalTonnage * 100, 1) : "0,0"} % du volume-charge</span></div>
               </div>
             </div>
 
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Charge de travail</p><h2>Volume-charge par semaine</h2><p class="small muted">Repère interne : charge effective × répétitions, séries W exclues.</p></div><span class="badge">${weekly.length} semaine${weekly.length > 1 ? "s" : ""} renseignée${weekly.length > 1 ? "s" : ""}</span></div>${barChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg")}</div>
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Charge de travail</p><h2>Évolution du volume-charge</h2><p class="small muted">Chaque point représente le volume-charge d’une semaine, séries W exclues.</p></div><span class="badge">${weekly.length} semaine${weekly.length > 1 ? "s" : ""} renseignée${weekly.length > 1 ? "s" : ""}</span></div>${lineChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg", { ariaLabel: "Évolution du volume-charge hebdomadaire en kilogrammes", title: "Volume-charge par semaine", compactAxis: true })}</div>
 
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Programme actif</p><h2>Volume-charge par séance</h2><p class="small muted">Moyenne et répartition principale/drops par séance modèle sur la période.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>${workloadByTemplate.length ? `<div class="list-divider">${workloadByTemplate.map(item => `<div class="session-line"><div class="row-between"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.count} passage${item.count > 1 ? "s" : ""}</p></div><span class="badge accent">${formatNumber(item.average, 0)} kg / passage</span></div><p class="small muted">Principal ${formatNumber(item.main, 0)} kg · Drops ${formatNumber(item.drops, 0)} kg · Total ${formatNumber(item.total, 0)} kg</p></div>`).join("")}</div>` : `<p class="muted">Le programme actif ne contient aucune séance.</p>`}</div>
 
@@ -3344,28 +3349,20 @@ svg {
         return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
       }
 
-      function barChart(points, unit) {
-        if (!points.length) return `<p class="muted">Aucune donnée.</p>`;
-        const width = 680, height = 240, left = 48, right = 14, top = 18, bottom = 42;
-        const innerWidth = width - left - right, innerHeight = height - top - bottom;
-        const max = Math.max(...points.map(point => point.value), 1);
-        const gap = Math.max(6, innerWidth / points.length * .18);
-        const barWidth = Math.max(6, innerWidth / points.length - gap);
-        const grid = [0, .5, 1].map(ratio => {
-          const y = top + innerHeight - ratio * innerHeight;
-          return `<line class="chart-grid" x1="${left}" y1="${y}" x2="${width - right}" y2="${y}"></line><text class="chart-axis" x="${left - 8}" y="${y + 4}" text-anchor="end">${compactWeight(max * ratio)}</text>`;
-        }).join("");
-        const bars = points.map((point, index) => {
-          const x = left + index * innerWidth / points.length + gap / 2;
-          const h = point.value / max * innerHeight;
-          const y = top + innerHeight - h;
-          const label = points.length > 8 && index % 2 ? "" : point.label.replace(/\./g, "");
-          return `<rect class="chart-bar" x="${x}" y="${y}" width="${barWidth}" height="${h}" rx="5"><title>${esc(point.label)} : ${formatNumber(point.value, 0)} ${unit}</title></rect><text class="chart-axis" x="${x + barWidth / 2}" y="${height - 16}" text-anchor="middle">${esc(label)}</text>`;
-        }).join("");
-        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Volume-charge hebdomadaire en kilogrammes"><title>Volume-charge hebdomadaire</title>${grid}${bars}</svg></div>`;
+      function volumeCompositionChart(mainTonnage, dropTonnage) {
+        const main = Math.max(0, finiteNumber(mainTonnage));
+        const drops = Math.max(0, finiteNumber(dropTonnage));
+        const total = main + drops;
+        const circumference = 2 * Math.PI * 74;
+        const mainShare = total ? main / total : 0;
+        const dropShare = total ? drops / total : 0;
+        const mainLength = mainShare * circumference;
+        const dropLength = dropShare * circumference;
+        const ariaLabel = `Volume-charge global ${formatNumber(total, 0)} kilogrammes : séries effectives ${formatNumber(main, 0)} kilogrammes, drops ${formatNumber(drops, 0)} kilogrammes`;
+        return `<div class="volume-composition"><div class="volume-donut" role="img" aria-label="${esc(ariaLabel)}"><svg viewBox="0 0 220 220" aria-hidden="true" focusable="false"><circle class="volume-donut-track" cx="110" cy="110" r="74"></circle>${mainLength ? `<circle class="volume-donut-main" cx="110" cy="110" r="74" stroke-dasharray="${mainLength.toFixed(2)} ${(circumference - mainLength).toFixed(2)}"></circle>` : ""}${dropLength ? `<circle class="volume-donut-drops" cx="110" cy="110" r="74" stroke-dasharray="${dropLength.toFixed(2)} ${(circumference - dropLength).toFixed(2)}" stroke-dashoffset="${(-mainLength).toFixed(2)}"></circle>` : ""}</svg><div class="volume-donut-center"><span>Global</span><strong>${compactWeight(total)}</strong><small>kg</small></div></div><div class="volume-legend"><div class="volume-legend-item"><span class="volume-legend-dot" aria-hidden="true"></span><div><strong>Séries effectives</strong><p class="small muted">Travail principal, hors W</p></div><div class="volume-legend-value"><strong>${compactWeight(main)} kg</strong><span>${formatNumber(mainShare * 100, 1)} %</span></div></div><div class="volume-legend-item"><span class="volume-legend-dot drops" aria-hidden="true"></span><div><strong>Drops</strong><p class="small muted">Paliers dégressifs</p></div><div class="volume-legend-value"><strong>${compactWeight(drops)} kg</strong><span>${formatNumber(dropShare * 100, 1)} %</span></div></div></div></div>`;
       }
 
-      function lineChart(points, unit) {
+      function lineChart(points, unit, options = {}) {
         if (!points.length) return "";
         const width = 680, height = 240, left = 48, right = 18, top = 20, bottom = 42;
         const innerWidth = width - left - right, innerHeight = height - top - bottom;
@@ -3379,10 +3376,12 @@ svg {
         const grid = [0, .5, 1].map(ratio => {
           const value = low + (high - low) * ratio;
           const y = yFor(value);
-          return `<line class="chart-grid" x1="${left}" y1="${y}" x2="${width - right}" y2="${y}"></line><text class="chart-axis" x="${left - 8}" y="${y + 4}" text-anchor="end">${formatNumber(value, 0)}</text>`;
+          return `<line class="chart-grid" x1="${left}" y1="${y}" x2="${width - right}" y2="${y}"></line><text class="chart-axis" x="${left - 8}" y="${y + 4}" text-anchor="end">${options.compactAxis ? compactWeight(value) : formatNumber(value, 0)}</text>`;
         }).join("");
         const dots = points.map((point, index) => `<circle class="chart-dot" cx="${xFor(index)}" cy="${yFor(point.value)}" r="5"><title>${esc(point.label)} : ${formatNumber(point.value, 1)} ${unit}</title></circle>${(points.length <= 8 || index === 0 || index === points.length - 1) ? `<text class="chart-axis" x="${xFor(index)}" y="${height - 16}" text-anchor="middle">${esc(point.label.replace(/\./g, ""))}</text>` : ""}`).join("");
-        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Tendance moyenne des charges à répétitions comparables"><title>Charge moyenne mobile sur trois passages</title>${grid}<path class="chart-line" d="${path}"></path>${dots}</svg></div>`;
+        const ariaLabel = options.ariaLabel || "Tendance moyenne des charges à répétitions comparables";
+        const title = options.title || "Charge moyenne mobile sur trois passages";
+        return `<div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(ariaLabel)}"><title>${esc(title)}</title>${grid}<path class="chart-line" d="${path}"></path>${dots}</svg></div>`;
       }
 
       function renderData() {

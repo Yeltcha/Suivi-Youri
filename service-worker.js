@@ -1,4 +1,4 @@
-const CACHE_NAME = "volume-training-log-v19";
+const CACHE_NAME = "volume-training-log-v20";
 const APP_SHELL = [
   "./",
   "./index.html",

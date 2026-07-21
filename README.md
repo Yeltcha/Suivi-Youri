@@ -4,7 +4,13 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
-La version 1.12.0 transforme l’assistant en système personnalisé et plus intuitif :
+La version 1.12.1 affine la lecture des statistiques :
+
+- la charge de travail hebdomadaire est désormais représentée par une courbe à points ;
+- le volume-charge global est visualisé dans un graphique en anneau, réparti entre séries effectives et drops ;
+- le bloc « Volume musculaire » redondant a été retiré de l’accueil et reste disponible dans les statistiques.
+
+La version 1.12.0 a transformé l’assistant en système personnalisé et plus intuitif :
 
 - un profil pratiquant définit l’objectif, l’expérience, le style d’effort et l’utilisation souhaitée de l’échec ;
 - le profil initial privilégie la prise de muscle, la haute intensité et une dernière série à l’échec ;

@@ -68,6 +68,7 @@ mainScript = mainScript.replace(
         normalizePractitionerProfile,
         programMuscleTargets,
         renderData,
+        renderHome,
         renderTemplateExerciseRow,
         renderTrackedExercise,
         sessionDropReps,
@@ -80,7 +81,9 @@ mainScript = mainScript.replace(
         setReachedFailure,
         setState: value => { state = normalizeState(value); },
         statsPeriodControl,
-        unvalidatedEnteredSets
+        unvalidatedEnteredSets,
+        lineChart,
+        volumeCompositionChart
       };`
 );
 assert.ok(mainScript.includes("globalThis.__bodysseusTests"), "Les points de test doivent être injectés.");
@@ -167,6 +170,21 @@ assert.equal(api.sessionDropSets(session), 1);
 assert.equal(api.sessionMainTonnage(session), 1000);
 assert.equal(api.sessionDropTonnage(session), 350);
 assert.equal(api.sessionTonnage(session), 1350);
+const volumeChartHtml = api.volumeCompositionChart(1000, 350);
+assert.match(volumeChartHtml, /Global/);
+assert.match(volumeChartHtml, /Séries effectives/);
+assert.match(volumeChartHtml, /Drops/);
+assert.match(volumeChartHtml, /global 1\D?350/i);
+const workloadChartHtml = api.lineChart([
+  { label: "01/07", value: 1000 },
+  { label: "08/07", value: 1350 }
+], "kg", { ariaLabel: "Évolution du volume-charge hebdomadaire", title: "Volume-charge par semaine" });
+assert.match(workloadChartHtml, /chart-line/);
+assert.match(workloadChartHtml, /chart-dot/);
+assert.doesNotMatch(workloadChartHtml, /chart-bar/);
+assert.match(workloadChartHtml, /Évolution du volume-charge hebdomadaire/);
+api.setState(baseState);
+assert.doesNotMatch(api.renderHome(), /Volume musculaire/, "L’accueil ne doit plus dupliquer le bloc de volume musculaire.");
 const bodyweightSession = {
   id: "bodyweight-session",
   date: "2026-07-20",
@@ -336,4 +354,4 @@ const nextOnlyExercise = { sets: [{ weight: "", warmup: false, validated: false 
 assert.equal(api.applyAdaptiveLoad(nextOnlyExercise, 82.5, "next"), 1);
 assert.deepEqual(nextOnlyExercise.sets.map(set => set.weight), ["82.5", ""], "L’ajustement en direct ne doit préremplir que la prochaine série.");
 
-console.log("Régressions BODYSSEUS v1.12.0 : OK");
+console.log("Régressions BODYSSEUS v1.12.1 : OK");
