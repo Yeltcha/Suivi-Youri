@@ -52,7 +52,7 @@ globalThis.confirm = () => true;
 let mainScript = html.slice(scriptStart + "<script>".length, scriptEnd);
 mainScript = mainScript.replace(
   "      window.setInterval(updateLiveSummary, 60000);\n      render();\n      initCloud();",
-  `      globalThis.__bodysseusTests = {
+  `      globalThis.__innersetTests = {
         adaptiveRecommendation,
         applyAdaptiveLoad,
         availableRepRanges,
@@ -93,10 +93,10 @@ mainScript = mainScript.replace(
         volumeCompositionChart
       };`
 );
-assert.ok(mainScript.includes("globalThis.__bodysseusTests"), "Les points de test doivent être injectés.");
+assert.ok(mainScript.includes("globalThis.__innersetTests"), "Les points de test doivent être injectés.");
 new Function(mainScript)();
 
-const api = globalThis.__bodysseusTests;
+const api = globalThis.__innersetTests;
 assert.ok(api, "L’API de test doit être disponible.");
 
 const library = [
@@ -444,4 +444,4 @@ const nextOnlyExercise = { sets: [{ weight: "", warmup: false, validated: false 
 assert.equal(api.applyAdaptiveLoad(nextOnlyExercise, 82.5, "next"), 1);
 assert.deepEqual(nextOnlyExercise.sets.map(set => set.weight), ["82.5", ""], "L’ajustement en direct ne doit préremplir que la prochaine série.");
 
-console.log("Régressions BODYSSEUS v1.12.2 : OK");
+console.log("Régressions INNERSET v1.13.0 : OK");

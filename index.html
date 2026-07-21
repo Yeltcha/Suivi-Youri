@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0B0D10">
+<meta name="theme-color" content="#0D1117">
 <meta name="description" content="Carnet bodybuilding avec bibliothèque d’exercices, programmes personnalisés, séries dégressives et synchronisation sécurisée.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BODYSSEUS">
+<meta name="apple-mobile-web-app-title" content="INNERSET">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
-<title>BODYSSEUS — Ton assistant de progression</title>
-<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0B0D10 !important; }</style>
+<title>INNERSET — Workout &amp; Progress</title>
+<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0D1117 !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
   color-scheme: light dark;
@@ -704,23 +704,26 @@ svg {
 <div id="volume-tracker-app" class="volume-app">
   <style>
     #volume-tracker-app {
-      --bg: #0B0D10;
-      --surface: #14161a;
-      --surface-2: #1c1e23;
-      --surface-3: #26282d;
-      --text: #F3EFE5;
-      --muted: #A59E91;
-      --line: #34312c;
-      --accent: #C6A15B;
-      --accent-ink: #0B0D10;
-      --orange: #d58a45;
-      --red: #C96161;
-      --blue: #74b9ff;
-      --radius: 18px;
-      --radius-sm: 12px;
+      --bg: #0D1117;
+      --surface: #151B24;
+      --surface-2: #1B2330;
+      --surface-3: #263244;
+      --text: #F3F5F7;
+      --muted: #98A5B5;
+      --line: #2B3748;
+      --accent: #7C8CFF;
+      --accent-ink: #0B0E16;
+      --positive: #72C5A3;
+      --orange: #E5A266;
+      --red: #E47F73;
+      --blue: #56B8C7;
+      --radius: 16px;
+      --radius-sm: 11px;
       min-height: 100vh;
       min-height: 100dvh;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 18% -12%, color-mix(in srgb, var(--accent) 12%, transparent) 0, transparent 32rem),
+        var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 16px;
@@ -744,7 +747,7 @@ svg {
       justify-content: space-between;
       gap: 16px;
       padding: max(14px, env(safe-area-inset-top)) 18px 12px;
-      background: color-mix(in srgb, var(--bg) 90%, transparent);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
       backdrop-filter: blur(18px);
       border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
     }
@@ -762,16 +765,16 @@ svg {
     }
     #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 12px; }
     #volume-tracker-app .brand-mark {
-      width: 42px;
-      height: 42px;
+      width: 38px;
+      height: 38px;
       display: block;
-      flex: 0 0 42px;
+      flex: 0 0 38px;
       object-fit: contain;
       background: transparent;
     }
     #volume-tracker-app .brand-copy { line-height: 1.05; }
-    #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .09em; font-size: 13px; }
-    #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
+    #volume-tracker-app .brand-name { display: block; font-weight: 800; letter-spacing: .17em; font-size: 13px; }
+    #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-size: 10px; letter-spacing: .025em; margin-top: 5px; }
     #volume-tracker-app .header-status { color: var(--muted); font-size: 12px; text-align: right; }
     #volume-tracker-app main { width: min(100%, 980px); margin: 0 auto; padding: 20px 16px 36px; }
     #volume-tracker-app .page { display: grid; gap: 20px; animation: page-in .22s ease-out; }
@@ -783,7 +786,7 @@ svg {
     #volume-tracker-app h1 { font-size: clamp(28px, 8vw, 44px); line-height: 1.02; letter-spacing: -.045em; }
     #volume-tracker-app h2 { font-size: 20px; line-height: 1.15; letter-spacing: -.02em; }
     #volume-tracker-app h3 { font-size: 16px; line-height: 1.2; }
-    #volume-tracker-app .eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    #volume-tracker-app .eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
     #volume-tracker-app .muted { color: var(--muted); }
     #volume-tracker-app .small { font-size: 12px; }
     #volume-tracker-app .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: end; flex-wrap: wrap; }
@@ -801,8 +804,10 @@ svg {
       gap: 20px;
       padding: 24px;
       border: 1px solid var(--line);
-      border-radius: 26px;
-      background: linear-gradient(145deg, var(--surface-2), var(--surface));
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, var(--surface-2)), var(--surface) 72%);
+      box-shadow: 0 24px 64px rgba(0,0,0,.18);
     }
     #volume-tracker-app .hero::after {
       content: "";
@@ -812,8 +817,8 @@ svg {
       right: -70px;
       top: -85px;
       border-radius: 50%;
-      background: color-mix(in srgb, var(--accent) 16%, transparent);
-      filter: blur(4px);
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+      filter: blur(12px);
       pointer-events: none;
     }
     #volume-tracker-app .hero > * { position: relative; z-index: 1; }
@@ -850,7 +855,7 @@ svg {
     #volume-tracker-app input:focus-visible,
     #volume-tracker-app select:focus-visible,
     #volume-tracker-app textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 40%, transparent); outline-offset: 2px; }
-    #volume-tracker-app .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    #volume-tracker-app .btn-primary { background: linear-gradient(135deg, #8D9AFF, var(--accent)); color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 88%, white); box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 16%, transparent); }
     #volume-tracker-app .btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
     #volume-tracker-app .btn-ghost { background: transparent; }
     #volume-tracker-app .btn-danger { color: #ff9b9b; background: color-mix(in srgb, var(--red) 8%, var(--surface)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
@@ -873,7 +878,7 @@ svg {
     #volume-tracker-app .badge.accent { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); }
     #volume-tracker-app .sync-line { display: flex; align-items: center; gap: 9px; min-width: 0; }
     #volume-tracker-app .sync-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--muted); }
-    #volume-tracker-app .sync-dot.synced { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent); }
+    #volume-tracker-app .sync-dot.synced { background: var(--positive); box-shadow: 0 0 0 4px color-mix(in srgb, var(--positive) 10%, transparent); }
     #volume-tracker-app .sync-dot.syncing { background: var(--blue); animation: sync-pulse 1s ease-in-out infinite; }
     #volume-tracker-app .sync-dot.offline,
     #volume-tracker-app .sync-dot.error { background: var(--orange); }
@@ -976,7 +981,7 @@ svg {
     #volume-tracker-app .set-index { text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; }
     #volume-tracker-app .set-block { display: grid; gap: 7px; padding: 5px 0 9px; }
     #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
-    #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 11px; background: color-mix(in srgb, var(--accent) 7%, transparent); }
+    #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 11px; background: color-mix(in srgb, var(--positive) 8%, transparent); }
     #volume-tracker-app .set-validation-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-left: 37px; }
     #volume-tracker-app .set-stop-details { margin-left: 37px; }
     #volume-tracker-app .set-stop-details summary { cursor: pointer; color: var(--muted); font-size: 11px; padding: 4px 0; }
@@ -1156,10 +1161,10 @@ svg {
   <div class="app-shell">
     <header class="topbar">
       <button class="brand" type="button" data-action="brand-home" aria-label="Retourner à l’accueil">
-        <img class="brand-mark" src="./icons/logo-transparent.png" alt="" width="42" height="42">
+        <img class="brand-mark" src="./icons/logo-transparent.svg" alt="" width="38" height="38">
         <span class="brand-copy">
-          <span class="brand-name">BODYSSEUS</span>
-          <span class="brand-sub">Ton assistant de progression</span>
+          <span class="brand-name">INNERSET</span>
+          <span class="brand-sub">Every set builds you.</span>
         </span>
       </button>
       <div id="header-status" class="header-status">Données locales</div>
@@ -1275,7 +1280,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.12.2";
+      const APP_VERSION = "1.13.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -3111,7 +3116,7 @@ svg {
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
         if (standalone) return "";
         const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (installPrompt) return `<div class="notice row-between"><span>Installe BODYSSEUS comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
+        if (installPrompt) return `<div class="notice row-between"><span>Installe INNERSET comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
         if (isIos) return `<div class="notice"><strong>Installation iPhone :</strong> dans Safari, touche Partager puis <em>Sur l’écran d’accueil</em>.</div>`;
         return "";
       }
@@ -3601,9 +3606,9 @@ svg {
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
-              ${standalone ? `<p class="muted">BODYSSEUS est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
+              ${standalone ? `<p class="muted">INNERSET est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
-            <p class="small muted">BODYSSEUS ${APP_VERSION} · ton assistant de progression · stockage local et synchronisation Supabase</p>
+            <p class="small muted">INNERSET ${APP_VERSION} · Every set builds you. · stockage local et synchronisation Supabase</p>
           </section>`;
       }
 
@@ -3775,8 +3780,8 @@ svg {
       }
 
       function exportJson() {
-        const payload = { app: "BODYSSEUS", tagline: "Ton assistant de progression", exportedAt: new Date().toISOString(), ...state };
-        downloadFile(`bodysseus-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
+        const payload = { app: "INNERSET", tagline: "Every set builds you.", exportedAt: new Date().toISOString(), ...state };
+        downloadFile(`innerset-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
         showToast("Sauvegarde JSON exportée.");
       }
 
@@ -3802,7 +3807,7 @@ svg {
           }));
         });
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
-        downloadFile(`bodysseus-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
+        downloadFile(`innerset-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
       }
 
@@ -3818,7 +3823,7 @@ svg {
             render();
             showToast("Sauvegarde restaurée.");
           } catch (error) {
-            showToast("Ce fichier n’est pas une sauvegarde BODYSSEUS valide.");
+            showToast("Ce fichier n’est pas une sauvegarde INNERSET valide.");
           }
         };
         reader.readAsText(file);

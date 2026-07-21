@@ -1,15 +1,15 @@
 {
   "id": "volume-training-log",
-  "name": "BODYSSEUS — Ton assistant de progression",
-  "short_name": "BODYSSEUS",
+  "name": "INNERSET — Workout & Progress",
+  "short_name": "INNERSET",
   "description": "Assistant de progression en musculation avec profil pratiquant, recommandations de charge adaptatives, programmes libres, séries dégressives et synchronisation sécurisée.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0B0D10",
-  "theme_color": "#0B0D10",
+  "background_color": "#0D1117",
+  "theme_color": "#0D1117",
   "categories": ["fitness", "sports", "health"],
   "icons": [
     {

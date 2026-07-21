@@ -1,8 +1,16 @@
-# BODYSSEUS
+# INNERSET
 
-**Ton assistant de progression.**
+**Every set builds you.**
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
+
+La version 1.13.0 introduit la nouvelle identité INNERSET :
+
+- positionnement centré sur une performance personnelle, progressive et sans comparaison toxique ;
+- signature « Every set builds you. » ;
+- interface bleu nuit, indigo, sauge et cyan, plus sobre et haut de gamme ;
+- nouveau monogramme I/S et nouvelles icônes d’installation ;
+- exports, métadonnées PWA et textes d’installation harmonisés, sans modifier les données existantes.
 
 La version 1.12.2 rend le suivi du ressenti plus personnel et moins biaisé :
 

@@ -1,8 +1,8 @@
-# BODYSSEUS — installation sur téléphone
+# INNERSET — installation sur téléphone
 
-BODYSSEUS — **ton assistant de progression** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
+INNERSET — **Every set builds you.** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 1.12.2 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les recommandations adaptatives. Elle remplace les notes de ressenti présélectionnées par des critères facultatifs et définis, suit la gêne selon son impact réel et construit des tendances propres à chaque utilisateur.
+La version 1.13.0 adopte la nouvelle identité INNERSET et sa direction artistique bleu nuit, indigo, sauge et cyan. Elle conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique, les recommandations adaptatives et toutes les données déjà enregistrées.
 
 ## Installation recommandée sur iPhone
 
@@ -11,7 +11,7 @@ Safari exige que l’application soit ouverte depuis une adresse web sécurisée
 1. Décompressez le dossier puis placez son contenu sur un hébergement statique HTTPS. Votre hébergement OVH, GitHub Pages ou un hébergeur statique similaire convient : aucun serveur ni aucune base de données ne sont nécessaires.
 2. Ouvrez l’adresse obtenue dans **Safari** sur l’iPhone.
 3. Touchez **Partager**, puis **Sur l’écran d’accueil** et validez l’ouverture comme app web.
-4. Lancez BODYSSEUS une première fois avec une connexion. Ensuite, l’application et tes séances restent disponibles hors ligne.
+4. Lancez INNERSET une première fois avec une connexion. Ensuite, l’application et tes séances restent disponibles hors ligne.
 5. Dans **Données**, crée ton compte ou connecte-toi pour activer la synchronisation entre appareils.
 
 ## Android
@@ -37,7 +37,7 @@ Ouvrez ensuite `http://localhost:8080` dans votre navigateur. Le double-clic dir
 - L’export CSV est prévu pour une analyse dans Excel ou un autre tableur.
 - Avant de changer de téléphone, de supprimer l’app ou d’effacer les données de Safari/Chrome, exportez impérativement une sauvegarde JSON.
 
-La bibliothèque, les programmes libres, les réglages RIR et W, l’état de validation des séries, les ressentis et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.12.2 fait évoluer le schéma JSON interne en version 9 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
+La bibliothèque, les programmes libres, les réglages RIR et W, l’état de validation des séries, les ressentis et les séances historiques utilisent la ligne `training_state` déjà créée dans Supabase. La version 1.13.0 conserve le schéma JSON interne en version 9 : aucune nouvelle table ni nouvelle requête SQL n’est nécessaire pour cette mise à jour.
 
 ## Contenu du dossier
 
