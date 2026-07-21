@@ -1,6 +1,6 @@
 # BODYSSEUS — installation sur téléphone
 
-BODYSSEUS — **Forge Your Odyssey.** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
+BODYSSEUS — **ton assistant de progression** — est une application web installable (PWA). Elle ne demande ni abonnement ni application supplémentaire une fois mise en ligne. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
 La version 1.9.4 conserve les programmes libres, le RIR optionnel, les séries verrouillées après validation, les drops, la durée automatique et les statistiques de tonnage. Elle ajoute à chaque exercice de la bibliothèque un réglage **W par défaut**, repris lors de son ajout à une séance modèle ou active. Ce réglage initialise les séries comme échauffement, sans empêcher de modifier W série par série pendant l’entraînement.
 

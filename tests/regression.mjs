@@ -53,12 +53,16 @@ let mainScript = html.slice(scriptStart + "<script>".length, scriptEnd);
 mainScript = mainScript.replace(
   "      window.setInterval(updateLiveSummary, 60000);\n      render();\n      initCloud();",
   `      globalThis.__bodysseusTests = {
+        applyProgressionLoad,
         availableRepRanges,
         defaultState,
         exerciseComparableProgress,
+        exerciseProgressionPassages,
         finishWorkout,
         getState: () => state,
         muscleComparisonRows,
+        normalizeProgressionSettings,
+        progressionRecommendation,
         programMuscleTargets,
         sessionDropReps,
         sessionDropTonnage,
@@ -186,4 +190,85 @@ assert.match(periodHtml, /value="7" selected/);
 for (let week = 1; week <= 8; week += 1) assert.match(periodHtml, new RegExp(`>${week} semaine`));
 assert.match(periodHtml, /Depuis toujours/);
 
-console.log("Régressions BODYSSEUS v1.10.0 : OK");
+const normalizedProgression = api.normalizeProgressionSettings({ repMin: 12, repMax: 8, plannedLoadKg: "", loadIncrementKg: 0 });
+assert.equal(normalizedProgression.repMin, 12);
+assert.equal(normalizedProgression.repMax, 12, "La borne haute ne doit jamais être inférieure à la borne basse.");
+assert.equal(normalizedProgression.plannedLoadKg, "", "Une charge de départ doit rester optionnelle.");
+assert.equal(normalizedProgression.loadIncrementKg, 0.25, "L’incrément doit rester strictement positif.");
+
+const progressionExercise = {
+  id: "press",
+  name: "Press",
+  loadType: "total",
+  repMin: 6,
+  repMax: 10,
+  targetRirMin: 1,
+  targetRirMax: 2,
+  loadIncrementKg: 2.5,
+  progressionMode: "double",
+  rirEnabled: true,
+  warmupDefault: false
+};
+const progressionState = structuredClone(baseState);
+progressionState.sessions = [
+  {
+    id: "progress-old",
+    date: "2026-07-10",
+    exercises: [{ ...progressionExercise, sets: [{ weight: 77.5, reps: 9, rir: 2, validated: true, warmup: false, drops: [] }] }]
+  },
+  {
+    id: "progress-latest",
+    date: "2026-07-17",
+    exercises: [{ ...progressionExercise, sets: [
+      { weight: 80, reps: 10, rir: 1, validated: true, warmup: false, drops: [] },
+      { weight: 80, reps: 11, rir: 2, validated: true, warmup: false, drops: [] }
+    ] }]
+  }
+];
+api.setState(progressionState);
+const increaseRecommendation = api.progressionRecommendation(progressionExercise);
+assert.equal(increaseRecommendation.kind, "increase");
+assert.equal(increaseRecommendation.recommendedLoadKg, 82.5, "Le haut de plage validé doit proposer un seul incrément.");
+assert.match(increaseRecommendation.why, /Toutes les séries/);
+
+const missingRirState = structuredClone(progressionState);
+missingRirState.sessions.at(-1).exercises[0].sets[1].rir = "";
+api.setState(missingRirState);
+const missingRirRecommendation = api.progressionRecommendation(progressionExercise);
+assert.equal(missingRirRecommendation.kind, "hold");
+assert.equal(missingRirRecommendation.recommendedLoadKg, 80);
+assert.match(missingRirRecommendation.why, /RIR manque/, "Une hausse doit être bloquée si le RIR requis est incomplet.");
+
+const difficultState = structuredClone(baseState);
+difficultState.sessions = ["2026-07-10", "2026-07-17"].map((date, index) => ({
+  id: `difficult-${index}`,
+  date,
+  exercises: [{ ...progressionExercise, sets: [
+    { weight: 80, reps: 5, rir: 0, validated: true, warmup: false, drops: [] },
+    { weight: 80, reps: 4, rir: 0, validated: true, warmup: false, drops: [] }
+  ] }]
+}));
+api.setState(difficultState);
+const decreaseRecommendation = api.progressionRecommendation(progressionExercise);
+assert.equal(decreaseRecommendation.kind, "caution");
+assert.equal(decreaseRecommendation.recommendedLoadKg, 77.5, "Deux passages difficiles doivent proposer une baisse limitée à un incrément.");
+assert.match(decreaseRecommendation.why, /Deux passages consécutifs/);
+
+const plannedExercise = { ...progressionExercise, id: "new-exercise", plannedLoadKg: 40 };
+api.setState(baseState);
+const baselineRecommendation = api.progressionRecommendation(plannedExercise);
+assert.equal(baselineRecommendation.kind, "baseline");
+assert.equal(baselineRecommendation.recommendedLoadKg, 40);
+
+const prefillExercise = {
+  sets: [
+    { weight: "", warmup: false, validated: false },
+    { weight: "75", warmup: false, validated: false },
+    { weight: "", warmup: true, validated: false },
+    { weight: "", warmup: false, validated: true }
+  ]
+};
+assert.equal(api.applyProgressionLoad(prefillExercise, 80), 1);
+assert.deepEqual(prefillExercise.sets.map(set => set.weight), ["80", "75", "", ""], "Le préremplissage ne doit écraser aucune saisie ni toucher aux séries W ou validées.");
+
+console.log("Régressions BODYSSEUS v1.11.0 : OK");

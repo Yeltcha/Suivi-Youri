@@ -1,8 +1,8 @@
 {
   "id": "volume-training-log",
-  "name": "BODYSSEUS — Forge Your Odyssey.",
+  "name": "BODYSSEUS — Ton assistant de progression",
   "short_name": "BODYSSEUS",
-  "description": "Forge Your Odyssey. Carnet bodybuilding avec programmes libres, bibliothèque d’exercices, séries dégressives et synchronisation sécurisée.",
+  "description": "Assistant de progression en bodybuilding avec programmes libres, objectifs par exercice, recommandations explicables, séries dégressives et synchronisation sécurisée.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
