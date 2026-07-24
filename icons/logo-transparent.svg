@@ -1,8 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 1009" role="img" aria-labelledby="title desc">
   <title id="title">INNERSET</title>
-  <desc id="desc">Monogramme blanc formé des lettres I et S</desc>
-  <g fill="none" stroke="#F7F8FA" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M118 116h112M174 116v280M118 396h112" stroke-width="36"/>
-    <path d="M382 154c-21-31-54-46-92-39-42 8-68 36-68 72 0 42 34 59 76 70 43 11 72 27 72 70 0 41-34 72-82 72-39 0-72-17-91-48" stroke-width="42"/>
-  </g>
+  <desc id="desc">Deux silhouettes athlétiques dos à dos suggérant les lettres I et S</desc>
+  <image href="./logo-transparent.png" width="496" height="1009" preserveAspectRatio="xMidYMid meet"/>
 </svg>

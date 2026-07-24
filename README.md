@@ -4,6 +4,14 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
+La version 1.14.1 intègre la nouvelle identité visuelle :
+
+- monogramme blanc composé de deux silhouettes athlétiques dos à dos suggérant les lettres I et S ;
+- silhouette masculine inspirée du bodybuilding et silhouette féminine inspirée du fitness ;
+- logo transparent agrandi dans l’en-tête, sans fond ni contour visible ;
+- nouvelles icônes d’installation sur fond bleu nuit, adaptées à iOS, Android et au mode PWA ;
+- cache hors ligne renouvelé afin que le nouveau logo remplace correctement l’ancien après publication.
+
 La version 1.14.0 adapte le suivi à une organisation lourdes/back-off sans objectif rigide de répétitions :
 
 - chaque série possède désormais une intention : lourde, back-off ou libre ; le statut W reste indépendant ;

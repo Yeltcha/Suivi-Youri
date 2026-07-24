@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(directory, "..", "index.html"), "utf8");
+const serviceWorker = fs.readFileSync(path.join(directory, "..", "service-worker.js"), "utf8");
+assert.match(html, /const APP_VERSION = "1\.14\.1"/, "La version visible doit correspondre à la livraison du nouveau logo.");
+assert.match(html, /class="brand-mark" src="\.\/icons\/logo-transparent\.png"/, "L’en-tête doit utiliser le nouveau logo transparent.");
+assert.match(serviceWorker, /const CACHE_NAME = "innerset-v24"/, "Le cache PWA doit être renouvelé pour diffuser les nouvelles icônes.");
 const scriptStart = html.indexOf("<script>\n    (() =>");
 const scriptEnd = html.indexOf("</script>", scriptStart);
 assert.ok(scriptStart >= 0 && scriptEnd > scriptStart, "Le script principal doit être présent.");
@@ -532,4 +536,4 @@ const backoffRecommendation = api.adaptiveRecommendation(currentRoleExercise);
 assert.equal(backoffRecommendation.role, "backoff");
 assert.equal(backoffRecommendation.recommendedLoadKg, 75, "Le back-off doit repartir de son propre historique, jamais de la charge lourde en cours.");
 
-console.log("Régressions INNERSET v1.14.0 : OK");
+console.log("Régressions INNERSET v1.14.1 : OK");
