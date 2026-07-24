@@ -4,6 +4,19 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
+La version 1.14.0 adapte le suivi à une organisation lourdes/back-off sans objectif rigide de répétitions :
+
+- chaque série possède désormais une intention : lourde, back-off ou libre ; le statut W reste indépendant ;
+- un exercice de trois séries reçoit par défaut deux séries lourdes autour de 6 répétitions puis un back-off autour de 10 répétitions ;
+- ces repères sont souples, modifiables exercice par exercice dans le programme et modifiables ponctuellement pendant une séance ;
+- la validation redevient neutre avec un bouton unique « Valider la série » ; le RIR et la raison d’arrêt décrivent l’effort séparément ;
+- un RIR 0 renseigne automatiquement un échec musculaire, sans rendre l’échec obligatoire pour valider ;
+- l’assistant recommande une charge pour le rôle de la prochaine série et ne préremplit jamais un back-off avec une charge destinée aux séries lourdes ;
+- les historiques, tendances et meilleurs poids comparent séparément les séries lourdes, back-off et libres ;
+- les statistiques affichent aussi la répartition des séries, répétitions et volumes-charges principaux selon leur intention ;
+- les anciennes données reçoivent automatiquement la structure `lourde / lourde / back-off` lors de leur migration vers le schéma 10 ;
+- l’export CSV inclut le rôle de la série et son repère de répétitions.
+
 La version 1.13.0 introduit la nouvelle identité INNERSET :
 
 - positionnement centré sur une performance personnelle, progressive et sans comparaison toxique ;

@@ -938,6 +938,12 @@ svg {
     #volume-tracker-app .template-progress-options[open] summary { color: var(--text); }
     #volume-tracker-app .template-progress-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; padding-top: 10px; }
     #volume-tracker-app .template-progress-grid .field-wide { grid-column: 1 / -1; }
+    #volume-tracker-app .set-plan-editor { grid-column: 2 / -1; display: grid; gap: 8px; width: 100%; padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+    #volume-tracker-app .set-plan-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    #volume-tracker-app .set-plan-list { display: grid; gap: 7px; }
+    #volume-tracker-app .set-plan-row { display: grid; grid-template-columns: 30px minmax(100px, 1fr) minmax(82px, .7fr); gap: 8px; align-items: center; }
+    #volume-tracker-app .set-plan-row select,
+    #volume-tracker-app .set-plan-row input { min-height: 39px; padding: 7px 9px; }
     #volume-tracker-app .progression-card { display: grid; gap: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 13px; background: color-mix(in srgb, var(--blue) 7%, var(--surface)); }
     #volume-tracker-app .progression-card.increase { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
     #volume-tracker-app .progression-card.caution { border-color: color-mix(in srgb, var(--orange) 42%, var(--line)); background: color-mix(in srgb, var(--orange) 8%, var(--surface)); }
@@ -982,6 +988,12 @@ svg {
     #volume-tracker-app .set-block { display: grid; gap: 7px; padding: 5px 0 9px; }
     #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
     #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 11px; background: color-mix(in srgb, var(--positive) 8%, transparent); }
+    #volume-tracker-app .set-intent-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-left: 37px; }
+    #volume-tracker-app .set-intent-row select { width: auto; min-width: 120px; min-height: 36px; padding: 6px 9px; }
+    #volume-tracker-app .set-intent-row input { width: 78px; min-height: 36px; padding: 6px 8px; text-align: center; }
+    #volume-tracker-app .role-badge.heavy { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
+    #volume-tracker-app .role-badge.backoff { color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--surface-2)); }
+    #volume-tracker-app .role-badge.free { color: var(--muted); }
     #volume-tracker-app .set-validation-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-left: 37px; }
     #volume-tracker-app .set-stop-details { margin-left: 37px; }
     #volume-tracker-app .set-stop-details summary { cursor: pointer; color: var(--muted); font-size: 11px; padding: 4px 0; }
@@ -1135,6 +1147,8 @@ svg {
       #volume-tracker-app .kpi-grid { grid-template-columns: 1fr; }
       #volume-tracker-app .template-progress-grid { grid-template-columns: 1fr; }
       #volume-tracker-app .template-progress-grid .field-wide { grid-column: auto; }
+      #volume-tracker-app .set-plan-row { grid-template-columns: 28px 1fr; }
+      #volume-tracker-app .set-plan-row input { grid-column: 2; width: 100%; }
       #volume-tracker-app .bottom-nav { padding-left: 4px; padding-right: 4px; }
       #volume-tracker-app .nav-btn { font-size: 9px; }
     }
@@ -1280,7 +1294,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.13.0";
+      const APP_VERSION = "1.14.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1362,10 +1376,15 @@ svg {
         goal: "hypertrophy",
         experience: "intermediate",
         effortStyle: "highIntensity",
-        failureStrategy: "lastSet",
+        heavyRepAnchor: 6,
+        backoffRepAnchor: 10,
+        targetRirMin: 0,
+        targetRirMax: 1,
         minRepsGuardrail: 4,
         maxRepsGuardrail: 15
       };
+
+      const SET_ROLES = ["heavy", "backoff", "free"];
 
       const GOAL_GUARDRAILS = {
         hypertrophy: { min: 4, max: 15 },
@@ -1513,6 +1532,7 @@ svg {
       let statsDays = 7;
       let selectedExercise = "";
       let selectedRepRange = "";
+      let selectedSetRole = "heavy";
       let libraryQuery = "";
       let libraryMuscleFilter = "all";
       let editingLibraryExerciseId = "";
@@ -1539,7 +1559,7 @@ svg {
 
       function defaultState() {
         return {
-          version: 9,
+          version: 10,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6, practitionerProfile: { ...DEFAULT_PRACTITIONER_PROFILE } },
           sessions: [],
           draft: null,
@@ -1580,7 +1600,7 @@ svg {
           : base.programs;
         const requestedActiveProgram = typeof input.activeProgramId === "string" ? input.activeProgramId : base.activeProgramId;
         return {
-          version: 9,
+          version: 10,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek),
@@ -1624,17 +1644,22 @@ svg {
         return {
           id: String(template.id || uid("template")),
           name: String(template.name || "Nouvelle séance"),
-          exercises: Array.isArray(template.exercises) ? template.exercises.filter(Boolean).map((exercise, index) => ({
-            libraryExerciseId: String(exercise.libraryExerciseId || exercise.id || ""),
-            plannedSets: Math.max(1, Math.min(12, finiteNumber(exercise.plannedSets, 3))),
-            rirEnabled: exercise.rirEnabled !== false,
-            warmupDefault: Boolean(exercise.warmupDefault),
-            ...normalizeAdaptiveSettings(exercise),
-            order: finiteNumber(exercise.order, index + 1),
-            name: exercise.name,
-            muscle: exercise.muscle,
-            loadType: exercise.loadType
-          })) : []
+          exercises: Array.isArray(template.exercises) ? template.exercises.filter(Boolean).map((exercise, index) => {
+            const plannedSets = Math.max(1, Math.min(12, finiteNumber(exercise.plannedSets, 3)));
+            const warmupDefault = Boolean(exercise.warmupDefault);
+            return {
+              libraryExerciseId: String(exercise.libraryExerciseId || exercise.id || ""),
+              plannedSets,
+              setPlan: normalizeSetPlan(exercise.setPlan, plannedSets, warmupDefault),
+              rirEnabled: exercise.rirEnabled !== false,
+              warmupDefault,
+              ...normalizeAdaptiveSettings(exercise),
+              order: finiteNumber(exercise.order, index + 1),
+              name: exercise.name,
+              muscle: exercise.muscle,
+              loadType: exercise.loadType
+            };
+          }) : []
         };
       }
 
@@ -1706,18 +1731,20 @@ svg {
       }
 
       function normalizeExercise(exercise) {
+        const sourceSets = Array.isArray(exercise.sets)
+          ? exercise.sets.filter(set => set && typeof set === "object")
+          : [];
         return {
           ...exercise,
           rirEnabled: exercise.rirEnabled !== false,
           warmupDefault: Boolean(exercise.warmupDefault),
           ...normalizeAdaptiveSettings(exercise),
-          sets: Array.isArray(exercise.sets)
-            ? exercise.sets.filter(set => set && typeof set === "object").map(normalizeSet)
-            : []
+          sets: sourceSets.map((set, index) => normalizeSet(set, index, sourceSets.length, exercise.warmupDefault))
         };
       }
 
-      function normalizeSet(set) {
+      function normalizeSet(set, index = 0, total = 1, warmupDefault = false) {
+        const fallback = defaultSetPlan(total, warmupDefault)[index] || { role: "free", repAnchor: "" };
         return {
           ...set,
           id: set.id || uid("set"),
@@ -1725,6 +1752,8 @@ svg {
           reps: set.reps ?? "",
           rir: set.rir ?? "",
           warmup: Boolean(set.warmup),
+          role: normalizeSetRole(set.role || fallback.role),
+          repAnchor: normalizeRepAnchor(set.repAnchor, fallback.repAnchor),
           validated: Boolean(set.validated),
           stopReason: ["muscularFailure", "technicalFailure", "pain", "voluntary"].includes(set.stopReason) ? set.stopReason : "",
           drops: Array.isArray(set.drops)
@@ -1742,25 +1771,31 @@ svg {
         const goal = ["hypertrophy", "strengthHypertrophy", "strength"].includes(profile.goal) ? profile.goal : DEFAULT_PRACTITIONER_PROFILE.goal;
         const goalDefaults = GOAL_GUARDRAILS[goal];
         const minRepsGuardrail = Math.max(1, Math.min(30, Math.round(finiteNumber(profile.minRepsGuardrail, goalDefaults.min))));
+        const targetRirMin = Math.max(0, Math.min(5, Math.round(finiteNumber(profile.targetRirMin, DEFAULT_PRACTITIONER_PROFILE.targetRirMin))));
         return {
           configured: profile.configured === undefined ? DEFAULT_PRACTITIONER_PROFILE.configured : Boolean(profile.configured),
           goal,
           experience: ["beginner", "intermediate", "advanced"].includes(profile.experience) ? profile.experience : DEFAULT_PRACTITIONER_PROFILE.experience,
           effortStyle: ["controlled", "nearFailure", "highIntensity"].includes(profile.effortStyle) ? profile.effortStyle : DEFAULT_PRACTITIONER_PROFILE.effortStyle,
-          failureStrategy: ["lastSet", "allSets", "free"].includes(profile.failureStrategy) ? profile.failureStrategy : DEFAULT_PRACTITIONER_PROFILE.failureStrategy,
+          heavyRepAnchor: normalizeRepAnchor(profile.heavyRepAnchor, DEFAULT_PRACTITIONER_PROFILE.heavyRepAnchor),
+          backoffRepAnchor: normalizeRepAnchor(profile.backoffRepAnchor, DEFAULT_PRACTITIONER_PROFILE.backoffRepAnchor),
+          targetRirMin,
+          targetRirMax: Math.max(targetRirMin, Math.min(5, Math.round(finiteNumber(profile.targetRirMax, DEFAULT_PRACTITIONER_PROFILE.targetRirMax)))),
           minRepsGuardrail,
           maxRepsGuardrail: Math.max(minRepsGuardrail, Math.min(50, Math.round(finiteNumber(profile.maxRepsGuardrail, goalDefaults.max))))
         };
       }
 
       function normalizeAdaptiveSettings(exercise = {}) {
-        const hasAdaptiveSettings = ["useProfileDefaults", "assistantEnabled", "customFailureStrategy", "customMinRepsGuardrail", "customMaxRepsGuardrail", "customLoadIncrementKg"]
+        const hasAdaptiveSettings = ["useProfileDefaults", "assistantEnabled", "customTargetRirMin", "customTargetRirMax", "customMinRepsGuardrail", "customMaxRepsGuardrail", "customLoadIncrementKg"]
           .some(field => Object.prototype.hasOwnProperty.call(exercise, field));
         const customMin = Math.max(1, Math.min(30, Math.round(finiteNumber(exercise.customMinRepsGuardrail, 4))));
+        const customTargetRirMin = Math.max(0, Math.min(5, Math.round(finiteNumber(exercise.customTargetRirMin, 0))));
         return {
           assistantEnabled: hasAdaptiveSettings ? exercise.assistantEnabled !== false : exercise.progressionMode !== "trackOnly",
           useProfileDefaults: hasAdaptiveSettings ? exercise.useProfileDefaults !== false : true,
-          customFailureStrategy: ["lastSet", "allSets", "free"].includes(exercise.customFailureStrategy) ? exercise.customFailureStrategy : "lastSet",
+          customTargetRirMin,
+          customTargetRirMax: Math.max(customTargetRirMin, Math.min(5, Math.round(finiteNumber(exercise.customTargetRirMax, 1)))),
           customMinRepsGuardrail: customMin,
           customMaxRepsGuardrail: Math.max(customMin, Math.min(50, Math.round(finiteNumber(exercise.customMaxRepsGuardrail, 15)))),
           customLoadIncrementKg: Math.max(0.25, Math.min(50, finiteNumber(exercise.customLoadIncrementKg, 2.5)))
@@ -1835,7 +1870,7 @@ svg {
         const activeProgramId = programs.some(program => program.id === preferred.activeProgramId) ? preferred.activeProgramId : (programs[0]?.id || "");
         return normalizeState({
           ...preferred,
-          version: 9,
+          version: 10,
           settings: preferred.settings,
           sessions: mergeById(secondary.sessions, preferred.sessions, deletedSessionIds),
           draft: preferred.draft || secondary.draft || null,
@@ -2116,8 +2151,67 @@ svg {
         return ({ controlled: "Effort contrôlé", nearFailure: "Proche de l’échec", highIntensity: "Haute intensité" })[style] || "Haute intensité";
       }
 
-      function failureStrategyLabel(strategy) {
-        return ({ lastSet: "dernière série à l’échec", allSets: "toutes les séries à l’échec", free: "échec selon les sensations" })[strategy] || "dernière série à l’échec";
+      function normalizeSetRole(role) {
+        return SET_ROLES.includes(role) ? role : "free";
+      }
+
+      function normalizeRepAnchor(value, fallback = "") {
+        if (String(value ?? "").trim() === "") return fallback === "" ? "" : Math.max(1, Math.min(50, Math.round(finiteNumber(fallback))));
+        return Math.max(1, Math.min(50, Math.round(finiteNumber(value, fallback || 1))));
+      }
+
+      function setRoleLabel(role, warmup = false) {
+        if (warmup) return "Échauffement";
+        return ({ heavy: "Lourde", backoff: "Back-off", free: "Libre" })[normalizeSetRole(role)] || "Libre";
+      }
+
+      function setRoleShortLabel(role, warmup = false) {
+        if (warmup) return "W";
+        return ({ heavy: "Lourde", backoff: "Back-off", free: "Libre" })[normalizeSetRole(role)] || "Libre";
+      }
+
+      function defaultSetPlan(count = 3, warmupDefault = false, profile = DEFAULT_PRACTITIONER_PROFILE) {
+        const total = Math.max(1, Math.min(12, Math.round(finiteNumber(count, 3))));
+        const heavyAnchor = normalizeRepAnchor(profile.heavyRepAnchor, DEFAULT_PRACTITIONER_PROFILE.heavyRepAnchor);
+        const backoffAnchor = normalizeRepAnchor(profile.backoffRepAnchor, DEFAULT_PRACTITIONER_PROFILE.backoffRepAnchor);
+        if (warmupDefault) return Array.from({ length: total }, () => ({ role: "free", repAnchor: "" }));
+        if (total === 1) return [{ role: "heavy", repAnchor: heavyAnchor }];
+        if (total === 2) return [{ role: "heavy", repAnchor: heavyAnchor }, { role: "backoff", repAnchor: backoffAnchor }];
+        return Array.from({ length: total }, (_, index) => index < 2
+          ? { role: "heavy", repAnchor: heavyAnchor }
+          : { role: "backoff", repAnchor: backoffAnchor });
+      }
+
+      function normalizeSetPlan(plan, count = 3, warmupDefault = false, profile = DEFAULT_PRACTITIONER_PROFILE) {
+        const defaults = defaultSetPlan(count, warmupDefault, profile);
+        const source = Array.isArray(plan) ? plan : [];
+        return defaults.map((fallback, index) => {
+          const item = source[index] && typeof source[index] === "object" ? source[index] : {};
+          return {
+            role: normalizeSetRole(item.role || fallback.role),
+            repAnchor: normalizeRepAnchor(item.repAnchor, fallback.repAnchor)
+          };
+        });
+      }
+
+      function resizeTemplateSetPlan(exercise, count, profile = state.settings?.practitionerProfile) {
+        const plannedSets = Math.max(1, Math.min(12, Math.round(finiteNumber(count, exercise?.plannedSets || 3))));
+        exercise.plannedSets = plannedSets;
+        exercise.setPlan = normalizeSetPlan(exercise.setPlan, plannedSets, Boolean(exercise.warmupDefault), normalizePractitionerProfile(profile));
+        return exercise.setPlan;
+      }
+
+      function setPlanSummary(exercise) {
+        if (exercise.warmupDefault) return `${exercise.plannedSets} W`;
+        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, false, normalizePractitionerProfile(state.settings?.practitionerProfile));
+        const groups = [];
+        ["heavy", "backoff", "free"].forEach(role => {
+          const entries = plan.filter(item => item.role === role);
+          if (!entries.length) return;
+          const anchors = [...new Set(entries.map(item => item.repAnchor).filter(Boolean))];
+          groups.push(`${entries.length} ${setRoleLabel(role).toLowerCase()}${entries.length > 1 && role === "heavy" ? "s" : ""}${anchors.length === 1 ? ` ≈${anchors[0]}` : ""}`);
+        });
+        return groups.join(" · ");
       }
 
       function defaultIncrementForExercise(exercise) {
@@ -2135,7 +2229,8 @@ svg {
           goal: profile.goal,
           experience: profile.experience,
           effortStyle: profile.effortStyle,
-          failureStrategy: custom.useProfileDefaults ? profile.failureStrategy : custom.customFailureStrategy,
+          targetRirMin: custom.useProfileDefaults ? profile.targetRirMin : custom.customTargetRirMin,
+          targetRirMax: custom.useProfileDefaults ? profile.targetRirMax : custom.customTargetRirMax,
           minRepsGuardrail: custom.useProfileDefaults ? profile.minRepsGuardrail : custom.customMinRepsGuardrail,
           maxRepsGuardrail: custom.useProfileDefaults ? profile.maxRepsGuardrail : custom.customMaxRepsGuardrail,
           loadIncrementKg: custom.useProfileDefaults ? defaultIncrementForExercise(exercise) : custom.customLoadIncrementKg
@@ -2146,12 +2241,12 @@ svg {
         const settings = effectiveAdaptiveSettings(exercise);
         if (!settings.assistantEnabled) return exercise.warmupDefault ? "Exercice d’échauffement" : "Suivi simple, sans recommandation";
         const source = settings.usesProfile ? "Profil" : "Personnalisé";
-        return `${source} · ${failureStrategyLabel(settings.failureStrategy)} · repères ${settings.minRepsGuardrail}–${settings.maxRepsGuardrail} reps · palier ${formatNumber(settings.loadIncrementKg, 2)} ${comparableWeightUnit(exercise.loadType)}`;
+        return `${source} · effort RIR ${settings.targetRirMin}–${settings.targetRirMax} · garde-fous ${settings.minRepsGuardrail}–${settings.maxRepsGuardrail} reps · palier ${formatNumber(settings.loadIncrementKg, 2)} ${comparableWeightUnit(exercise.loadType)}`;
       }
 
       function practitionerProfileSummary(profile = state.settings?.practitionerProfile) {
         const normalized = normalizePractitionerProfile(profile);
-        return `${goalLabel(normalized.goal)} · ${experienceLabel(normalized.experience)} · ${effortStyleLabel(normalized.effortStyle)} · ${failureStrategyLabel(normalized.failureStrategy)}`;
+        return `${goalLabel(normalized.goal)} · ${experienceLabel(normalized.experience)} · 2 lourdes ≈${normalized.heavyRepAnchor} + 1 back-off ≈${normalized.backoffRepAnchor} · RIR ${normalized.targetRirMin}–${normalized.targetRirMax}`;
       }
 
       function getLibraryExercise(exerciseId) {
@@ -2160,6 +2255,8 @@ svg {
 
       function resolveTemplateExercise(templateExercise) {
         const libraryExercise = getLibraryExercise(templateExercise.libraryExerciseId);
+        const plannedSets = Math.max(1, finiteNumber(templateExercise.plannedSets, 3));
+        const warmupDefault = Boolean(templateExercise.warmupDefault);
         return {
           ...(libraryExercise || {}),
           id: libraryExercise?.id || templateExercise.libraryExerciseId,
@@ -2167,9 +2264,10 @@ svg {
           name: libraryExercise?.name || templateExercise.name || "Exercice supprimé",
           muscle: libraryExercise?.muscle || templateExercise.muscle || "other",
           loadType: libraryExercise?.loadType || templateExercise.loadType || "total",
-          plannedSets: Math.max(1, finiteNumber(templateExercise.plannedSets, 3)),
+          plannedSets,
+          setPlan: normalizeSetPlan(templateExercise.setPlan, plannedSets, warmupDefault, normalizePractitionerProfile(state.settings?.practitionerProfile)),
           rirEnabled: templateExercise.rirEnabled !== false,
-          warmupDefault: Boolean(templateExercise.warmupDefault),
+          warmupDefault,
           ...normalizeAdaptiveSettings(templateExercise)
         };
       }
@@ -2242,14 +2340,18 @@ svg {
           durationOverride: "",
           feedback: blankSessionFeedback(),
           comments: "",
-          exercises: template.exercises.map((exercise, index) => ({
-            ...exercise,
-            instanceId: uid("exercise"),
-            order: index + 1,
-            bodyweightKg: finiteNumber(state.settings.bodyweightKg),
-            comments: "",
-            sets: Array.from({ length: exercise.plannedSets }, () => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, stopReason: "", drops: [] }))
-          }))
+          exercises: template.exercises.map((exercise, index) => {
+            const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault, normalizePractitionerProfile(state.settings.practitionerProfile));
+            return {
+              ...exercise,
+              setPlan: plan,
+              instanceId: uid("exercise"),
+              order: index + 1,
+              bodyweightKg: finiteNumber(state.settings.bodyweightKg),
+              comments: "",
+              sets: plan.map(item => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: item.role, repAnchor: item.repAnchor, validated: false, stopReason: "", drops: [] }))
+            };
+          })
         };
         saveState();
         navigate("workout");
@@ -2385,13 +2487,22 @@ svg {
 
       function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null, rirEnabled = true, warmupDefault = libraryExercise.warmupDefault) {
         const sets = existing ? [...existing.sets] : [];
-        while (sets.length < plannedSets) sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(warmupDefault), validated: false, stopReason: "", drops: [] });
+        const plan = normalizeSetPlan(existing?.setPlan, plannedSets, warmupDefault, normalizePractitionerProfile(state.settings.practitionerProfile));
+        while (sets.length < plannedSets) {
+          const item = plan[sets.length] || { role: "free", repAnchor: "" };
+          sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(warmupDefault), role: item.role, repAnchor: item.repAnchor, validated: false, stopReason: "", drops: [] });
+        }
         if (sets.length > plannedSets) sets.length = plannedSets;
+        sets.forEach((set, index) => {
+          if (!SET_ROLES.includes(set.role)) set.role = plan[index]?.role || "free";
+          if (!hasRecordedValue(set.repAnchor)) set.repAnchor = plan[index]?.repAnchor ?? "";
+        });
         return {
           ...libraryExercise,
           id: libraryExercise.id,
           libraryExerciseId: libraryExercise.id,
           plannedSets,
+          setPlan: plan,
           rirEnabled: rirEnabled !== false,
           warmupDefault: Boolean(warmupDefault),
           ...normalizeAdaptiveSettings(existing?.libraryExerciseId === libraryExercise.id ? existing : libraryExercise),
@@ -2568,7 +2679,7 @@ svg {
       function formatSetSummary(set) {
         const main = `${esc(set.weight || 0)} kg × ${esc(set.reps || 0)}`;
         const drops = completedDrops(set).map(drop => `${esc(drop.weight || 0)} kg × ${esc(drop.reps || 0)}`);
-        return `${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
+        return `${esc(setRoleShortLabel(set.role, set.warmup))} · ${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
       }
 
       function repRangeById(rangeId) {
@@ -2590,13 +2701,13 @@ svg {
         return "kg";
       }
 
-      function availableRepRanges(sessions, exerciseId, loadType) {
+      function availableRepRanges(sessions, exerciseId, loadType, role = "heavy") {
         return REP_RANGES.map(range => {
           const passageIds = new Set();
           let setCount = 0;
           sessions.forEach(session => (session.exercises || [])
             .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
-            .forEach(exercise => workingSets(exercise).forEach(set => {
+            .forEach(exercise => workingSets(exercise).filter(set => normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
               if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
               setCount += 1;
               passageIds.add(session.id);
@@ -2605,7 +2716,7 @@ svg {
         }).filter(range => range.setCount > 0);
       }
 
-      function exerciseComparableProgress(sessions, exerciseId, rangeId, loadType) {
+      function exerciseComparableProgress(sessions, exerciseId, rangeId, loadType, role = "heavy") {
         const range = repRangeById(rangeId);
         if (!range) return { passages: [], trend: [], best: null };
         const passages = [];
@@ -2614,7 +2725,7 @@ svg {
           const entries = [];
           (session.exercises || [])
             .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
-            .forEach(exercise => workingSets(exercise).forEach(set => {
+            .forEach(exercise => workingSets(exercise).filter(set => normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
               if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
               const entry = { weight: finiteNumber(set.weight), reps: setMainReps(set), date: session.date, sessionId: session.id };
               entries.push(entry);
@@ -2690,24 +2801,25 @@ svg {
         const set = exercise?.sets?.[setIndex];
         if (!set || set.warmup) return false;
         const settings = effectiveAdaptiveSettings(exercise);
-        if (!settings.assistantEnabled || settings.failureStrategy === "free") return false;
-        if (settings.failureStrategy === "allSets") return true;
-        const lastWorkingIndex = (exercise.sets || []).reduce((lastIndex, currentSet, currentIndex) => currentSet.warmup ? lastIndex : currentIndex, -1);
-        return setIndex === lastWorkingIndex;
+        return settings.assistantEnabled && settings.targetRirMin === 0;
       }
 
-      function completedWorkingSetsWithLoad(exercise, validatedOnly = false) {
-        return workingSets(exercise).filter(set => hasRecordedComparableWeight(set) && (!validatedOnly || set.validated));
+      function completedWorkingSetsWithLoad(exercise, validatedOnly = false, role = "") {
+        return workingSets(exercise).filter(set => hasRecordedComparableWeight(set)
+          && (!validatedOnly || set.validated)
+          && (!role || normalizeSetRole(set.role) === normalizeSetRole(role)));
       }
 
-      function summarizeAdaptivePassage(session, exercise) {
-        const sets = completedWorkingSetsWithLoad(exercise);
+      function summarizeAdaptivePassage(session, exercise, role = "heavy") {
+        const normalizedRole = normalizeSetRole(role);
+        const sets = completedWorkingSetsWithLoad(exercise, false, normalizedRole);
         if (!sets.length) return null;
         const topSet = [...sets].sort((a, b) => finiteNumber(b.weight) - finiteNumber(a.weight) || setMainReps(b) - setMainReps(a))[0];
         const lastSet = sets.at(-1);
         return {
           sessionId: session.id,
           date: session.date,
+          role: normalizedRole,
           sets,
           topSet,
           lastSet,
@@ -2716,24 +2828,23 @@ svg {
           rir: hasRecordedValue(topSet.rir) ? finiteNumber(topSet.rir) : null,
           lastRir: hasRecordedValue(lastSet.rir) ? finiteNumber(lastSet.rir) : null,
           reachedFailure: setReachedFailure(lastSet),
-          allSetsToFailure: sets.every(setReachedFailure),
           painLimited: sets.some(set => set.stopReason === "pain"),
           technicalFailure: sets.some(set => set.stopReason === "technicalFailure")
         };
       }
 
-      function exerciseAdaptivePassages(exercise) {
+      function exerciseAdaptivePassages(exercise, role = "heavy") {
         const loadType = exercise.loadType || "total";
         return getSortedSessions().reverse().flatMap(session => (session.exercises || [])
           .filter(item => item.id === exercise.id && (item.loadType || "total") === loadType)
-          .map(item => summarizeAdaptivePassage(session, item))
+          .map(item => summarizeAdaptivePassage(session, item, role))
           .filter(Boolean));
       }
 
-      function passageMatchesEffortStrategy(passage, settings) {
-        if (settings.failureStrategy === "allSets") return passage.allSetsToFailure;
-        if (settings.failureStrategy === "lastSet") return passage.reachedFailure;
-        return setCloseToFailure(passage.lastSet);
+      function setMatchesEffortTarget(set, settings) {
+        if (!hasRecordedValue(set?.rir)) return setReachedFailure(set);
+        const rir = finiteNumber(set.rir);
+        return rir >= settings.targetRirMin && rir <= settings.targetRirMax;
       }
 
       function adaptiveConfidence(passages, latest) {
@@ -2746,45 +2857,66 @@ svg {
         const settings = effectiveAdaptiveSettings(exercise);
         if (!settings.assistantEnabled) return null;
         const unit = comparableWeightUnit(exercise.loadType);
-        const base = { unit, settings };
-        const currentSets = completedWorkingSetsWithLoad(exercise, true);
         const nextSetIndex = (exercise.sets || []).findIndex(set => !set.validated && !set.warmup);
-        if (currentSets.length) {
-          const latestSet = currentSets.at(-1);
+        const nextSet = nextSetIndex >= 0 ? exercise.sets[nextSetIndex] : null;
+        const lastValidated = completedWorkingSetsWithLoad(exercise, true).at(-1);
+        const role = normalizeSetRole(nextSet?.role || lastValidated?.role || exercise.setPlan?.[0]?.role || "heavy");
+        const anchor = normalizeRepAnchor(nextSet?.repAnchor, role === "heavy"
+          ? state.settings.practitionerProfile?.heavyRepAnchor
+          : role === "backoff" ? state.settings.practitionerProfile?.backoffRepAnchor : "");
+        const roleLabel = setRoleLabel(role);
+        const base = { unit, settings, role, anchor };
+        const currentRoleSets = completedWorkingSetsWithLoad(exercise, true, role);
+
+        if (nextSetIndex < 0 && lastValidated) {
+          const effort = setReachedFailure(lastValidated) ? stopReasonLabel(lastValidated.stopReason || "muscularFailure") : hasRecordedValue(lastValidated.rir) ? `RIR ${finiteNumber(lastValidated.rir)}` : "effort non précisé";
+          return {
+            ...base,
+            kind: setMatchesEffortTarget(lastValidated, settings) ? "increase" : "hold",
+            title: "Exercice terminé · repères enregistrés",
+            observation: `${setRoleLabel(lastValidated.role)} · ${formatNumber(lastValidated.weight, 2)} ${unit} × ${setMainReps(lastValidated)} · ${effort}`,
+            why: "Les séries lourdes et les back-off seront comparés séparément au prochain passage.",
+            confidence: "séance en cours",
+            recommendedLoadKg: null,
+            applyScope: "next"
+          };
+        }
+
+        if (currentRoleSets.length) {
+          const latestSet = currentRoleSets.at(-1);
           const weight = finiteNumber(latestSet.weight);
           const reps = setMainReps(latestSet);
           const effort = setReachedFailure(latestSet) ? stopReasonLabel(latestSet.stopReason || "muscularFailure") : hasRecordedValue(latestSet.rir) ? `RIR ${finiteNumber(latestSet.rir)}` : "effort non précisé";
-          const observation = `Série validée · ${formatNumber(weight, 2)} ${unit} × ${reps} · ${effort}`;
+          const observation = `${roleLabel} validée · ${formatNumber(weight, 2)} ${unit} × ${reps} · ${effort}`;
           if (latestSet.stopReason === "pain") {
-            return { ...base, kind: "caution", title: "N’augmente pas la charge sur la prochaine série", observation, why: "La série a été limitée par une gêne ou une douleur, pas par la capacité musculaire recherchée.", confidence: "priorité sécurité", recommendedLoadKg: null, applyScope: "next" };
-          }
-          if (nextSetIndex < 0) {
-            const effortOk = settings.failureStrategy === "allSets"
-              ? currentSets.every(setReachedFailure)
-              : settings.failureStrategy === "lastSet" ? setReachedFailure(latestSet) : setCloseToFailure(latestSet);
-            return { ...base, kind: effortOk ? "increase" : "hold", title: effortOk ? "Effort cible atteint pour cet exercice" : "Exercice terminé, effort à recalibrer au prochain passage", observation, why: effortOk ? "Cette performance servira de repère pour calculer la prochaine charge de travail." : `Ton profil prévoit ${failureStrategyLabel(settings.failureStrategy)}. L’assistant conservera ce contexte au prochain passage.`, confidence: "séance en cours", recommendedLoadKg: null, applyScope: "next" };
+            return { ...base, kind: "caution", title: `N’augmente pas la prochaine série ${roleLabel.toLowerCase()}`, observation, why: "La série a été limitée par une gêne ou une douleur, pas par la capacité musculaire recherchée.", confidence: "priorité sécurité", recommendedLoadKg: null, applyScope: "next" };
           }
           let recommendedLoadKg = weight;
           let kind = "hold";
-          let title = `Garde ${formatNumber(weight, 2)} ${unit} pour la série suivante`;
-          let why = "La charge est cohérente avec l’effort observé. Laisse la fatigue normale de la séance s’exprimer sans changer inutilement de palier.";
+          let title = `Garde ${formatNumber(weight, 2)} ${unit} pour la prochaine ${roleLabel.toLowerCase()}`;
+          let why = `La charge reste cohérente pour ce rôle de série${anchor ? ` autour du repère souple de ${anchor} répétitions` : ""}.`;
           if (reps < settings.minRepsGuardrail && setReachedFailure(latestSet)) {
             recommendedLoadKg = Math.max(0, weight - settings.loadIncrementKg);
             kind = "caution";
-            title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine série`;
+            title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
             why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. Un seul palier en moins doit permettre de conserver un travail productif.`;
-          } else if (settings.effortStyle === "highIntensity" && hasRecordedValue(latestSet.rir) && finiteNumber(latestSet.rir) >= 2) {
+          } else if (hasRecordedValue(latestSet.rir) && finiteNumber(latestSet.rir) > settings.targetRirMax) {
             recommendedLoadKg = weight + settings.loadIncrementKg;
             kind = "increase";
-            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine série`;
-            why = `Il restait ${finiteNumber(latestSet.rir)} répétitions possibles alors que ton profil privilégie la haute intensité. La hausse reste limitée à un palier.`;
+            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
+            why = `Il restait ${finiteNumber(latestSet.rir)} répétitions possibles, au-dessus de ton repère RIR ${settings.targetRirMin}–${settings.targetRirMax}. La hausse reste limitée à un palier.`;
+          } else if (anchor && reps >= anchor + (role === "backoff" ? 3 : 2) && setMatchesEffortTarget(latestSet, settings)) {
+            recommendedLoadKg = weight + settings.loadIncrementKg;
+            kind = "increase";
+            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
+            why = `Tu as nettement dépassé le repère souple de ${anchor} répétitions avec l’effort prévu.`;
           }
-          return { ...base, kind, title, observation, why, confidence: "ajustement en direct", recommendedLoadKg, applyScope: "next" };
+          return { ...base, kind, title, observation, why, confidence: "ajustement en direct", recommendedLoadKg, applyScope: "next", recommendedRole: role };
         }
 
-        const passages = exerciseAdaptivePassages(exercise);
+        const passages = exerciseAdaptivePassages(exercise, role);
         if (!passages.length) {
-          return { ...base, kind: "baseline", title: "Choisis une charge exigeante mais propre", observation: "Aucun passage comparable n’est encore enregistré.", why: `Réalise ta série naturellement. Les ${settings.minRepsGuardrail}–${settings.maxRepsGuardrail} répétitions sont seulement des repères larges, pas un objectif à atteindre.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all" };
+          return { ...base, kind: "baseline", title: `Choisis ta charge ${roleLabel.toLowerCase()}`, observation: `Aucun passage ${roleLabel.toLowerCase()} comparable n’est encore enregistré.`, why: `${anchor ? `Le repère ≈${anchor} reps t’oriente sans t’obliger.` : "Réalise ta série naturellement."} L’effort RIR ${settings.targetRirMin}–${settings.targetRirMax} aidera ensuite l’assistant à calibrer la charge.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all", recommendedRole: role };
         }
 
         const latest = passages[0];
@@ -2792,11 +2924,11 @@ svg {
         const confidence = adaptiveConfidence(passages, latest);
         const effort = latest.reachedFailure ? stopReasonLabel(latest.lastSet.stopReason || "muscularFailure") : latest.lastRir !== null ? `dernière série RIR ${latest.lastRir}` : "effort final non précisé";
         const observation = `${formatDate(latest.date)} · série de référence ${formatNumber(latest.weight, 2)} ${unit} × ${latest.reps} · ${effort}`;
-        const effortMatched = passageMatchesEffortStrategy(latest, settings);
+        const effortMatched = setMatchesEffortTarget(latest.lastSet, settings);
         let kind = "hold";
         let recommendedLoadKg = latest.weight;
-        let title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit}`;
-        let why = `La charge reste cohérente. Ton profil cherche ${failureStrategyLabel(settings.failureStrategy)}, sans imposer un nombre précis de répétitions.`;
+        let title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit} en ${roleLabel.toLowerCase()}`;
+        let why = `Cette charge reste cohérente pour une série ${roleLabel.toLowerCase()}${anchor ? ` autour de ≈${anchor} reps` : ""}. Le repère reste indicatif.`;
 
         if (latest.painLimited) {
           kind = "caution";
@@ -2808,26 +2940,28 @@ svg {
           recommendedLoadKg = Math.max(0, latest.weight - settings.loadIncrementKg);
           title = `Essaie ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
           why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. La baisse proposée se limite à un palier et ne remet pas en cause l’intensité.`;
-        } else if (latest.reps > settings.maxRepsGuardrail && setCloseToFailure(latest.topSet)) {
-          kind = "increase";
-          recommendedLoadKg = latest.weight + settings.loadIncrementKg;
-          title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `Tu as dépassé le repère haut de ${settings.maxRepsGuardrail} répétitions avec un effort élevé. Il est logique de charger un palier de plus.`;
-        } else if (settings.effortStyle === "highIntensity" && latest.lastRir !== null && latest.lastRir >= 2) {
-          kind = "increase";
-          recommendedLoadKg = latest.weight + settings.loadIncrementKg;
-          title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `La dernière série s’est terminée à RIR ${latest.lastRir}, plus loin de l’échec que ton profil haute intensité. La proposition ajoute un seul palier.`;
         } else if (sameLoadHistory && latest.reps > sameLoadHistory.reps && effortMatched) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
           title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `À charge identique, ta série de référence est passée de ${sameLoadHistory.reps} à ${latest.reps} répétitions avec l’effort prévu. Ta performance réelle justifie un palier supplémentaire.`;
-        } else if (!effortMatched && settings.failureStrategy !== "free") {
-          title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit} et va chercher l’échec prévu`;
-          why = `La charge n’est pas encore le problème : ton profil prévoit ${failureStrategyLabel(settings.failureStrategy)}, mais ce repère n’a pas été atteint au dernier passage.`;
+          why = `À charge identique, ta série de référence ${roleLabel.toLowerCase()} est passée de ${sameLoadHistory.reps} à ${latest.reps} répétitions avec l’effort prévu. Ta performance réelle justifie un palier supplémentaire.`;
+        } else if ((latest.reps > settings.maxRepsGuardrail || (anchor && latest.reps >= anchor + (role === "backoff" ? 3 : 2))) && setMatchesEffortTarget(latest.topSet, settings)) {
+          kind = "increase";
+          recommendedLoadKg = latest.weight + settings.loadIncrementKg;
+          title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
+          why = latest.reps > settings.maxRepsGuardrail
+            ? `Tu as dépassé le garde-fou haut de ${settings.maxRepsGuardrail} répétitions avec un effort élevé.`
+            : `Tu as nettement dépassé le repère souple de ${anchor} répétitions avec l’effort prévu.`;
+        } else if (latest.lastRir !== null && latest.lastRir > settings.targetRirMax) {
+          kind = "increase";
+          recommendedLoadKg = latest.weight + settings.loadIncrementKg;
+          title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
+          why = `La dernière ${roleLabel.toLowerCase()} s’est terminée à RIR ${latest.lastRir}, au-dessus de ton repère ${settings.targetRirMin}–${settings.targetRirMax}. La proposition ajoute un seul palier.`;
+        } else if (!effortMatched) {
+          title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit}`;
+          why = `La charge n’est pas encore le seul signal : renseigne l’effort pour viser ton repère personnel RIR ${settings.targetRirMin}–${settings.targetRirMax}.`;
         }
-        return { ...base, kind, title, observation, why, confidence, recommendedLoadKg, applyScope: "all" };
+        return { ...base, kind, title, observation, why, confidence, recommendedLoadKg, applyScope: "all", recommendedRole: role };
       }
 
       function renderAdaptiveRecommendation(exercise, exerciseIndex) {
@@ -2836,16 +2970,16 @@ svg {
           return `<div class="progression-card"><div class="row-between"><strong class="recommendation-title">Suivi simple</strong><span class="badge">Assistant en pause</span></div><p class="recommendation-why">${esc(adaptiveSettingsLabel(exercise))}</p></div>`;
         }
         const applyButton = recommendation.recommendedLoadKg !== null
-          ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? "Mettre sur la prochaine série" : "Préremplir les séries vides"}</button>`
+          ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-recommended-role="${esc(recommendation.recommendedRole || recommendation.role)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? `Mettre sur la prochaine ${esc(setRoleLabel(recommendation.role).toLowerCase())}` : `Préremplir les ${esc(setRoleLabel(recommendation.role).toLowerCase())}s vides`}</button>`
           : "";
         return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(recommendation.title)}</strong><span class="badge accent">${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(recommendation.observation)}</p><p class="recommendation-why"><strong>Pourquoi :</strong> ${esc(recommendation.why)}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Proposition facultative · aucune saisie écrasée</span></div>` : ""}</div>`;
       }
 
-      function applyAdaptiveLoad(exercise, recommendedLoad, scope = "all") {
+      function applyAdaptiveLoad(exercise, recommendedLoad, scope = "all", role = "") {
         if (!exercise || !Number.isFinite(Number(recommendedLoad)) || Number(recommendedLoad) < 0) return 0;
         let appliedCount = 0;
         for (const set of (exercise.sets || [])) {
-          if (set.validated || set.warmup || hasRecordedValue(set.weight)) continue;
+          if (set.validated || set.warmup || hasRecordedValue(set.weight) || (role && normalizeSetRole(set.role) !== normalizeSetRole(role))) continue;
           set.weight = String(Number(recommendedLoad));
           appliedCount += 1;
           if (scope === "next") break;
@@ -2892,26 +3026,29 @@ svg {
       }
 
       function effortTrackingSummary(sessions) {
-        const passages = [];
+        const sets = [];
         sessions.forEach(session => (session.exercises || []).forEach(exercise => {
-          const sets = workingSets(exercise);
-          if (!sets.length) return;
-          const lastSet = sets.at(-1);
-          const settings = effectiveAdaptiveSettings(exercise);
-          const compliant = settings.failureStrategy === "allSets"
-            ? sets.every(setReachedFailure)
-            : settings.failureStrategy === "lastSet" ? setReachedFailure(lastSet) : setCloseToFailure(lastSet);
-          passages.push({ sets, lastSet, compliant });
+          workingSets(exercise).forEach(set => sets.push(set));
         }));
-        const total = passages.length;
+        const total = sets.length;
         return {
           total,
-          failureEnds: passages.filter(passage => setReachedFailure(passage.lastSet)).length,
-          closeEnds: passages.filter(passage => setCloseToFailure(passage.lastSet)).length,
-          painEnds: passages.filter(passage => passage.lastSet.stopReason === "pain").length,
-          documentedEnds: passages.filter(passage => hasRecordedValue(passage.lastSet.rir) || hasRecordedValue(passage.lastSet.stopReason)).length,
-          compliant: passages.filter(passage => passage.compliant).length
+          nearFailure: sets.filter(setCloseToFailure).length,
+          failure: sets.filter(setReachedFailure).length,
+          pain: sets.filter(set => set.stopReason === "pain").length,
+          documented: sets.filter(set => hasRecordedValue(set.rir) || hasRecordedValue(set.stopReason)).length
         };
+      }
+
+      function roleWorkSummary(sessions) {
+        const summary = Object.fromEntries(SET_ROLES.map(role => [role, { role, sets: 0, reps: 0, tonnage: 0 }]));
+        sessions.forEach(session => (session.exercises || []).forEach(exercise => workingSets(exercise).forEach(set => {
+          const role = normalizeSetRole(set.role);
+          summary[role].sets += 1;
+          summary[role].reps += setMainReps(set);
+          summary[role].tonnage += setMainTonnage(set, exercise);
+        })));
+        return summary;
       }
 
       function subjectiveFeedbackSummary(sessions) {
@@ -3201,7 +3338,7 @@ svg {
                   </summary>
                   <div class="program-content">
                     <div class="list-divider">
-                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · RIR désactivé" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(adaptiveSettingsLabel(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
+                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · RIR désactivé" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(setPlanSummary(exercise))} · ${esc(adaptiveSettingsLabel(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
                     </div>
                     ${session.exercises.length ? `<button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${esc(session.name)}</button>` : `<div class="notice">Cette séance est vide. Ajoute-lui des exercices avant de la démarrer.</div>`}
                     <div class="row session-template-actions"><button class="btn btn-sm" type="button" data-action="edit-template" data-template-id="${esc(session.id)}">Modifier la séance</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-template" data-template-id="${esc(session.id)}">Supprimer la séance</button></div>
@@ -3238,6 +3375,7 @@ svg {
       function renderTemplateExerciseRow(exercise, index) {
         const settings = normalizeAdaptiveSettings(exercise);
         const progressionUnit = comparableWeightUnit(exercise.loadType);
+        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault, normalizePractitionerProfile(state.settings.practitionerProfile));
         return `<div class="exercise-plan-row template-exercise-row">
           <span class="order-dot">${index + 1}</span>
           <div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div>
@@ -3249,6 +3387,10 @@ svg {
             <button class="btn btn-icon btn-sm" type="button" data-action="move-template-exercise" data-index="${index}" data-direction="1" aria-label="Descendre">↓</button>
             <button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button>
           </div>
+          <div class="set-plan-editor">
+            <div class="set-plan-editor-head"><div><strong>Structure des séries</strong><p class="small muted">Repères souples, modifiables aussi pendant la séance.</p></div><span class="badge accent">${esc(setPlanSummary({ ...exercise, setPlan: plan }))}</span></div>
+            <div class="set-plan-list">${plan.map((item, setIndex) => `<div class="set-plan-row"><span class="order-dot">${setIndex + 1}</span><select aria-label="Rôle de la série ${setIndex + 1}" data-template-set-role data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}><option value="heavy" ${item.role === "heavy" ? "selected" : ""}>Lourde</option><option value="backoff" ${item.role === "backoff" ? "selected" : ""}>Back-off</option><option value="free" ${item.role === "free" ? "selected" : ""}>Libre</option></select><input aria-label="Repère de répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="1" max="50" placeholder="Reps libres" value="${esc(item.repAnchor)}" data-template-set-anchor data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}></div>`).join("")}</div>
+          </div>
           <details class="template-progress-options">
             <summary>Assistant · ${esc(adaptiveSettingsLabel(exercise))}</summary>
             <div class="stack" style="padding-top:10px">
@@ -3256,7 +3398,8 @@ svg {
               ${settings.assistantEnabled ? `<label class="row small"><input type="checkbox" data-template-adaptive-toggle="useProfileDefaults" data-index="${index}" ${settings.useProfileDefaults ? "checked" : ""} style="width:auto;min-height:auto"> Utiliser automatiquement mon profil pratiquant</label>` : ""}
               ${settings.assistantEnabled && settings.useProfileDefaults ? `<div class="notice"><strong>Réglage automatique :</strong> ${esc(practitionerProfileSummary())}. Tu n’as rien d’autre à configurer pour cet exercice.</div>` : ""}
               ${settings.assistantEnabled && !settings.useProfileDefaults ? `<div class="template-progress-grid">
-                <div class="field field-wide"><label for="custom-failure-${index}">Utilisation de l’échec</label><select id="custom-failure-${index}" data-template-adaptive-field="customFailureStrategy" data-index="${index}"><option value="lastSet" ${settings.customFailureStrategy === "lastSet" ? "selected" : ""}>Dernière série à l’échec</option><option value="allSets" ${settings.customFailureStrategy === "allSets" ? "selected" : ""}>Toutes les séries à l’échec</option><option value="free" ${settings.customFailureStrategy === "free" ? "selected" : ""}>Selon les sensations</option></select></div>
+                <div class="field"><label for="custom-rir-min-${index}">RIR minimum</label><input id="custom-rir-min-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMin}" data-template-adaptive-field="customTargetRirMin" data-index="${index}"></div>
+                <div class="field"><label for="custom-rir-max-${index}">RIR maximum</label><input id="custom-rir-max-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMax}" data-template-adaptive-field="customTargetRirMax" data-index="${index}"></div>
                 <div class="field"><label for="custom-min-${index}">Repère bas, non obligatoire</label><input id="custom-min-${index}" type="number" inputmode="numeric" min="1" max="30" value="${settings.customMinRepsGuardrail}" data-template-adaptive-field="customMinRepsGuardrail" data-index="${index}"></div>
                 <div class="field"><label for="custom-max-${index}">Repère haut, non obligatoire</label><input id="custom-max-${index}" type="number" inputmode="numeric" min="1" max="50" value="${settings.customMaxRepsGuardrail}" data-template-adaptive-field="customMaxRepsGuardrail" data-index="${index}"></div>
                 <div class="field field-wide"><label for="custom-increment-${index}">Palier de charge disponible (${esc(progressionUnit)})</label><input id="custom-increment-${index}" type="number" inputmode="decimal" min="0.25" max="50" step="0.25" value="${settings.customLoadIncrementKg}" data-template-adaptive-field="customLoadIncrementKg" data-index="${index}"></div>
@@ -3302,7 +3445,7 @@ svg {
                 <div class="field"><label for="workout-date">Date</label><input id="workout-date" type="date" value="${esc(draft.date)}" data-draft-field="date"></div>
                 <div class="field"><label for="workout-duration">Durée (min, optionnel)</label><input id="workout-duration" type="number" inputmode="numeric" min="1" max="600" placeholder="Auto : ${elapsed}" value="${esc(draft.durationOverride)}" data-draft-field="durationOverride"></div>
               </div>
-              <div class="notice"><strong>Simple et sans friction :</strong> saisis la charge et les répétitions, puis valide. Quand ton profil prévoit l’échec, le bouton « Valider à l’échec » renseigne automatiquement l’effort. Les drops restent facultatifs et les séries W sont exclues des statistiques.</div>
+              <div class="notice"><strong>Simple et sans friction :</strong> chaque série garde son intention — lourde, back-off, libre ou W. Saisis la charge et les répétitions puis valide avec un bouton unique. Le RIR décrit l’effort séparément ; RIR 0 correspond à l’échec musculaire. Les repères de répétitions restent indicatifs.</div>
             </div>
 
             <div class="card live-strip" aria-label="Résumé en direct">
@@ -3358,22 +3501,29 @@ svg {
             <div class="sets-table">
               <div class="set-grid set-head"><span>N°</span><span>Charge kg</span><span>Reps</span><span>${rirEnabled ? "RIR" : "RIR off"}</span><span>W</span></div>
               ${exercise.sets.map((set, setIndex) => {
-                const previousSet = previous?.sets?.[setIndex];
+                const role = normalizeSetRole(set.role);
+                const rolePosition = exercise.sets.slice(0, setIndex + 1).filter(item => !item.warmup && normalizeSetRole(item.role) === role).length - 1;
+                const previousSet = previous?.sets?.filter(item => !item.warmup && normalizeSetRole(item.role) === role)?.[Math.max(0, rolePosition)];
                 const mainRepsCompleted = finiteNumber(set.reps) > 0;
                 const readyForValidation = setReadyForValidation(set);
                 const locked = Boolean(set.validated);
                 const lockedAttr = locked ? "disabled" : "";
                 const dropLockedAttr = locked || !mainRepsCompleted ? "disabled" : "";
-                const failureExpected = failureExpectedForSet(exercise, setIndex);
                 const rirCell = rirEnabled
-                  ? `<input aria-label="RIR série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="10" placeholder="${esc(previousSet?.rir ?? "—")}" value="${esc(set.rir)}" data-set-field="rir" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>`
+                  ? `<select aria-label="RIR série ${setIndex + 1}" data-set-field="rir" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><option value="" ${hasRecordedValue(set.rir) ? "" : "selected"}>—</option><option value="0" ${String(set.rir) === "0" ? "selected" : ""}>0</option><option value="1" ${String(set.rir) === "1" ? "selected" : ""}>1</option><option value="2" ${String(set.rir) === "2" ? "selected" : ""}>2</option><option value="3" ${finiteNumber(set.rir) >= 3 && hasRecordedValue(set.rir) ? "selected" : ""}>3+</option></select>`
                   : `<span class="rir-disabled" aria-label="RIR désactivé">—</span>`;
                 const validation = locked
                   ? `<span class="badge accent">✓ Série validée</span>${set.stopReason ? `<span class="badge">${esc(stopReasonLabel(set.stopReason))}</span>` : ""}<button class="btn btn-sm" type="button" data-action="unlock-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">Modifier</button>`
-                  : `${failureExpected ? `<button class="btn btn-sm btn-primary" type="button" data-action="validate-set-failure" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>✓ Valider à l’échec</button><button class="btn btn-sm" type="button" data-action="validate-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>Valider autrement</button>` : `<button class="btn btn-sm btn-primary" type="button" data-action="validate-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>✓ Valider et continuer</button><button class="btn btn-sm" type="button" data-action="validate-set-failure" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>Échec atteint</button>`}`;
+                  : `<button class="btn btn-sm btn-primary" type="button" data-action="validate-set" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${readyForValidation ? "" : "disabled"}>✓ Valider la série</button>`;
                 const stopReasonOptions = [["", "Non précisé"], ["muscularFailure", "Échec musculaire"], ["technicalFailure", "Échec technique"], ["pain", "Gêne / douleur ayant limité la série"], ["voluntary", "Arrêt volontaire"]];
                 const stopReasonControl = locked ? "" : `<details class="set-stop-details" ${set.stopReason ? "open" : ""}><summary>Pourquoi la série s’est arrêtée ? ${set.stopReason ? `· ${esc(stopReasonLabel(set.stopReason))}` : "· optionnel"}</summary><select aria-label="Raison d’arrêt série ${setIndex + 1}" data-set-stop-reason data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">${stopReasonOptions.map(([value, label]) => `<option value="${value}" ${set.stopReason === value ? "selected" : ""}>${label}</option>`).join("")}</select></details>`;
-                return `<div class="set-block ${locked ? "validated" : ""}" data-set-block data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}"><div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>${rirCell}<button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement" ${lockedAttr}>W</button></div>${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}" ${dropLockedAttr}>×</button></div>`).join("")}<button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${dropLockedAttr}>${mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop"}</button>${stopReasonControl}<div class="set-validation-row">${validation}</div></div>`;
+                const intentLockedAttr = locked || set.warmup ? "disabled" : "";
+                return `<div class="set-block ${locked ? "validated" : ""}" data-set-block data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">
+                  <div class="set-intent-row"><span class="badge role-badge ${set.warmup ? "free" : role}">${esc(setRoleShortLabel(role, set.warmup))}${!set.warmup && set.repAnchor ? ` · ≈${esc(set.repAnchor)} reps` : ""}</span><select aria-label="Rôle série ${setIndex + 1}" data-live-set-role data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}><option value="heavy" ${role === "heavy" ? "selected" : ""}>Lourde</option><option value="backoff" ${role === "backoff" ? "selected" : ""}>Back-off</option><option value="free" ${role === "free" ? "selected" : ""}>Libre</option></select><input aria-label="Repère souple de répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="1" max="50" placeholder="≈ reps" value="${esc(set.repAnchor)}" data-live-set-anchor data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}></div>
+                  <div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>${rirCell}<button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement" ${lockedAttr}>W</button></div>
+                  ${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}" ${dropLockedAttr}>×</button></div>`).join("")}
+                  <button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${dropLockedAttr}>${mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop"}</button>${stopReasonControl}<div class="set-validation-row">${validation}</div>
+                </div>`;
               }).join("")}
             </div>
             <div class="exercise-foot">
@@ -3436,6 +3586,7 @@ svg {
         const activeProgram = getActiveProgram();
         const muscleRows = muscleComparisonRows(programMuscleTargets(activeProgram), muscleAverages);
         const effortTracking = effortTrackingSummary(sessions);
+        const roleSummary = roleWorkSummary(sessions);
         const subjectiveFeedback = subjectiveFeedbackSummary(sessions);
         const difficultyLabel = subjectiveFeedback.baselineLabel || "—";
         const feedbackTrendLabel = ({ harder: "Plus difficile", easier: "Plus facile", stable: "Stable", building: "Base en construction" })[subjectiveFeedback.trend];
@@ -3450,12 +3601,12 @@ svg {
           selectedRepRange = "";
         }
         const selectedMeta = exerciseOptions.find(exercise => exercise.key === selectedExercise);
-        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType) : [];
+        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, selectedSetRole) : [];
         if (!repRanges.some(range => range.id === selectedRepRange)) {
           selectedRepRange = [...repRanges].sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount)[0]?.id || "";
         }
         const comparable = selectedMeta
-          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType)
+          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType, selectedSetRole)
           : { passages: [], trend: [], best: null };
         const trendDelta = comparable.trend.length > 1 ? comparable.trend.at(-1).value - comparable.trend[0].value : 0;
         const comparisonUnit = comparableWeightUnit(selectedMeta?.loadType);
@@ -3487,6 +3638,14 @@ svg {
               </div>
             </div>
 
+            <div class="card stack">
+              <div class="section-head"><div><p class="eyebrow">Intentions de travail</p><h2>Lourdes, back-off et libres</h2><p class="small muted">Les rôles restent séparés : un back-off n’est jamais comparé à une série lourde.</p></div></div>
+              <div class="kpi-grid">${SET_ROLES.map(role => {
+                const item = roleSummary[role];
+                return `<div class="kpi"><span class="kpi-label">${esc(setRoleLabel(role))}</span><strong class="kpi-value">${item.sets}</strong><span class="small muted">${item.reps} reps · ${compactWeight(item.tonnage)} kg principaux</span></div>`;
+              }).join("")}</div>
+            </div>
+
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Charge de travail</p><h2>Évolution du volume-charge</h2><p class="small muted">Chaque point représente le volume-charge d’une semaine, séries W exclues.</p></div><span class="badge">${weekly.length} semaine${weekly.length > 1 ? "s" : ""} renseignée${weekly.length > 1 ? "s" : ""}</span></div>${lineChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg", { ariaLabel: "Évolution du volume-charge hebdomadaire en kilogrammes", title: "Volume-charge par semaine", compactAxis: true })}</div>
 
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Programme actif</p><h2>Volume-charge par séance</h2><p class="small muted">Moyenne et répartition principale/drops par séance modèle sur la période.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>${workloadByTemplate.length ? `<div class="list-divider">${workloadByTemplate.map(item => `<div class="session-line"><div class="row-between"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.count} passage${item.count > 1 ? "s" : ""}</p></div><span class="badge accent">${formatNumber(item.average, 0)} kg / passage</span></div><p class="small muted">Principal ${formatNumber(item.main, 0)} kg · Drops ${formatNumber(item.drops, 0)} kg · Total ${formatNumber(item.total, 0)} kg</p></div>`).join("")}</div>` : `<p class="muted">Le programme actif ne contient aucune séance.</p>`}</div>
@@ -3498,12 +3657,12 @@ svg {
             }).join("") : `<p class="muted">Aucune série musculaire à comparer sur cette période.</p>`}</div>
 
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Progression comparable</p><h2>Meilleur poids et tendance moyenne</h2><p class="small muted">Comparaison des séries principales dans une même plage de répétitions, sans formule de 1RM.</p></div></div>
-              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et mode de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Répétitions comparables</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
-              ${comparable.trend.length ? `${lineChart(comparable.trend, comparisonUnit)}<div class="row"><span class="badge accent">Meilleur poids : ${formatNumber(comparable.best.weight, 1)} ${comparisonUnit} × ${comparable.best.reps} reps</span><span class="badge">${formatDate(comparable.best.date, true)}</span><span class="badge">Moyenne mobile sur 3 passages : ${trendDelta >= 0 ? "+" : ""}${formatNumber(trendDelta, 1)} ${comparisonUnit}</span></div><p class="small muted">Chaque point représente la moyenne mobile des charges moyennes des trois derniers passages disponibles dans cette plage de répétitions.</p>` : `<p class="muted">Aucune charge comparable n’est disponible pour cet exercice sur la période sélectionnée.</p>`}
+              <div class="section-head"><div><p class="eyebrow">Progression comparable</p><h2>Meilleur poids et tendance moyenne</h2><p class="small muted">Même exercice, même mode de charge, même rôle de série et même plage de répétitions.</p></div><span class="badge accent">${esc(setRoleLabel(selectedSetRole))}</span></div>
+              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et mode de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="set-role-stat">Rôle de la série</label><select id="set-role-stat" data-set-role-stat>${SET_ROLES.map(role => `<option value="${role}" ${role === selectedSetRole ? "selected" : ""}>${esc(setRoleLabel(role))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Répétitions comparables</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
+              ${comparable.trend.length ? `${lineChart(comparable.trend, comparisonUnit)}<div class="row"><span class="badge accent">Meilleur poids ${esc(setRoleLabel(selectedSetRole).toLowerCase())} : ${formatNumber(comparable.best.weight, 1)} ${comparisonUnit} × ${comparable.best.reps} reps</span><span class="badge">${formatDate(comparable.best.date, true)}</span><span class="badge">Moyenne mobile sur 3 passages : ${trendDelta >= 0 ? "+" : ""}${formatNumber(trendDelta, 1)} ${comparisonUnit}</span></div><p class="small muted">Chaque point représente la moyenne mobile des charges moyennes des trois derniers passages de ce rôle dans cette plage de répétitions.</p>` : `<p class="muted">Aucune série ${esc(setRoleLabel(selectedSetRole).toLowerCase())} comparable n’est disponible pour cet exercice sur la période sélectionnée.</p>`}
             </div>
 
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Intensité personnelle</p><h2>Comment tes exercices se terminent</h2><p class="small muted">Repère individuel lié à ton profil, jamais un classement.</p></div><span class="badge accent">${esc(failureStrategyLabel(normalizePractitionerProfile(state.settings.practitionerProfile).failureStrategy))}</span></div>${effortTracking.total ? `<div class="kpi-grid"><div class="kpi"><span class="kpi-label">Exercices alignés avec le profil</span><strong class="kpi-value">${formatNumber(effortTracking.compliant / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">${effortTracking.compliant}/${effortTracking.total} passages</span></div><div class="kpi"><span class="kpi-label">Dernière série à l’échec</span><strong class="kpi-value">${formatNumber(effortTracking.failureEnds / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">échec musculaire ou technique</span></div><div class="kpi"><span class="kpi-label">Effort documenté</span><strong class="kpi-value">${formatNumber(effortTracking.documentedEnds / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">RIR ou raison d’arrêt</span></div><div class="kpi"><span class="kpi-label">Arrêts par gêne</span><strong class="kpi-value">${effortTracking.painEnds}</strong><span class="small muted">à distinguer d’un échec musculaire</span></div></div>` : `<p class="muted">Valide quelques séries avec leur RIR ou le bouton d’échec pour construire ce repère.</p>`}</div>
+            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Intensité personnelle</p><h2>Effort réel de tes séries</h2><p class="small muted">Le RIR décrit l’effort ; il n’est pas confondu avec la validation de la série.</p></div><span class="badge accent">Repère RIR ${normalizePractitionerProfile(state.settings.practitionerProfile).targetRirMin}–${normalizePractitionerProfile(state.settings.practitionerProfile).targetRirMax}</span></div>${effortTracking.total ? `<div class="kpi-grid"><div class="kpi"><span class="kpi-label">Séries à RIR 0–1</span><strong class="kpi-value">${formatNumber(effortTracking.nearFailure / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">${effortTracking.nearFailure}/${effortTracking.total} séries de travail</span></div><div class="kpi"><span class="kpi-label">Séries à RIR 0</span><strong class="kpi-value">${formatNumber(effortTracking.failure / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">échec musculaire ou technique</span></div><div class="kpi"><span class="kpi-label">Effort documenté</span><strong class="kpi-value">${formatNumber(effortTracking.documented / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">RIR ou raison d’arrêt</span></div><div class="kpi"><span class="kpi-label">Arrêts par gêne</span><strong class="kpi-value">${effortTracking.pain}</strong><span class="small muted">à distinguer d’un échec musculaire</span></div></div>` : `<p class="muted">Renseigne le RIR de quelques séries pour construire ce repère personnel.</p>`}</div>
 
             <div class="card stack"><div class="section-head"><div><p class="eyebrow">Ressenti personnel</p><h2>Comparé à ton niveau habituel</h2><p class="small muted">Ces signaux donnent du contexte aux performances objectives ; ils ne sont jamais utilisés seuls pour augmenter une charge.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div><div class="kpi-grid"><div class="kpi"><span class="kpi-label">Difficulté habituelle</span><strong class="kpi-value textual">${esc(difficultyLabel)}</strong><span class="small muted">médiane de ${subjectiveFeedback.difficultyCount} ressenti${subjectiveFeedback.difficultyCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Tendance récente</span><strong class="kpi-value textual">${esc(feedbackTrendLabel)}</strong><span class="small muted">derniers passages vs précédents</span></div><div class="kpi"><span class="kpi-label">Performance conforme ou mieux</span><strong class="kpi-value">${subjectiveFeedback.performanceCount ? formatNumber(subjectiveFeedback.performanceOnTrack / subjectiveFeedback.performanceCount * 100, 0) : "—"}${subjectiveFeedback.performanceCount ? `<span class="kpi-unit">%</span>` : ""}</strong><span class="small muted">${subjectiveFeedback.performanceCount} réponse${subjectiveFeedback.performanceCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Séances avec gêne</span><strong class="kpi-value">${subjectiveFeedback.painCount}</strong><span class="small muted">${subjectiveFeedback.impactfulPainCount} ayant modifié ou arrêté le mouvement</span></div></div>${subjectiveFeedback.energyCount || subjectiveFeedback.pumpCount ? `<div class="row">${subjectiveFeedback.energyCount ? `<span class="badge">Énergie basse : ${subjectiveFeedback.lowEnergyCount}/${subjectiveFeedback.energyCount}</span>` : ""}${subjectiveFeedback.pumpCount ? `<span class="badge">Congestion forte : ${subjectiveFeedback.highPumpCount}/${subjectiveFeedback.pumpCount}</span>` : ""}</div><p class="small muted">L’énergie et la congestion restent des éléments de contexte : elles ne valident ni n’invalident à elles seules la qualité d’une séance.</p>` : ""}${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>Signal de sécurité :</strong> ${subjectiveFeedback.painCount} séance${subjectiveFeedback.painCount > 1 ? "s ont" : " a"} comporté une gêne${subjectiveFeedback.stoppedPainCount ? `, dont ${subjectiveFeedback.stoppedPainCount} avec arrêt` : ""}.${painContext ? ` ${esc(painContext)}.` : ""} Ce suivi aide à repérer une récurrence, sans poser de diagnostic.</div>` : subjectiveFeedback.painAnsweredCount ? `<div class="notice"><strong>Aucune gêne déclarée</strong> sur les ${subjectiveFeedback.painAnsweredCount} séance${subjectiveFeedback.painAnsweredCount > 1 ? "s" : ""} où ce critère a été renseigné.</div>` : `<div class="notice">Le ressenti reste facultatif. Quelques réponses suffiront pour construire progressivement ta référence personnelle.</div>`}${subjectiveFeedback.legacyCount ? `<p class="small muted">${subjectiveFeedback.legacyCount} ancienne${subjectiveFeedback.legacyCount > 1 ? "s" : ""} évaluation${subjectiveFeedback.legacyCount > 1 ? "s numériques sont conservées" : " numérique est conservée"} dans l’historique, mais exclue${subjectiveFeedback.legacyCount > 1 ? "s" : ""} de cette analyse pour éviter de mélanger deux échelles.</p>` : ""}</div>
             <div class="notice"><strong>Lecture utile :</strong> le volume-charge global décrit la quantité de travail enregistrée, pas la force ni la qualité d’une séance. Pour juger ta progression, compare le même exercice, la même machine, le même mode de charge et une plage de répétitions similaire.</div>
@@ -3590,8 +3749,12 @@ svg {
                 <div class="field"><label for="profile-goal">Objectif principal</label><select id="profile-goal" data-profile-setting="goal"><option value="hypertrophy" ${profile.goal === "hypertrophy" ? "selected" : ""}>Prise de muscle</option><option value="strengthHypertrophy" ${profile.goal === "strengthHypertrophy" ? "selected" : ""}>Force et muscle</option><option value="strength" ${profile.goal === "strength" ? "selected" : ""}>Force</option></select></div>
                 <div class="field"><label for="profile-experience">Expérience</label><select id="profile-experience" data-profile-setting="experience"><option value="beginner" ${profile.experience === "beginner" ? "selected" : ""}>Débutant</option><option value="intermediate" ${profile.experience === "intermediate" ? "selected" : ""}>Intermédiaire</option><option value="advanced" ${profile.experience === "advanced" ? "selected" : ""}>Avancé</option></select></div>
                 <div class="field"><label for="profile-effort">Style d’effort</label><select id="profile-effort" data-profile-setting="effortStyle"><option value="controlled" ${profile.effortStyle === "controlled" ? "selected" : ""}>Contrôlé · souvent 1–2 RIR</option><option value="nearFailure" ${profile.effortStyle === "nearFailure" ? "selected" : ""}>Proche de l’échec · 0–1 RIR</option><option value="highIntensity" ${profile.effortStyle === "highIntensity" ? "selected" : ""}>Haute intensité · pousser lourd</option></select></div>
-                <div class="field"><label for="profile-failure">Utilisation de l’échec</label><select id="profile-failure" data-profile-setting="failureStrategy"><option value="lastSet" ${profile.failureStrategy === "lastSet" ? "selected" : ""}>Dernière série à l’échec</option><option value="allSets" ${profile.failureStrategy === "allSets" ? "selected" : ""}>Toutes les séries à l’échec</option><option value="free" ${profile.failureStrategy === "free" ? "selected" : ""}>Selon mes sensations</option></select></div>
+                <div class="field"><label for="profile-heavy-anchor">Repère série lourde (≈ reps)</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
+                <div class="field"><label for="profile-backoff-anchor">Repère back-off (≈ reps)</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
+                <div class="field"><label for="profile-rir-min">Effort habituel · RIR minimum</label><input id="profile-rir-min" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMin}" data-profile-setting="targetRirMin"></div>
+                <div class="field"><label for="profile-rir-max">Effort habituel · RIR maximum</label><input id="profile-rir-max" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMax}" data-profile-setting="targetRirMax"></div>
               </div>
+              <p class="small muted">Par défaut, un exercice de trois séries est créé avec deux séries lourdes puis un back-off. Ces nombres orientent les propositions de charge sans rendre un nombre de répétitions obligatoire.</p>
               <details class="options"><summary>Repères avancés, facultatifs</summary><div class="form-grid" style="padding-top:10px"><div class="field"><label for="profile-rep-min">Repère bas</label><input id="profile-rep-min" type="number" inputmode="numeric" min="1" max="30" value="${profile.minRepsGuardrail}" data-profile-setting="minRepsGuardrail"></div><div class="field"><label for="profile-rep-max">Repère haut</label><input id="profile-rep-max" type="number" inputmode="numeric" min="1" max="50" value="${profile.maxRepsGuardrail}" data-profile-setting="maxRepsGuardrail"></div></div><p class="small muted" style="padding-top:8px">Ce ne sont pas des objectifs. L’assistant les utilise seulement pour détecter une charge manifestement trop lourde ou trop légère.</p></details>
             </div>
             <div class="card stack">
@@ -3649,7 +3812,7 @@ svg {
           const sets = (exercise.sets || []).map((set, setIndex) => {
             const completed = finiteNumber(set.reps) > 0;
             const drops = (set.drops || []).map((drop, dropIndex) => `<div class="detail-drop row-between"><div><strong>Drop ${dropIndex + 1}</strong><p class="small muted">Enchaîné sans repos</p></div><div class="row"><span class="badge">${recordedValue(drop.weight, " kg")}</span><span class="badge accent">${recordedValue(drop.reps, " reps")}</span></div></div>`).join("");
-            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row">${set.warmup ? `<span class="badge">Échauffement</span>` : `<span class="badge accent">Travail</span>`}<span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
+            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row"><span class="badge ${set.warmup ? "" : "accent"}">${esc(setRoleLabel(set.role, set.warmup))}${!set.warmup && set.repAnchor ? ` · ≈${esc(set.repAnchor)} reps` : ""}</span><span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
           }).join("");
           return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
         }).join("");
@@ -3758,7 +3921,7 @@ svg {
             order: exerciseIndex + 1,
             bodyweightKg: finiteNumber(state.settings.bodyweightKg),
             comments: "",
-            sets: exercise.sets.map(() => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, stopReason: "", drops: [] }))
+            sets: exercise.sets.map(set => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: normalizeSetRole(set.role), repAnchor: normalizeRepAnchor(set.repAnchor, ""), validated: false, stopReason: "", drops: [] }))
           }))
         };
         delete state.draft.endedAt;
@@ -3791,7 +3954,7 @@ svg {
       }
 
       function exportCsv() {
-        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "difficulte_seance", "energie_percue", "performance_percue", "congestion_percue", "impact_gene_douleur", "zone_gene_douleur", "note_gene_douleur", "effort_ancienne_echelle", "douleur_ancienne_echelle", "commentaire_seance", "commentaire_exercice"];
+        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "role_serie", "repere_reps", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "difficulte_seance", "energie_percue", "performance_percue", "congestion_percue", "impact_gene_douleur", "zone_gene_douleur", "note_gene_douleur", "effort_ancienne_echelle", "douleur_ancienne_echelle", "commentaire_seance", "commentaire_exercice"];
         const rows = [headers];
         getSortedSessions().forEach(session => {
           const feedback = session.feedback || {};
@@ -3802,7 +3965,7 @@ svg {
               ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
             ];
             components.forEach(component => rows.push([
-              session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), modern && feedback.difficulty ? feedbackValueLabel("difficulty", feedback.difficulty) : "", modern && feedback.energy ? feedbackValueLabel("energy", feedback.energy) : "", modern && feedback.performance ? feedbackValueLabel("performance", feedback.performance) : "", modern && feedback.pump ? feedbackValueLabel("pump", feedback.pump) : "", modern && feedback.painImpact ? feedbackValueLabel("painImpact", feedback.painImpact) : "", modern ? feedback.painArea : "", modern ? feedback.painNote : "", modern ? "" : feedback.effort, modern ? "" : feedback.pain, session.comments, exercise.comments
+              session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, setRoleLabel(set.role, set.warmup), set.repAnchor || "", component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), modern && feedback.difficulty ? feedbackValueLabel("difficulty", feedback.difficulty) : "", modern && feedback.energy ? feedbackValueLabel("energy", feedback.energy) : "", modern && feedback.performance ? feedbackValueLabel("performance", feedback.performance) : "", modern && feedback.pump ? feedbackValueLabel("pump", feedback.pump) : "", modern && feedback.painImpact ? feedbackValueLabel("painImpact", feedback.painImpact) : "", modern ? feedback.painArea : "", modern ? feedback.painNote : "", modern ? "" : feedback.effort, modern ? "" : feedback.pain, session.comments, exercise.comments
             ]));
           }));
         });
@@ -3850,7 +4013,7 @@ svg {
           const exercise = state.draft.exercises[exerciseIndex];
           const recommendedLoad = finiteNumber(button.dataset.recommendedLoad, -1);
           if (!exercise || recommendedLoad < 0) return;
-          const appliedCount = applyAdaptiveLoad(exercise, recommendedLoad, button.dataset.applyScope || "all");
+          const appliedCount = applyAdaptiveLoad(exercise, recommendedLoad, button.dataset.applyScope || "all", button.dataset.recommendedRole || "");
           if (!appliedCount) return showToast("Aucune série de travail vide à préremplir.");
           saveState();
           render();
@@ -3858,7 +4021,7 @@ svg {
         }
         if (action === "add-set" && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
-          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), validated: false, stopReason: "", drops: [] });
+          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: "free", repAnchor: "", validated: false, stopReason: "", drops: [] });
           saveState(); render();
         }
         if (action === "remove-last-set" && state.draft) {
@@ -3901,22 +4064,6 @@ svg {
           const set = state.draft.exercises?.[exerciseIndex]?.sets?.[setIndex];
           if (!set || finiteNumber(set.reps) <= 0) return showToast("Renseigne les répétitions de la série avant de la valider.");
           if (!setReadyForValidation(set)) return showToast("Renseigne les répétitions de chaque drop ou retire le drop incomplet.");
-          set.validated = true;
-          saveState();
-          render();
-          const guidance = adaptiveRecommendation(state.draft.exercises[exerciseIndex]);
-          if (guidance?.applyScope === "next") showToast(guidance.title);
-          focusNextSet(exerciseIndex, setIndex);
-        }
-        if (action === "validate-set-failure" && state.draft) {
-          const exerciseIndex = finiteNumber(button.dataset.exerciseIndex);
-          const setIndex = finiteNumber(button.dataset.setIndex);
-          const exercise = state.draft.exercises?.[exerciseIndex];
-          const set = exercise?.sets?.[setIndex];
-          if (!set || finiteNumber(set.reps) <= 0) return showToast("Renseigne les répétitions de la série avant de la valider.");
-          if (!setReadyForValidation(set)) return showToast("Renseigne les répétitions de chaque drop ou retire le drop incomplet.");
-          set.stopReason = "muscularFailure";
-          if (exercise.rirEnabled !== false) set.rir = "0";
           set.validated = true;
           saveState();
           render();
@@ -4032,7 +4179,11 @@ svg {
           const set = exercise?.sets?.[finiteNumber(target.dataset.setIndex)];
           if (set) {
             set[target.dataset.setField] = target.value;
-            if (target.dataset.setField === "rir" && hasRecordedValue(target.value) && finiteNumber(target.value) > 0 && set.stopReason === "muscularFailure") set.stopReason = "";
+            if (target.dataset.setField === "rir") {
+              if (hasRecordedValue(target.value) && finiteNumber(target.value) === 0 && (!set.stopReason || set.stopReason === "muscularFailure")) set.stopReason = "muscularFailure";
+              if (hasRecordedValue(target.value) && finiteNumber(target.value) > 0 && set.stopReason === "muscularFailure") set.stopReason = "";
+              if (!hasRecordedValue(target.value) && set.stopReason === "muscularFailure") set.stopReason = "";
+            }
             if (target.dataset.setField === "reps") {
               const mainRepsCompleted = finiteNumber(target.value) > 0;
               const block = target.closest("[data-set-block]");
@@ -4042,7 +4193,7 @@ svg {
                 addDrop.disabled = !mainRepsCompleted;
                 addDrop.textContent = mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop";
               }
-              block?.querySelectorAll("[data-action='validate-set'], [data-action='validate-set-failure']").forEach(validate => { validate.disabled = !setReadyForValidation(set); });
+              block?.querySelectorAll("[data-action='validate-set']").forEach(validate => { validate.disabled = !setReadyForValidation(set); });
             }
             saveState(); updateLiveSummary();
           }
@@ -4053,7 +4204,7 @@ svg {
           const drop = set?.drops?.[finiteNumber(target.dataset.dropIndex)];
           if (drop) {
             drop[target.dataset.dropField] = target.value;
-            target.closest("[data-set-block]")?.querySelectorAll("[data-action='validate-set'], [data-action='validate-set-failure']").forEach(validate => { validate.disabled = !setReadyForValidation(set); });
+            target.closest("[data-set-block]")?.querySelectorAll("[data-action='validate-set']").forEach(validate => { validate.disabled = !setReadyForValidation(set); });
             saveState(); updateLiveSummary();
           }
         }
@@ -4085,7 +4236,23 @@ svg {
         if (target.hasAttribute("data-template-sets")) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
-          if (exercise) { exercise.plannedSets = Math.max(1, Math.min(12, finiteNumber(target.value, 3))); saveState(); }
+          if (exercise) { resizeTemplateSetPlan(exercise, target.value); saveState(); }
+        }
+        if (target.hasAttribute("data-template-set-anchor")) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
+          if (exercise) {
+            resizeTemplateSetPlan(exercise, exercise.plannedSets);
+            exercise.setPlan[finiteNumber(target.dataset.setIndex)].repAnchor = normalizeRepAnchor(target.value, "");
+            saveState();
+          }
+        }
+        if (target.hasAttribute("data-live-set-anchor") && state.draft) {
+          const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
+          if (set && !set.validated) {
+            set.repAnchor = normalizeRepAnchor(target.value, "");
+            saveState();
+          }
         }
         if (target.dataset.templateAdaptiveField && target.tagName !== "SELECT") {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
@@ -4099,6 +4266,17 @@ svg {
 
       root.addEventListener("change", event => {
         const target = event.target;
+        if (target.dataset.setField === "rir" && state.draft) {
+          const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
+          if (set) {
+            set.rir = target.value;
+            if (hasRecordedValue(target.value) && finiteNumber(target.value) === 0 && (!set.stopReason || set.stopReason === "muscularFailure")) set.stopReason = "muscularFailure";
+            if (hasRecordedValue(target.value) && finiteNumber(target.value) > 0 && set.stopReason === "muscularFailure") set.stopReason = "";
+            if (!hasRecordedValue(target.value) && set.stopReason === "muscularFailure") set.stopReason = "";
+            saveState();
+            render();
+          }
+        }
         if (target.dataset.feedbackField && state.draft) {
           updateDraftFeedback(target.dataset.feedbackField, target.value);
           if (target.dataset.feedbackField === "painImpact") render();
@@ -4121,10 +4299,14 @@ svg {
         if (target.dataset.profileSetting) {
           const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
           const field = target.dataset.profileSetting;
-          profile[field] = ["minRepsGuardrail", "maxRepsGuardrail"].includes(field) ? finiteNumber(target.value) : target.value;
+          profile[field] = ["heavyRepAnchor", "backoffRepAnchor", "targetRirMin", "targetRirMax", "minRepsGuardrail", "maxRepsGuardrail"].includes(field) ? finiteNumber(target.value) : target.value;
           if (field === "goal") {
             profile.minRepsGuardrail = GOAL_GUARDRAILS[target.value]?.min || profile.minRepsGuardrail;
             profile.maxRepsGuardrail = GOAL_GUARDRAILS[target.value]?.max || profile.maxRepsGuardrail;
+          }
+          if (field === "effortStyle") {
+            profile.targetRirMin = target.value === "controlled" ? 1 : 0;
+            profile.targetRirMax = target.value === "controlled" ? 2 : 1;
           }
           profile.configured = true;
           state.settings.practitionerProfile = normalizePractitionerProfile(profile);
@@ -4156,7 +4338,41 @@ svg {
         if (target.hasAttribute("data-template-warmup")) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
-          if (exercise) { exercise.warmupDefault = target.checked; saveState(); render(); }
+          if (exercise) { exercise.warmupDefault = target.checked; exercise.setPlan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, target.checked, normalizePractitionerProfile(state.settings.practitionerProfile)); saveState(); render(); }
+        }
+        if (target.hasAttribute("data-template-set-role")) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
+          if (exercise) {
+            resizeTemplateSetPlan(exercise, exercise.plannedSets);
+            const item = exercise.setPlan[finiteNumber(target.dataset.setIndex)];
+            if (item) {
+              item.role = normalizeSetRole(target.value);
+              if (!item.repAnchor) {
+                const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
+                item.repAnchor = item.role === "heavy" ? profile.heavyRepAnchor : item.role === "backoff" ? profile.backoffRepAnchor : "";
+              }
+            }
+            saveState();
+            render();
+          }
+        }
+        if (target.hasAttribute("data-template-sets")) {
+          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
+          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
+          if (exercise) { resizeTemplateSetPlan(exercise, target.value); saveState(); render(); }
+        }
+        if (target.hasAttribute("data-live-set-role") && state.draft) {
+          const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
+          if (set && !set.validated && !set.warmup) {
+            set.role = normalizeSetRole(target.value);
+            if (!set.repAnchor) {
+              const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
+              set.repAnchor = set.role === "heavy" ? profile.heavyRepAnchor : set.role === "backoff" ? profile.backoffRepAnchor : "";
+            }
+            saveState();
+            render();
+          }
         }
         if (target.dataset.templateAdaptiveToggle) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
@@ -4178,6 +4394,7 @@ svg {
         }
         if (target.hasAttribute("data-stats-period")) { statsDays = finiteNumber(target.value); render(); }
         if (target.hasAttribute("data-exercise-stat")) { selectedExercise = target.value; selectedRepRange = ""; render(); }
+        if (target.hasAttribute("data-set-role-stat")) { selectedSetRole = normalizeSetRole(target.value); selectedRepRange = ""; render(); }
         if (target.hasAttribute("data-rep-range-stat")) { selectedRepRange = target.value; render(); }
         if (target.hasAttribute("data-library-muscle")) { libraryMuscleFilter = target.value; render(); }
         if (target.hasAttribute("data-active-program")) { state.activeProgramId = target.value; saveState(); render(); }
