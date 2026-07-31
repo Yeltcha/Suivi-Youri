@@ -4,6 +4,15 @@
 
 Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
 
+La version 1.15.0 rend les objectifs de répétitions configurables dans les programmes :
+
+- une série peut recevoir une cible exacte (`6`) ou une fourchette (`8-10`) ;
+- la cible générale peut être renseignée dès l’ajout d’un exercice, puis affinée série par série dans l’éditeur de séance ;
+- les formats `8-10`, `8–10` et `8 à 10` sont acceptés et enregistrés sous une forme cohérente ;
+- la cible est transmise à la séance en cours, affichée dans l’historique et conservée dans les exports ;
+- l’assistant maintient la charge dans la fourchette, propose un palier en moins en cas d’échec sous la borne basse et un palier en plus lorsque la borne haute est atteinte avec l’effort prévu ;
+- sur ordinateur, ouvrir une séance du programme n’étire plus visuellement la carte située à côté.
+
 La version 1.14.1 intègre la nouvelle identité visuelle :
 
 - monogramme blanc composé de deux silhouettes athlétiques dos à dos suggérant les lettres I et S ;

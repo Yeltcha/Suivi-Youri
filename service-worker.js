@@ -1,4 +1,4 @@
-const CACHE_NAME = "innerset-v24";
+const CACHE_NAME = "innerset-v25";
 const APP_SHELL = [
   "./",
   "./index.html",
