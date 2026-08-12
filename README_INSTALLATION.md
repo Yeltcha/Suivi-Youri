@@ -2,7 +2,7 @@
 
 MYGYM est une application web installable (PWA). Une fois publiée sur une adresse HTTPS, elle peut être ajoutée à l’écran d’accueil. Les séances sont enregistrées localement et peuvent être synchronisées avec le compte Supabase de l’utilisateur.
 
-La version 2.1.0 conserve toutes les données déjà enregistrées et ne demande aucune modification de la table Supabase.
+La version 2.1.1 conserve toutes les données déjà enregistrées et ne demande aucune modification de la table Supabase.
 
 ## Installation recommandée sur iPhone
 

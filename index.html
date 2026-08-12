@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="fr" data-visualize-standalone>
+<html lang="fr" data-visualize-standalone data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#EEE9DE">
+<meta name="theme-color" content="#090B0F">
 <meta name="description" content="MYGYM, carnet d’entraînement pour créer ses programmes, enregistrer ses séances et suivre sa progression.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MYGYM">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>MYGYM — Carnet d’entraînement</title>
-<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #EEE9DE !important; }</style>
+<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #090B0F !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
-  color-scheme: light dark;
+  color-scheme: dark;
   background-color: transparent !important;
 
   /* Agent-facing contract; keep in sync with SKILL.md. */
@@ -104,10 +104,6 @@
   --viz-series-4: light-dark(#eb77b1, #f08fc0);
   --viz-series-5: light-dark(#9b79ec, #aa91ef);
   --viz-series-6: light-dark(#3ab9b1, #5acbc2);
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
@@ -704,34 +700,35 @@ svg {
 <div id="volume-tracker-app" class="volume-app">
   <style>
     #volume-tracker-app {
-      --bg: #EEE9DE;
-      --surface: #FAF7F0;
-      --surface-2: #E7E1D5;
-      --surface-3: #D8D0C2;
-      --text: #1C2422;
-      --muted: #666D68;
-      --line: #C8C0B2;
-      --line-strong: #777C76;
-      --accent: #2D59D7;
-      --accent-ink: #FFFFFF;
-      --positive: #24735D;
-      --orange: #B96D2A;
-      --red: #B34B42;
-      --blue: #287B73;
-      --radius: 8px;
-      --radius-sm: 4px;
+      --bg: #090B0F;
+      --surface: #11141A;
+      --surface-2: #181C23;
+      --surface-3: #222731;
+      --text: #F2EFE8;
+      --muted: #9299A5;
+      --line: #2B303A;
+      --line-strong: #596171;
+      --accent: #FF6840;
+      --accent-ink: #190907;
+      --positive: #78C99F;
+      --orange: #E2AA63;
+      --red: #F07878;
+      --blue: #8C9DFF;
+      --radius: 6px;
+      --radius-sm: 3px;
       min-height: 100vh;
       min-height: 100dvh;
       background:
-        repeating-linear-gradient(0deg, color-mix(in srgb, var(--accent) 4%, transparent) 0 1px, transparent 1px 34px),
-        linear-gradient(90deg, transparent 0 49.9%, color-mix(in srgb, var(--line) 18%, transparent) 50%, transparent 50.1%) 0 0 / min(100vw, 1040px) 100%,
+        radial-gradient(circle at 88% -8%, color-mix(in srgb, var(--accent) 9%, transparent) 0, transparent 29rem),
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--text) 2.2%, transparent) 0 1px, transparent 1px 38px),
+        linear-gradient(90deg, transparent 0 49.9%, color-mix(in srgb, var(--line) 22%, transparent) 50%, transparent 50.1%) 0 0 / min(100vw, 1040px) 100%,
         var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 16px;
       line-height: 1.45;
       -webkit-font-smoothing: antialiased;
-      color-scheme: light;
+      color-scheme: dark;
     }
     #volume-tracker-app * { box-sizing: border-box; }
     #volume-tracker-app button,
@@ -739,7 +736,7 @@ svg {
     #volume-tracker-app select,
     #volume-tracker-app textarea { font: inherit; }
     #volume-tracker-app button { -webkit-tap-highlight-color: transparent; }
-    #volume-tracker-app .app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: 96px; }
+    #volume-tracker-app .app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: 106px; }
     #volume-tracker-app .topbar {
       position: sticky;
       top: 0;
@@ -748,15 +745,15 @@ svg {
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: max(13px, env(safe-area-inset-top)) 18px 11px;
-      background: color-mix(in srgb, var(--surface) 91%, transparent);
-      backdrop-filter: blur(22px);
+      padding: max(15px, env(safe-area-inset-top)) 18px 13px;
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      backdrop-filter: blur(24px) saturate(120%);
       border-bottom: 1px solid var(--line);
     }
     #volume-tracker-app .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       min-width: 0;
       padding: 0;
       border: 0;
@@ -765,33 +762,24 @@ svg {
       text-align: left;
       cursor: pointer;
     }
-    #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 3px; }
-    #volume-tracker-app .brand-mark {
-      width: 25px;
-      height: 40px;
-      display: block;
-      flex: 0 0 25px;
-      object-fit: contain;
-      background: transparent;
-      filter: brightness(0) saturate(100%);
-    }
+    #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 2px; }
     #volume-tracker-app .brand-copy { line-height: 1; }
-    #volume-tracker-app .brand-name { display: block; font-weight: 900; letter-spacing: .18em; font-size: 13px; }
+    #volume-tracker-app .brand-name { display: block; font-size: 16px; font-weight: 850; line-height: 1; letter-spacing: .22em; }
     #volume-tracker-app .header-status { color: var(--muted); font-size: 12px; text-align: right; }
-    #volume-tracker-app .header-control { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 0 0 0 10px; border: 0; border-left: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+    #volume-tracker-app .header-control { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 0 0 0 12px; border: 0; border-left: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
     #volume-tracker-app .header-control-mark { color: var(--accent); font-size: 13px; letter-spacing: .14em; }
     #volume-tracker-app .header-control:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-    #volume-tracker-app main { width: min(100%, 1040px); margin: 0 auto; padding: 24px 16px 42px; }
-    #volume-tracker-app .page { display: grid; gap: 24px; animation: page-in .22s ease-out; }
+    #volume-tracker-app main { width: min(100%, 1040px); margin: 0 auto; padding: 26px 16px 48px; }
+    #volume-tracker-app .page { display: grid; gap: 26px; animation: page-in .22s ease-out; }
     @keyframes page-in { from { opacity: .35; transform: translateY(5px); } }
     #volume-tracker-app h1,
     #volume-tracker-app h2,
     #volume-tracker-app h3,
     #volume-tracker-app p { margin: 0; }
-    #volume-tracker-app h1 { max-width: 16ch; font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(34px, 9vw, 64px); font-weight: 850; line-height: .94; letter-spacing: -.055em; }
+    #volume-tracker-app h1 { max-width: 16ch; font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(36px, 9vw, 68px); font-weight: 850; line-height: .92; letter-spacing: -.052em; }
     #volume-tracker-app h2 { font-size: 20px; line-height: 1.12; letter-spacing: -.025em; }
     #volume-tracker-app h3 { font-size: 16px; line-height: 1.2; }
-    #volume-tracker-app .eyebrow { color: var(--accent); font-size: 10px; font-weight: 850; letter-spacing: .2em; text-transform: uppercase; }
+    #volume-tracker-app .eyebrow { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     #volume-tracker-app .muted { color: var(--muted); }
     #volume-tracker-app .small { font-size: 12px; }
     #volume-tracker-app .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; flex-wrap: wrap; padding-top: 2px; }
@@ -807,30 +795,32 @@ svg {
       overflow: hidden;
       display: grid;
       gap: 28px;
-      min-height: 292px;
-      padding: 32px 26px 28px;
-      border: 0;
-      border-top: 1px solid var(--line-strong);
-      border-bottom: 1px solid var(--line-strong);
-      border-radius: 0;
-      background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 12%, var(--surface)) 0 36%, var(--surface) 72%);
+      min-height: 300px;
+      padding: 34px 28px 30px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 44%),
+        repeating-linear-gradient(90deg, transparent 0 47px, color-mix(in srgb, var(--text) 2.4%, transparent) 47px 48px),
+        var(--surface);
       box-shadow: none;
     }
     #volume-tracker-app .hero::after {
-      content: "LOG";
+      content: "01";
       position: absolute;
       width: auto;
       height: auto;
-      right: -9px;
-      top: 2px;
+      right: 10px;
+      top: 10px;
       border-radius: 0;
       background: transparent;
-      color: color-mix(in srgb, var(--accent) 8%, transparent);
+      color: color-mix(in srgb, var(--accent) 10%, transparent);
       font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-      font-size: clamp(112px, 26vw, 260px);
+      font-size: clamp(118px, 26vw, 250px);
       font-weight: 900;
       line-height: .8;
-      letter-spacing: -.1em;
+      letter-spacing: -.08em;
       filter: none;
       pointer-events: none;
     }
@@ -841,10 +831,10 @@ svg {
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 18px;
-      box-shadow: 3px 3px 0 color-mix(in srgb, var(--line) 42%, transparent);
+      box-shadow: none;
     }
     #volume-tracker-app .card.soft { background: var(--surface-2); }
-    #volume-tracker-app .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); background: var(--line); }
+    #volume-tracker-app .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--line); }
     #volume-tracker-app .kpi-grid > .card { border: 0; border-radius: 0; box-shadow: none; }
     #volume-tracker-app .kpi { min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; border-radius: 0; }
     #volume-tracker-app .kpi-label { color: var(--muted); font-size: 12px; }
@@ -853,9 +843,9 @@ svg {
     #volume-tracker-app .btn {
       min-height: 44px;
       border: 1px solid var(--line);
-      border-radius: 3px;
+      border-radius: var(--radius-sm);
       padding: 10px 14px;
-      background: var(--surface-2);
+      background: color-mix(in srgb, var(--surface-2) 92%, var(--text) 2%);
       color: var(--text);
       font-weight: 750;
       cursor: pointer;
@@ -865,13 +855,13 @@ svg {
       gap: 8px;
       text-decoration: none;
     }
-    #volume-tracker-app .btn:hover { background: var(--surface-3); }
+    #volume-tracker-app .btn:hover { border-color: var(--line-strong); background: var(--surface-3); }
     #volume-tracker-app .btn:focus-visible,
     #volume-tracker-app input:focus-visible,
     #volume-tracker-app select:focus-visible,
     #volume-tracker-app textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 40%, transparent); outline-offset: 2px; }
-    #volume-tracker-app .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: none; clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%); }
-    #volume-tracker-app .btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
+    #volume-tracker-app .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: none; }
+    #volume-tracker-app .btn-primary:hover { border-color: color-mix(in srgb, var(--accent) 78%, white); background: color-mix(in srgb, var(--accent) 88%, white); }
     #volume-tracker-app .btn-ghost { background: transparent; }
     #volume-tracker-app .btn-danger { color: var(--red); background: color-mix(in srgb, var(--red) 7%, var(--surface)); border-color: color-mix(in srgb, var(--red) 42%, var(--line)); }
     #volume-tracker-app .btn-sm { min-height: 36px; padding: 7px 10px; border-radius: 3px; font-size: 12px; }
@@ -883,8 +873,9 @@ svg {
       gap: 5px;
       min-height: 26px;
       padding: 4px 9px;
+      border: 1px solid var(--line);
       border-radius: 2px;
-      background: var(--surface-3);
+      background: transparent;
       color: var(--muted);
       font-size: 11px;
       font-weight: 750;
@@ -892,7 +883,7 @@ svg {
       letter-spacing: .055em;
       white-space: nowrap;
     }
-    #volume-tracker-app .badge.accent { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); }
+    #volume-tracker-app .badge.accent { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
     #volume-tracker-app .sync-line { display: flex; align-items: center; gap: 9px; min-width: 0; }
     #volume-tracker-app .sync-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--muted); }
     #volume-tracker-app .sync-dot.synced { background: var(--positive); box-shadow: 0 0 0 4px color-mix(in srgb, var(--positive) 10%, transparent); }
@@ -900,8 +891,8 @@ svg {
     #volume-tracker-app .sync-dot.offline,
     #volume-tracker-app .sync-dot.error { background: var(--orange); }
     @keyframes sync-pulse { 50% { opacity: .35; transform: scale(.8); } }
-    #volume-tracker-app .progress { height: 8px; overflow: hidden; border-radius: 99px; background: var(--surface-3); }
-    #volume-tracker-app .progress > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .25s ease; }
+    #volume-tracker-app .progress { height: 6px; overflow: hidden; border-radius: 1px; background: var(--surface-3); }
+    #volume-tracker-app .progress > span { display: block; height: 100%; border-radius: 0; background: var(--accent); transition: width .25s ease; }
     #volume-tracker-app .progress.over > span { background: var(--orange); }
     #volume-tracker-app .muscle-row { display: grid; gap: 7px; }
     #volume-tracker-app .muscle-row-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
@@ -909,7 +900,7 @@ svg {
     #volume-tracker-app .session-line { padding: 14px 0; display: grid; gap: 8px; }
     #volume-tracker-app .session-line:first-child { padding-top: 0; }
     #volume-tracker-app .session-line:last-child { padding-bottom: 0; }
-    #volume-tracker-app .program-card { align-self: start; padding: 0; overflow: hidden; border-left: 3px solid var(--line-strong); }
+    #volume-tracker-app .program-card { align-self: start; padding: 0; overflow: hidden; border-left: 3px solid var(--line-strong); background: color-mix(in srgb, var(--surface) 92%, transparent); }
     #volume-tracker-app .program-card summary {
       list-style: none;
       cursor: pointer;
@@ -920,8 +911,8 @@ svg {
       padding: 19px 18px;
     }
     #volume-tracker-app .program-card summary::-webkit-details-marker { display: none; }
-    #volume-tracker-app .program-card[open] { border-left-color: var(--accent); }
-    #volume-tracker-app .program-card[open] summary { border-bottom: 1px solid var(--line); }
+    #volume-tracker-app .program-card[open] { border-left-color: var(--accent); background: var(--surface); }
+    #volume-tracker-app .program-card[open] summary { border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 4%, transparent); }
     #volume-tracker-app .program-content { padding: 6px 17px 17px; display: grid; gap: 14px; }
     #volume-tracker-app .session-template-actions .btn { flex: 1 1 145px; }
     #volume-tracker-app .program-main-actions .btn { flex: 1 1 180px; }
@@ -936,7 +927,7 @@ svg {
       gap: 12px;
       padding: 10px 12px;
       border: 1px solid var(--line);
-      border-radius: 3px;
+      border-radius: var(--radius-sm);
       background: var(--surface-2);
       color: var(--text);
       font-size: 13px;
@@ -956,7 +947,7 @@ svg {
     #volume-tracker-app .template-progress-options[open] summary { color: var(--text); }
     #volume-tracker-app .template-progress-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; padding-top: 10px; }
     #volume-tracker-app .template-progress-grid .field-wide { grid-column: 1 / -1; }
-    #volume-tracker-app .set-plan-editor { grid-column: 2 / -1; display: grid; gap: 10px; width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface-2); }
+    #volume-tracker-app .set-plan-editor { grid-column: 2 / -1; display: grid; gap: 10px; width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); }
     #volume-tracker-app .set-plan-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     #volume-tracker-app .set-plan-list { display: grid; gap: 7px; }
     #volume-tracker-app .set-plan-row { display: grid; grid-template-columns: 30px minmax(100px, 1fr); gap: 8px; align-items: center; }
@@ -976,8 +967,8 @@ svg {
       width: 100%;
       min-height: 44px;
       border: 1px solid var(--line);
-      border-radius: 3px;
-      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      background: #0D1015;
       color: var(--text);
       padding: 10px 11px;
     }
@@ -988,19 +979,19 @@ svg {
     #volume-tracker-app .feedback-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     #volume-tracker-app .kpi-value.textual { font-size: clamp(18px, 5vw, 24px); line-height: 1.12; letter-spacing: -.02em; overflow-wrap: anywhere; }
     #volume-tracker-app .workout-head { display: grid; gap: 14px; }
-    #volume-tracker-app .live-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; overflow: hidden; padding: 0; border: 1px solid var(--line); background: var(--line); }
-    #volume-tracker-app .live-metric { background: var(--surface); border: 0; border-radius: 0; padding: 12px 7px; text-align: center; }
+    #volume-tracker-app .live-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; overflow: hidden; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--line); }
+    #volume-tracker-app .live-metric { background: color-mix(in srgb, var(--surface) 94%, transparent); border: 0; border-radius: 0; padding: 12px 7px; text-align: center; }
     #volume-tracker-app .live-metric strong { display: block; font-size: 17px; }
     #volume-tracker-app .live-metric span { color: var(--muted); font-size: 10px; }
     #volume-tracker-app .exercise-track { padding: 0; overflow: hidden; }
-    #volume-tracker-app .exercise-track-head { display: grid; gap: 11px; padding: 17px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+    #volume-tracker-app .exercise-track-head { display: grid; gap: 11px; padding: 17px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, var(--surface-2)), var(--surface-2) 52%); }
     #volume-tracker-app .exercise-title-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
     #volume-tracker-app .exercise-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; max-width: 82px; }
     #volume-tracker-app .previous { color: var(--muted); font-size: 11px; }
     #volume-tracker-app .sets-table { padding: 12px; display: grid; gap: 8px; }
     #volume-tracker-app .set-grid { display: grid; grid-template-columns: 30px minmax(64px,1.2fr) minmax(50px,.8fr) minmax(44px,.7fr) 38px; gap: 7px; align-items: center; }
     #volume-tracker-app .set-head { color: var(--muted); font-size: 10px; text-align: center; padding: 0 2px; }
-    #volume-tracker-app .set-row input { min-height: 40px; padding: 7px 6px; text-align: center; border-radius: 9px; }
+    #volume-tracker-app .set-row input { min-height: 40px; padding: 7px 6px; text-align: center; border-radius: var(--radius-sm); }
     #volume-tracker-app .set-index { text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; }
     #volume-tracker-app .set-block { display: grid; gap: 7px; padding: 5px 0 9px; }
     #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
@@ -1021,7 +1012,7 @@ svg {
     #volume-tracker-app textarea:disabled,
     #volume-tracker-app button:disabled { opacity: .56; cursor: not-allowed; }
     #volume-tracker-app .drop-row { display: grid; grid-template-columns: 30px minmax(64px,1.2fr) minmax(50px,.8fr) minmax(44px,.7fr) 38px; gap: 7px; align-items: center; }
-    #volume-tracker-app .drop-row input { min-height: 38px; padding: 6px; text-align: center; border-radius: 9px; border-color: color-mix(in srgb, var(--accent) 24%, var(--line)); }
+    #volume-tracker-app .drop-row input { min-height: 38px; padding: 6px; text-align: center; border-radius: var(--radius-sm); border-color: color-mix(in srgb, var(--accent) 32%, var(--line)); }
     #volume-tracker-app .drop-index { color: var(--accent); font-size: 10px; font-weight: 850; text-align: center; }
     #volume-tracker-app .drop-link { color: var(--muted); font-size: 9px; line-height: 1.1; text-align: center; }
     #volume-tracker-app .drop-add { justify-self: start; min-height: 31px; margin-left: 37px; padding: 5px 9px; color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
@@ -1034,7 +1025,7 @@ svg {
     #volume-tracker-app .chart-grid { stroke: var(--line); stroke-width: 1; }
     #volume-tracker-app .chart-axis { fill: var(--muted); font-size: 11px; }
     #volume-tracker-app .chart-line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-    #volume-tracker-app .chart-dot { fill: var(--bg); stroke: var(--accent); stroke-width: 3; }
+    #volume-tracker-app .chart-dot { fill: var(--surface); stroke: var(--accent); stroke-width: 3; }
     #volume-tracker-app .volume-composition { display: grid; gap: 18px; align-items: center; }
     #volume-tracker-app .volume-donut { position: relative; width: min(220px, 68vw); aspect-ratio: 1; margin: 0 auto; }
     #volume-tracker-app .volume-donut svg { display: block; width: 100%; height: 100%; }
@@ -1048,7 +1039,7 @@ svg {
     #volume-tracker-app .volume-donut-center strong { font-size: clamp(22px, 7vw, 31px); line-height: 1; letter-spacing: -.04em; }
     #volume-tracker-app .volume-donut-center small { color: var(--muted); font-size: 11px; }
     #volume-tracker-app .volume-legend { display: grid; gap: 10px; }
-    #volume-tracker-app .volume-legend-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+    #volume-tracker-app .volume-legend-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); }
     #volume-tracker-app .volume-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
     #volume-tracker-app .volume-legend-dot.drops { background: var(--blue); }
     #volume-tracker-app .volume-legend-value { text-align: right; }
@@ -1056,22 +1047,25 @@ svg {
     #volume-tracker-app .volume-legend-value span { color: var(--muted); font-size: 11px; }
     #volume-tracker-app .empty { min-height: 220px; display: grid; place-items: center; text-align: center; padding: 28px; }
     #volume-tracker-app .empty-inner { max-width: 420px; display: grid; justify-items: center; gap: 12px; }
-    #volume-tracker-app .empty-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 18px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); font-size: 26px; }
-    #volume-tracker-app .notice { padding: 13px 14px; border-radius: 13px; background: color-mix(in srgb, var(--blue) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--line)); font-size: 13px; }
+    #volume-tracker-app .empty-icon { width: 56px; height: 56px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--line)); border-radius: 50%; background: color-mix(in srgb, var(--accent) 8%, var(--surface-2)); color: var(--accent); font-size: 26px; }
+    #volume-tracker-app .notice { padding: 13px 14px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--blue) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); font-size: 13px; }
     #volume-tracker-app .notice.warning { background: color-mix(in srgb, var(--orange) 9%, var(--surface)); border-color: color-mix(in srgb, var(--orange) 32%, var(--line)); }
     #volume-tracker-app .bottom-nav {
       position: fixed;
       z-index: 30;
       left: 50%;
-      bottom: 0;
+      bottom: max(8px, env(safe-area-inset-bottom));
       transform: translateX(-50%);
-      width: min(100%, 1040px);
+      width: min(calc(100% - 16px), 1024px);
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      padding: 0 8px max(6px, env(safe-area-inset-bottom));
-      background: color-mix(in srgb, var(--surface) 94%, transparent);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--line);
+      overflow: hidden;
+      padding: 0 6px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(24px) saturate(125%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 16px 42px rgba(0,0,0,.34);
     }
     #volume-tracker-app .nav-btn {
       min-width: 0;
@@ -1089,8 +1083,8 @@ svg {
       cursor: pointer;
     }
     #volume-tracker-app .nav-index { color: var(--line-strong); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .08em; line-height: 1; }
-    #volume-tracker-app .nav-btn::before { content: ""; position: absolute; top: -1px; left: 22%; width: 56%; height: 2px; background: transparent; }
-    #volume-tracker-app .nav-btn[aria-current="page"] { color: var(--text); background: transparent; }
+    #volume-tracker-app .nav-btn::before { content: ""; position: absolute; top: 0; left: 24%; width: 52%; height: 2px; background: transparent; }
+    #volume-tracker-app .nav-btn[aria-current="page"] { color: var(--text); background: color-mix(in srgb, var(--accent) 8%, transparent); }
     #volume-tracker-app .nav-btn[aria-current="page"] .nav-index { color: var(--accent); }
     #volume-tracker-app .nav-btn[aria-current="page"]::before { background: var(--accent); }
     #volume-tracker-app .toast {
@@ -1101,10 +1095,11 @@ svg {
       transform: translate(-50%, 18px);
       width: min(calc(100% - 32px), 520px);
       padding: 13px 15px;
-      border-radius: 13px;
-      background: var(--text);
-      color: var(--bg);
-      box-shadow: 0 12px 40px rgba(28,36,34,.22);
+      border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line));
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface-2) 94%, black);
+      color: var(--text);
+      box-shadow: 0 12px 40px rgba(0,0,0,.38);
       font-weight: 750;
       opacity: 0;
       pointer-events: none;
@@ -1117,31 +1112,32 @@ svg {
       max-height: min(90dvh, 820px);
       overflow: auto;
       border: 1px solid var(--line);
-      border-radius: 20px;
+      border-radius: calc(var(--radius) + 2px);
       background: var(--surface);
       color: var(--text);
       padding: 0;
-      box-shadow: 0 30px 80px rgba(28,36,34,.28);
+      box-shadow: 0 30px 80px rgba(0,0,0,.58);
     }
-    #volume-tracker-app dialog::backdrop { background: rgba(28,36,34,.48); backdrop-filter: blur(3px); }
+    #volume-tracker-app dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(4px); }
     #volume-tracker-app .dialog-body { padding: 20px; display: grid; gap: 16px; }
     #volume-tracker-app .dialog-actions { display: flex; justify-content: end; gap: 8px; }
     #volume-tracker-app .history-item { display: grid; gap: 8px; padding: 14px 0; }
     #volume-tracker-app .history-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     #volume-tracker-app .session-detail-dialog { width: min(calc(100% - 28px), 760px); }
     #volume-tracker-app .detail-summary { display: grid; gap: 12px; }
-    #volume-tracker-app .detail-exercise { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); }
+    #volume-tracker-app .detail-exercise { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: var(--surface-2); }
     #volume-tracker-app .detail-set { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
     #volume-tracker-app .detail-set-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    #volume-tracker-app .detail-value { display: grid; gap: 2px; padding: 8px; border-radius: 10px; background: var(--surface-2); }
+    #volume-tracker-app .detail-value { display: grid; gap: 2px; padding: 8px; border-radius: var(--radius-sm); background: var(--surface-2); }
     #volume-tracker-app .detail-value span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
-    #volume-tracker-app .detail-drop { padding: 10px; border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; background: color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
+    #volume-tracker-app .detail-drop { padding: 10px; border-left: 3px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
     #volume-tracker-app .detail-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
     #volume-tracker-app .guard-copy { line-height: 1.55; }
     #volume-tracker-app .page-intro { position: relative; display: grid; gap: 10px; padding: 8px 0 4px 18px; border-left: 2px solid var(--accent); }
     #volume-tracker-app .page-intro .muted { max-width: 62ch; }
-    #volume-tracker-app .ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); }
-    #volume-tracker-app .ledger-cell { min-width: 0; display: grid; align-content: space-between; gap: 13px; min-height: 102px; padding: 15px; background: var(--surface); }
+    #volume-tracker-app .ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--line); }
+    #volume-tracker-app .ledger-cell { min-width: 0; display: grid; align-content: space-between; gap: 13px; min-height: 102px; padding: 15px; border-top: 2px solid transparent; background: var(--surface); }
+    #volume-tracker-app .ledger-cell:first-child { border-top-color: var(--accent); }
     #volume-tracker-app .ledger-cell > span:first-child { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     #volume-tracker-app .ledger-cell strong { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(23px, 6vw, 34px); line-height: .95; letter-spacing: -.045em; }
     #volume-tracker-app .ledger-cell small { color: var(--muted); font-size: 11px; }
@@ -1150,15 +1146,15 @@ svg {
     #volume-tracker-app .journal-date { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.4; text-transform: uppercase; }
     #volume-tracker-app .journal-body { min-width: 0; display: grid; gap: 9px; }
     #volume-tracker-app .journal-actions { display: flex; gap: 7px; flex-wrap: wrap; }
-    #volume-tracker-app .journal-disclosure { border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); background: color-mix(in srgb, var(--surface) 84%, transparent); }
-    #volume-tracker-app .journal-disclosure > summary { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 82px; padding: 16px 0; cursor: pointer; }
+    #volume-tracker-app .journal-disclosure { border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+    #volume-tracker-app .journal-disclosure > summary { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 82px; padding: 16px; cursor: pointer; }
     #volume-tracker-app .journal-disclosure > summary::-webkit-details-marker { display: none; }
     #volume-tracker-app .journal-summary-meta { display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: var(--muted); text-align: right; }
-    #volume-tracker-app .journal-chevron { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface); color: var(--accent); font-size: 20px; transition: transform .2s ease; }
+    #volume-tracker-app .journal-chevron { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--accent); font-size: 20px; transition: transform .2s ease; }
     #volume-tracker-app .journal-disclosure[open] .journal-chevron { transform: rotate(45deg); }
     #volume-tracker-app .journal-disclosure[open] > summary { border-bottom: 1px solid var(--line); }
-    #volume-tracker-app .journal-disclosure .journal { border-top: 0; }
-    #volume-tracker-app .journal-footer { padding: 16px 0; }
+    #volume-tracker-app .journal-disclosure .journal { margin: 0 16px; border-top: 0; }
+    #volume-tracker-app .journal-footer { padding: 16px; }
     #volume-tracker-app .free-session {
       position: relative;
       display: grid;
@@ -1167,11 +1163,15 @@ svg {
       align-items: center;
       overflow: hidden;
       padding: 22px;
-      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
-      background: color-mix(in srgb, var(--accent) 9%, var(--surface));
-      box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 54%),
+        var(--surface);
+      box-shadow: none;
     }
-    #volume-tracker-app .free-session::before { content: "00"; position: absolute; right: 12px; bottom: -25px; color: color-mix(in srgb, var(--accent) 8%, transparent); font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: 112px; font-weight: 900; line-height: 1; pointer-events: none; }
+    #volume-tracker-app .free-session::before { content: "00"; position: absolute; right: 12px; bottom: -25px; color: color-mix(in srgb, var(--accent) 10%, transparent); font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: 112px; font-weight: 900; line-height: 1; pointer-events: none; }
     #volume-tracker-app .free-session > * { position: relative; z-index: 1; }
     #volume-tracker-app .profile-defaults > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
     #volume-tracker-app .profile-defaults > summary::-webkit-details-marker { display: none; }
@@ -1179,7 +1179,7 @@ svg {
     #volume-tracker-app .profile-defaults[open] .journal-chevron { transform: rotate(45deg); }
     #volume-tracker-app .section-rule { display: flex; align-items: center; gap: 12px; }
     #volume-tracker-app .section-rule::after { content: ""; min-width: 24px; height: 1px; flex: 1; background: var(--line); }
-    #volume-tracker-app .proof-card { display: grid; gap: 16px; padding: 19px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); background: var(--surface); }
+    #volume-tracker-app .proof-card { display: grid; gap: 16px; padding: 19px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
     #volume-tracker-app .proof-card.progress { border-left-color: var(--accent); }
     #volume-tracker-app .proof-card.confirmed { border-left-color: var(--positive); }
     #volume-tracker-app .proof-card.down { border-left-color: var(--orange); }
@@ -1196,7 +1196,7 @@ svg {
     #volume-tracker-app .evidence-mark.progress { background: var(--accent); }
     #volume-tracker-app .evidence-mark.confirmed { background: var(--positive); }
     #volume-tracker-app .evidence-mark.down { background: var(--orange); }
-    #volume-tracker-app .quiet-panel { padding: 17px 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    #volume-tracker-app .quiet-panel { padding: 17px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 82%, transparent); }
     #volume-tracker-app .target-line { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: center; }
     #volume-tracker-app .target-line input { border-color: var(--line-strong); background: var(--surface); }
     #volume-tracker-app .measure-note { padding: 12px 0 0 13px; border-left: 1px solid var(--line-strong); color: var(--muted); font-size: 12px; }
@@ -1278,7 +1278,6 @@ svg {
   <div class="app-shell">
     <header class="topbar">
       <button class="brand" type="button" data-action="brand-home" aria-label="Retourner à l’accueil">
-        <img class="brand-mark" src="./icons/logo-transparent.png" alt="" width="25" height="40">
         <span class="brand-copy">
           <span class="brand-name">MYGYM</span>
         </span>
@@ -1397,7 +1396,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "2.1.0";
+      const APP_VERSION = "2.1.1";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";

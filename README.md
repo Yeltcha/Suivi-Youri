@@ -2,7 +2,9 @@
 
 MYGYM est un carnet d’entraînement de musculation installable sur téléphone. Il permet de créer des programmes, d’enregistrer des séances planifiées ou libres et de consulter des statistiques fondées sur les données réellement saisies.
 
-## Version 2.1.0
+## Version 2.1.1
+
+La version 2.1.1 adopte une interface exclusivement sombre, sans logo dans l’en-tête. La hiérarchie repose sur la typographie, des surfaces peu arrondies et un accent orange réservé aux actions et repères actifs.
 
 L’application comprend quatre espaces :
 
@@ -30,7 +32,7 @@ Le volume-charge correspond à la somme des charges effectives multipliées par 
 - Les séances enregistrées restent des instantanés indépendants du programme modèle.
 - Modifier une séance en cours ne modifie pas le programme.
 - Les données sont conservées localement puis synchronisées avec Supabase lorsque le compte est connecté.
-- Le service worker utilise le cache `mygym-v27`.
+- Le service worker utilise le cache `mygym-v28`.
 
 Les tests de non-régression s’exécutent avec :
 

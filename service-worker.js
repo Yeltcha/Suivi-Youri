@@ -1,11 +1,9 @@
-const CACHE_NAME = "mygym-v27";
+const CACHE_NAME = "mygym-v28";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./supabase-client.js",
   "./manifest.webmanifest",
-  "./icons/logo-transparent.svg",
-  "./icons/logo-transparent.png",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
