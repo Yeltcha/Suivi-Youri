@@ -997,7 +997,7 @@ svg {
     #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
     #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 2px; background: color-mix(in srgb, var(--positive) 8%, transparent); }
     #volume-tracker-app .set-intent-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-left: 37px; }
-    #volume-tracker-app .set-intent-row input { width: 94px; min-height: 36px; padding: 6px 8px; text-align: center; }
+    #volume-tracker-app .set-intent-row select { width: min(100%, 250px); min-height: 38px; padding: 6px 9px; }
     #volume-tracker-app .set-target-label { color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
     #volume-tracker-app .role-badge.heavy { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
     #volume-tracker-app .role-badge.backoff { color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--surface-2)); }
@@ -1197,8 +1197,8 @@ svg {
     #volume-tracker-app .evidence-mark.confirmed { background: var(--positive); }
     #volume-tracker-app .evidence-mark.down { background: var(--orange); }
     #volume-tracker-app .quiet-panel { padding: 17px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 82%, transparent); }
-    #volume-tracker-app .target-line { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: center; }
-    #volume-tracker-app .target-line input { border-color: var(--line-strong); background: var(--surface); }
+    #volume-tracker-app .series-role-row { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: center; }
+    #volume-tracker-app .series-role-row select { border-color: var(--line-strong); background: var(--surface); }
     #volume-tracker-app .measure-note { padding: 12px 0 0 13px; border-left: 1px solid var(--line-strong); color: var(--muted); font-size: 12px; }
     #volume-tracker-app .notice { border-radius: 3px; }
     #volume-tracker-app .empty-icon { border-radius: 50%; }
@@ -1326,7 +1326,7 @@ svg {
       <label class="row small"><input name="unilateral" type="checkbox" style="width:auto;min-height:auto"> Exercice unilatéral</label>
       <label class="row small"><input id="library-warmup-default" name="warmupDefault" type="checkbox" style="width:auto;min-height:auto"> Activer W par défaut pour les séries de cet exercice</label>
       <div id="library-session-sets-field" class="field" hidden><label for="library-session-sets">Nombre de séries pour cette séance</label><input id="library-session-sets" name="sessionSets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
-      <div id="library-session-rep-target-field" class="field" hidden><label for="library-session-rep-target">Cible de répétitions</label><input id="library-session-rep-target" name="sessionRepTarget" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="Ex. 6 ou 8-10"><span class="small muted">Une valeur exacte ou une fourchette, facultative.</span></div>
+      <div id="library-session-role-note" class="notice" hidden>Les séries de travail seront réparties par défaut en Top sets (4–6 reps), puis en Back-off (8–12 reps). Chaque série restera modifiable individuellement.</div>
       <label id="library-session-rir-field" class="row small" hidden><input id="library-session-rir-enabled" name="sessionRirEnabled" type="checkbox" checked style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice dans cette séance</label>
       <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-action="close-library-exercise">Annuler</button><button id="library-submit-button" class="btn btn-primary" type="submit">Enregistrer</button></div>
     </form>
@@ -1339,7 +1339,7 @@ svg {
       <div class="field"><label for="picker-exercise">Exercice de la bibliothèque</label><select id="picker-exercise" name="exerciseId" required></select></div>
       <p id="picker-exercise-count" class="small muted"></p>
       <div class="field"><label for="picker-sets">Nombre de séries prévues</label><input id="picker-sets" name="sets" type="number" inputmode="numeric" min="1" max="12" value="3" required></div>
-      <div class="field"><label for="picker-rep-target">Cible de répétitions</label><input id="picker-rep-target" name="repTarget" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="Ex. 6 ou 8-10"><span class="small muted">Appliquée aux séries de travail ; tu pourras ensuite personnaliser chaque série.</span></div>
+      <div class="notice">Répartition initiale : Top sets (4–6 reps), puis Back-off (8–12 reps). Le type reste modifiable série par série.</div>
       <label class="row small"><input id="picker-rir-enabled" name="rirEnabled" type="checkbox" checked style="width:auto;min-height:auto"> Suivre le RIR pour cet exercice</label>
       <label class="row small"><input id="picker-warmup-default" name="warmupDefault" type="checkbox" style="width:auto;min-height:auto"> Activer W par défaut pour les séries ajoutées</label>
       <p id="picker-exercise-detail" class="small muted"></p>
@@ -1396,7 +1396,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "2.1.1";
+      const APP_VERSION = "2.2.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1433,9 +1433,10 @@ svg {
       ];
 
       const REP_RANGES = [
-        { id: "1-5", label: "1 à 5 reps", min: 1, max: 5 },
-        { id: "6-8", label: "6 à 8 reps", min: 6, max: 8 },
-        { id: "9-12", label: "9 à 12 reps", min: 9, max: 12 },
+        { id: "1-3", label: "1 à 3 reps", min: 1, max: 3 },
+        { id: "4-6", label: "4 à 6 reps", min: 4, max: 6 },
+        { id: "7", label: "7 reps", min: 7, max: 7 },
+        { id: "8-12", label: "8 à 12 reps", min: 8, max: 12 },
         { id: "13-15", label: "13 à 15 reps", min: 13, max: 15 },
         { id: "16-20", label: "16 à 20 reps", min: 16, max: 20 },
         { id: "21+", label: "21 reps et plus", min: 21, max: 100 }
@@ -1478,20 +1479,15 @@ svg {
         goal: "hypertrophy",
         experience: "intermediate",
         effortStyle: "highIntensity",
-        heavyRepAnchor: 6,
-        backoffRepAnchor: 10,
         targetRirMin: 0,
-        targetRirMax: 1,
-        minRepsGuardrail: 4,
-        maxRepsGuardrail: 15
+        targetRirMax: 1
       };
 
       const SET_ROLES = ["heavy", "backoff", "free"];
-
-      const GOAL_GUARDRAILS = {
-        hypertrophy: { min: 4, max: 15 },
-        strengthHypertrophy: { min: 3, max: 12 },
-        strength: { min: 1, max: 8 }
+      const SET_ROLE_CONFIG = {
+        heavy: { label: "Top set", shortLabel: "Top", min: 4, max: 6 },
+        backoff: { label: "Back-off", shortLabel: "Back-off", min: 8, max: 12 },
+        free: { label: "Libre", shortLabel: "Libre", min: null, max: null }
       };
 
       const PROGRAM = [
@@ -1634,7 +1630,7 @@ svg {
       let statsDays = 0;
       let selectedExercise = "";
       let selectedRepRange = "";
-      let selectedSetRole = "all";
+      let selectedSetRole = "heavy";
       let libraryQuery = "";
       let libraryMuscleFilter = "all";
       let editingLibraryExerciseId = "";
@@ -1661,7 +1657,7 @@ svg {
 
       function defaultState() {
         return {
-          version: 10,
+          version: 11,
           settings: { bodyweightKg: 84.3, targetSessionsWeek: 6, practitionerProfile: { ...DEFAULT_PRACTITIONER_PROFILE } },
           sessions: [],
           draft: null,
@@ -1702,7 +1698,7 @@ svg {
           : base.programs;
         const requestedActiveProgram = typeof input.activeProgramId === "string" ? input.activeProgramId : base.activeProgramId;
         return {
-          version: 10,
+          version: 11,
           settings: {
             bodyweightKg: finiteNumber(input.settings?.bodyweightKg, base.settings.bodyweightKg),
             targetSessionsWeek: finiteNumber(input.settings?.targetSessionsWeek, base.settings.targetSessionsWeek),
@@ -1836,26 +1832,43 @@ svg {
         const sourceSets = Array.isArray(exercise.sets)
           ? exercise.sets.filter(set => set && typeof set === "object")
           : [];
+        const plannedSets = Math.max(1, finiteNumber(exercise.plannedSets, sourceSets.length || 1));
+        const warmupDefault = Boolean(exercise.warmupDefault);
+        const adaptiveSettings = normalizeAdaptiveSettings(exercise);
+        const {
+          progressionMode: _legacyProgressionMode,
+          customMinRepsGuardrail: _legacyCustomMinReps,
+          customMaxRepsGuardrail: _legacyCustomMaxReps,
+          heavyRepAnchor: _legacyHeavyAnchor,
+          backoffRepAnchor: _legacyBackoffAnchor,
+          minRepsGuardrail: _legacyMinReps,
+          maxRepsGuardrail: _legacyMaxReps,
+          repTarget: _legacyRepTarget,
+          ...source
+        } = exercise;
         return {
-          ...exercise,
+          ...source,
           rirEnabled: exercise.rirEnabled !== false,
-          warmupDefault: Boolean(exercise.warmupDefault),
-          ...normalizeAdaptiveSettings(exercise),
-          sets: sourceSets.map((set, index) => normalizeSet(set, index, sourceSets.length, exercise.warmupDefault))
+          warmupDefault,
+          plannedSets,
+          setPlan: normalizeSetPlan(exercise.setPlan, plannedSets, warmupDefault),
+          ...adaptiveSettings,
+          sets: sourceSets.map((set, index) => normalizeSet(set, index, sourceSets.length, warmupDefault))
         };
       }
 
       function normalizeSet(set, index = 0, total = 1, warmupDefault = false) {
-        const fallback = defaultSetPlan(total, warmupDefault)[index] || { role: "free", repAnchor: "" };
+        const fallback = defaultSetPlan(total, warmupDefault)[index] || { role: "free" };
+        const role = inferLegacySetRole(set, fallback.role);
+        const { repAnchor: _legacyRepAnchor, ...source } = set;
         return {
-          ...set,
+          ...source,
           id: set.id || uid("set"),
           weight: set.weight ?? "",
           reps: set.reps ?? "",
           rir: set.rir ?? "",
           warmup: Boolean(set.warmup),
-          role: normalizeSetRole(set.role || fallback.role),
-          repAnchor: normalizeRepAnchor(set.repAnchor, fallback.repAnchor),
+          role,
           validated: Boolean(set.validated),
           stopReason: ["muscularFailure", "technicalFailure", "pain", "voluntary"].includes(set.stopReason) ? set.stopReason : "",
           drops: Array.isArray(set.drops)
@@ -1871,35 +1884,26 @@ svg {
 
       function normalizePractitionerProfile(profile = {}) {
         const goal = ["hypertrophy", "strengthHypertrophy", "strength"].includes(profile.goal) ? profile.goal : DEFAULT_PRACTITIONER_PROFILE.goal;
-        const goalDefaults = GOAL_GUARDRAILS[goal];
-        const minRepsGuardrail = Math.max(1, Math.min(30, Math.round(finiteNumber(profile.minRepsGuardrail, goalDefaults.min))));
         const targetRirMin = Math.max(0, Math.min(5, Math.round(finiteNumber(profile.targetRirMin, DEFAULT_PRACTITIONER_PROFILE.targetRirMin))));
         return {
           configured: profile.configured === undefined ? DEFAULT_PRACTITIONER_PROFILE.configured : Boolean(profile.configured),
           goal,
           experience: ["beginner", "intermediate", "advanced"].includes(profile.experience) ? profile.experience : DEFAULT_PRACTITIONER_PROFILE.experience,
           effortStyle: ["controlled", "nearFailure", "highIntensity"].includes(profile.effortStyle) ? profile.effortStyle : DEFAULT_PRACTITIONER_PROFILE.effortStyle,
-          heavyRepAnchor: normalizeRepAnchor(profile.heavyRepAnchor, DEFAULT_PRACTITIONER_PROFILE.heavyRepAnchor),
-          backoffRepAnchor: normalizeRepAnchor(profile.backoffRepAnchor, DEFAULT_PRACTITIONER_PROFILE.backoffRepAnchor),
           targetRirMin,
-          targetRirMax: Math.max(targetRirMin, Math.min(5, Math.round(finiteNumber(profile.targetRirMax, DEFAULT_PRACTITIONER_PROFILE.targetRirMax)))),
-          minRepsGuardrail,
-          maxRepsGuardrail: Math.max(minRepsGuardrail, Math.min(50, Math.round(finiteNumber(profile.maxRepsGuardrail, goalDefaults.max))))
+          targetRirMax: Math.max(targetRirMin, Math.min(5, Math.round(finiteNumber(profile.targetRirMax, DEFAULT_PRACTITIONER_PROFILE.targetRirMax))))
         };
       }
 
       function normalizeAdaptiveSettings(exercise = {}) {
-        const hasAdaptiveSettings = ["useProfileDefaults", "assistantEnabled", "customTargetRirMin", "customTargetRirMax", "customMinRepsGuardrail", "customMaxRepsGuardrail", "customLoadIncrementKg"]
+        const hasAdaptiveSettings = ["useProfileDefaults", "assistantEnabled", "customTargetRirMin", "customTargetRirMax", "customLoadIncrementKg"]
           .some(field => Object.prototype.hasOwnProperty.call(exercise, field));
-        const customMin = Math.max(1, Math.min(30, Math.round(finiteNumber(exercise.customMinRepsGuardrail, 4))));
         const customTargetRirMin = Math.max(0, Math.min(5, Math.round(finiteNumber(exercise.customTargetRirMin, 0))));
         return {
           assistantEnabled: hasAdaptiveSettings ? exercise.assistantEnabled !== false : exercise.progressionMode !== "trackOnly",
           useProfileDefaults: hasAdaptiveSettings ? exercise.useProfileDefaults !== false : true,
           customTargetRirMin,
           customTargetRirMax: Math.max(customTargetRirMin, Math.min(5, Math.round(finiteNumber(exercise.customTargetRirMax, 1)))),
-          customMinRepsGuardrail: customMin,
-          customMaxRepsGuardrail: Math.max(customMin, Math.min(50, Math.round(finiteNumber(exercise.customMaxRepsGuardrail, 15)))),
           customLoadIncrementKg: Math.max(0.25, Math.min(50, finiteNumber(exercise.customLoadIncrementKg, 2.5)))
         };
       }
@@ -1972,7 +1976,7 @@ svg {
         const activeProgramId = programs.some(program => program.id === preferred.activeProgramId) ? preferred.activeProgramId : (programs[0]?.id || "");
         return normalizeState({
           ...preferred,
-          version: 10,
+          version: 11,
           settings: preferred.settings,
           sessions: mergeById(secondary.sessions, preferred.sessions, deletedSessionIds),
           draft: preferred.draft || secondary.draft || null,
@@ -2257,112 +2261,112 @@ svg {
         return SET_ROLES.includes(role) ? role : "free";
       }
 
-      function normalizeRepAnchor(value, fallback = "") {
-        const parse = input => {
-          const raw = String(input ?? "")
-            .trim()
-            .toLocaleLowerCase("fr")
-            .replace(/[–—]/g, "-")
-            .replace(/\s*(?:à|to)\s*/g, "-")
-            .replace(/\s+/g, "");
-          if (!raw) return null;
-          const match = raw.match(/^(\d{1,2})(?:-(\d{1,2}))?$/);
-          if (!match) return null;
-          const first = Math.max(1, Math.min(50, Math.round(finiteNumber(match[1], 1))));
-          if (!match[2]) return first;
-          const second = Math.max(1, Math.min(50, Math.round(finiteNumber(match[2], first))));
-          const min = Math.min(first, second);
-          const max = Math.max(first, second);
-          return min === max ? min : `${min}-${max}`;
-        };
-        return parse(value) ?? parse(fallback) ?? "";
-      }
-
-      function repTargetBounds(value) {
-        const normalized = normalizeRepAnchor(value, "");
-        if (!normalized) return null;
-        const [min, max = min] = String(normalized).split("-").map(part => finiteNumber(part));
-        return { min, max, isRange: min !== max };
-      }
-
-      function repTargetLabel(value) {
-        const bounds = repTargetBounds(value);
-        if (!bounds) return "";
-        return bounds.isRange ? `${bounds.min}–${bounds.max}` : String(bounds.min);
-      }
-
       function setRoleLabel(role, warmup = false) {
         if (warmup) return "Échauffement";
-        return ({ heavy: "Lourde", backoff: "Back-off", free: "Libre" })[normalizeSetRole(role)] || "Libre";
+        return SET_ROLE_CONFIG[normalizeSetRole(role)]?.label || "Libre";
       }
 
       function setRoleShortLabel(role, warmup = false) {
         if (warmup) return "W";
-        return ({ heavy: "Lourde", backoff: "Back-off", free: "Libre" })[normalizeSetRole(role)] || "Libre";
+        return SET_ROLE_CONFIG[normalizeSetRole(role)]?.shortLabel || "Libre";
       }
 
-      function defaultSetPlan(count = 3, warmupDefault = false, profile = DEFAULT_PRACTITIONER_PROFILE) {
+      function setRoleBounds(role) {
+        const config = SET_ROLE_CONFIG[normalizeSetRole(role)];
+        return Number.isFinite(config?.min) && Number.isFinite(config?.max)
+          ? { min: config.min, max: config.max, isRange: config.min !== config.max }
+          : null;
+      }
+
+      function setRoleRangeLabel(role) {
+        const bounds = setRoleBounds(role);
+        return bounds ? `${bounds.min}–${bounds.max} reps` : "sans plage imposée";
+      }
+
+      function setRoleOptionLabel(role) {
+        return `${setRoleLabel(role)} · ${setRoleRangeLabel(role)}`;
+      }
+
+      function setRoleIndefiniteLabel(role) {
+        return normalizeSetRole(role) === "free" ? "une série libre" : `un ${setRoleLabel(role)}`;
+      }
+
+      function setRoleDefiniteLabel(role) {
+        return normalizeSetRole(role) === "free" ? "de la série libre" : `du ${setRoleLabel(role)}`;
+      }
+
+      function setRoleNextLabel(role) {
+        return normalizeSetRole(role) === "free" ? "la prochaine série libre" : `le prochain ${setRoleLabel(role)}`;
+      }
+
+      function setRoleOptions(selectedRole) {
+        const selected = normalizeSetRole(selectedRole);
+        return SET_ROLES.map(role => `<option value="${role}" ${role === selected ? "selected" : ""}>${esc(setRoleOptionLabel(role))}</option>`).join("");
+      }
+
+      function legacyRepBounds(value) {
+        const raw = String(value ?? "")
+          .trim()
+          .toLocaleLowerCase("fr")
+          .replace(/[–—]/g, "-")
+          .replace(/\s*(?:à|to)\s*/g, "-")
+          .replace(/\s+/g, "");
+        if (!raw) return null;
+        const match = raw.match(/^(\d{1,2})(?:-(\d{1,2}))?$/);
+        if (!match) return null;
+        const first = Math.max(1, Math.min(100, Math.round(finiteNumber(match[1], 1))));
+        const second = match[2] ? Math.max(1, Math.min(100, Math.round(finiteNumber(match[2], first)))) : first;
+        return { min: Math.min(first, second), max: Math.max(first, second) };
+      }
+
+      function inferLegacySetRole(item = {}, fallbackRole = "free") {
+        const explicitRole = SET_ROLES.includes(item.role) ? item.role : "";
+        if (explicitRole && explicitRole !== "free") return explicitRole;
+        const legacyBounds = legacyRepBounds(item.repAnchor);
+        if (legacyBounds) {
+          const midpoint = (legacyBounds.min + legacyBounds.max) / 2;
+          if (midpoint <= 7) return "heavy";
+          if (midpoint >= 8 && midpoint <= 12) return "backoff";
+        }
+        return explicitRole || normalizeSetRole(fallbackRole);
+      }
+
+      function defaultSetPlan(count = 3, warmupDefault = false) {
         const total = Math.max(1, Math.min(12, Math.round(finiteNumber(count, 3))));
-        const heavyAnchor = normalizeRepAnchor(profile.heavyRepAnchor, DEFAULT_PRACTITIONER_PROFILE.heavyRepAnchor);
-        const backoffAnchor = normalizeRepAnchor(profile.backoffRepAnchor, DEFAULT_PRACTITIONER_PROFILE.backoffRepAnchor);
-        if (warmupDefault) return Array.from({ length: total }, () => ({ role: "free", repAnchor: "" }));
-        if (total === 1) return [{ role: "heavy", repAnchor: heavyAnchor }];
-        if (total === 2) return [{ role: "heavy", repAnchor: heavyAnchor }, { role: "backoff", repAnchor: backoffAnchor }];
+        if (warmupDefault) return Array.from({ length: total }, () => ({ role: "free" }));
+        if (total === 1) return [{ role: "heavy" }];
+        if (total === 2) return [{ role: "heavy" }, { role: "backoff" }];
         return Array.from({ length: total }, (_, index) => index < 2
-          ? { role: "heavy", repAnchor: heavyAnchor }
-          : { role: "backoff", repAnchor: backoffAnchor });
+          ? { role: "heavy" }
+          : { role: "backoff" });
       }
 
-      function normalizeSetPlan(plan, count = 3, warmupDefault = false, profile = DEFAULT_PRACTITIONER_PROFILE) {
-        const defaults = defaultSetPlan(count, warmupDefault, profile);
+      function normalizeSetPlan(plan, count = 3, warmupDefault = false) {
+        const defaults = defaultSetPlan(count, warmupDefault);
         const source = Array.isArray(plan) ? plan : [];
         return defaults.map((fallback, index) => {
           const item = source[index] && typeof source[index] === "object" ? source[index] : {};
-          return {
-            role: normalizeSetRole(item.role || fallback.role),
-            repAnchor: normalizeRepAnchor(item.repAnchor, fallback.repAnchor)
-          };
+          return { role: warmupDefault ? "free" : inferLegacySetRole(item, fallback.role) };
         });
       }
 
-      function setPlanWithRepTarget(plan, count, warmupDefault, target, profile = DEFAULT_PRACTITIONER_PROFILE) {
-        const normalizedPlan = normalizeSetPlan(plan, count, warmupDefault, profile);
-        const normalizedTarget = normalizeRepAnchor(target, "");
-        if (!normalizedTarget || warmupDefault) return normalizedPlan;
-        return normalizedPlan.map(item => ({ ...item, repAnchor: normalizedTarget }));
-      }
-
-      function resizeTemplateSetPlan(exercise, count, profile = state.settings?.practitionerProfile) {
+      function resizeTemplateSetPlan(exercise, count) {
         const plannedSets = Math.max(1, Math.min(12, Math.round(finiteNumber(count, exercise?.plannedSets || 3))));
         exercise.plannedSets = plannedSets;
-        exercise.setPlan = normalizeSetPlan(exercise.setPlan, plannedSets, Boolean(exercise.warmupDefault), normalizePractitionerProfile(profile));
+        exercise.setPlan = normalizeSetPlan(exercise.setPlan, plannedSets, Boolean(exercise.warmupDefault));
         return exercise.setPlan;
       }
 
       function setPlanSummary(exercise) {
-        if (exercise.warmupDefault) return `${exercise.plannedSets} W`;
-        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, false, normalizePractitionerProfile(state.settings?.practitionerProfile));
+        if (exercise.warmupDefault) return `${exercise.plannedSets} × Échauffement`;
+        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, false);
         const groups = [];
         ["heavy", "backoff", "free"].forEach(role => {
           const entries = plan.filter(item => item.role === role);
           if (!entries.length) return;
-          const anchors = [...new Set(entries.map(item => repTargetLabel(item.repAnchor)).filter(Boolean))];
-          groups.push(`${entries.length} ${setRoleLabel(role).toLowerCase()}${entries.length > 1 && role === "heavy" ? "s" : ""}${anchors.length === 1 ? ` · ${anchors[0]} reps` : ""}`);
+          groups.push(`${entries.length} × ${setRoleLabel(role)} · ${setRoleRangeLabel(role)}`);
         });
         return groups.join(" · ");
-      }
-
-      function setTargetSummary(exercise) {
-        if (exercise.warmupDefault) return `${exercise.plannedSets} série${exercise.plannedSets > 1 ? "s" : ""} W`;
-        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, false, normalizePractitionerProfile(state.settings?.practitionerProfile));
-        const targets = plan.map(item => repTargetLabel(item.repAnchor) || "libre");
-        const groups = [];
-        targets.forEach(target => {
-          const previous = groups.at(-1);
-          if (previous?.target === target) previous.count += 1;
-          else groups.push({ target, count: 1 });
-        });
-        return groups.map(group => `${group.count} × ${group.target}${group.target === "libre" ? "" : " reps"}`).join(" · ");
       }
 
       function defaultIncrementForExercise(exercise) {
@@ -2382,8 +2386,6 @@ svg {
           effortStyle: profile.effortStyle,
           targetRirMin: custom.useProfileDefaults ? profile.targetRirMin : custom.customTargetRirMin,
           targetRirMax: custom.useProfileDefaults ? profile.targetRirMax : custom.customTargetRirMax,
-          minRepsGuardrail: custom.useProfileDefaults ? profile.minRepsGuardrail : custom.customMinRepsGuardrail,
-          maxRepsGuardrail: custom.useProfileDefaults ? profile.maxRepsGuardrail : custom.customMaxRepsGuardrail,
           loadIncrementKg: custom.useProfileDefaults ? defaultIncrementForExercise(exercise) : custom.customLoadIncrementKg
         };
       }
@@ -2392,12 +2394,12 @@ svg {
         const settings = effectiveAdaptiveSettings(exercise);
         if (!settings.assistantEnabled) return exercise.warmupDefault ? "Exercice d’échauffement" : "Suivi simple, sans recommandation";
         const source = settings.usesProfile ? "Valeurs générales" : "Valeurs personnalisées";
-        return `${source} · effort RIR ${settings.targetRirMin}–${settings.targetRirMax} · garde-fous ${settings.minRepsGuardrail}–${settings.maxRepsGuardrail} reps · palier ${formatNumber(settings.loadIncrementKg, 2)} ${comparableWeightUnit(exercise.loadType)}`;
+        return `${source} · Top set 4–6 · Back-off 8–12 · effort RIR ${settings.targetRirMin}–${settings.targetRirMax} · palier ${formatNumber(settings.loadIncrementKg, 2)} ${comparableWeightUnit(exercise.loadType)}`;
       }
 
       function practitionerProfileSummary(profile = state.settings?.practitionerProfile) {
         const normalized = normalizePractitionerProfile(profile);
-        return `repères ${normalized.heavyRepAnchor} puis ${normalized.backoffRepAnchor} reps · RIR ${normalized.targetRirMin}–${normalized.targetRirMax} · seuils ${normalized.minRepsGuardrail}–${normalized.maxRepsGuardrail} reps`;
+        return `Top set 4–6 reps · Back-off 8–12 reps · série libre sans plage imposée · RIR ${normalized.targetRirMin}–${normalized.targetRirMax}`;
       }
 
       function getLibraryExercise(exerciseId) {
@@ -2416,7 +2418,7 @@ svg {
           muscle: libraryExercise?.muscle || templateExercise.muscle || "other",
           loadType: libraryExercise?.loadType || templateExercise.loadType || "total",
           plannedSets,
-          setPlan: normalizeSetPlan(templateExercise.setPlan, plannedSets, warmupDefault, normalizePractitionerProfile(state.settings?.practitionerProfile)),
+          setPlan: normalizeSetPlan(templateExercise.setPlan, plannedSets, warmupDefault),
           rirEnabled: templateExercise.rirEnabled !== false,
           warmupDefault,
           ...normalizeAdaptiveSettings(templateExercise)
@@ -2492,7 +2494,7 @@ svg {
           feedback: blankSessionFeedback(),
           comments: "",
           exercises: template.exercises.map((exercise, index) => {
-            const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault, normalizePractitionerProfile(state.settings.practitionerProfile));
+            const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault);
             return {
               ...exercise,
               setPlan: plan,
@@ -2500,7 +2502,7 @@ svg {
               order: index + 1,
               bodyweightKg: finiteNumber(state.settings.bodyweightKg),
               comments: "",
-              sets: plan.map(item => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: item.role, repAnchor: item.repAnchor, validated: false, stopReason: "", drops: [] }))
+              sets: plan.map(item => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: item.role, validated: false, stopReason: "", drops: [] }))
             };
           })
         };
@@ -2561,10 +2563,9 @@ svg {
           ? "Ce nouvel exercice sera enregistré dans ta bibliothèque et ajouté à cette séance modèle. Les autres séances et programmes ne seront pas modifiés."
           : "Ce nouvel exercice sera enregistré dans ta bibliothèque et ajouté uniquement à la séance en cours. Tes programmes ne seront pas modifiés.";
         root.querySelector("#library-session-sets-field").hidden = !isContextCreation;
-        root.querySelector("#library-session-rep-target-field").hidden = !isContextCreation;
+        root.querySelector("#library-session-role-note").hidden = !isContextCreation;
         root.querySelector("#library-session-rir-field").hidden = !isContextCreation;
         root.querySelector("#library-session-sets").value = Math.max(1, Math.min(12, finiteNumber(options.plannedSets, 3)));
-        root.querySelector("#library-session-rep-target").value = repTargetLabel(options.repTarget);
         root.querySelector("#library-session-rir-enabled").checked = options.rirEnabled !== false;
         root.querySelector("#library-warmup-default").checked = Boolean(exercise?.warmupDefault ?? options.warmupDefault);
         root.querySelector("#library-submit-button").textContent = isContextCreation ? (libraryDialogMode === "draft-replace" ? "Enregistrer et remplacer" : "Enregistrer et ajouter") : "Enregistrer";
@@ -2633,7 +2634,7 @@ svg {
         if (!state.exerciseLibrary.length) {
           if (isExerciseCreationMode(mode)) {
             const existing = mode === "draft-replace" ? state.draft?.exercises?.[targetIndex] : null;
-            openLibraryExerciseDialog("", { mode, targetIndex, plannedSets: existing?.sets?.length || 3, repTarget: existing?.sets?.find(set => !set.warmup)?.repAnchor || "", rirEnabled: existing?.rirEnabled !== false, warmupDefault: existing?.warmupDefault });
+            openLibraryExerciseDialog("", { mode, targetIndex, plannedSets: existing?.sets?.length || 3, rirEnabled: existing?.rirEnabled !== false, warmupDefault: existing?.warmupDefault });
             showToast("Crée ton premier exercice pour l’ajouter à cette séance.");
           } else {
             showToast("Ajoute d’abord un exercice à la bibliothèque.");
@@ -2650,25 +2651,23 @@ svg {
         const preferredExerciseId = existing?.libraryExerciseId || existing?.id || (getLibraryExercise(lastCreatedLibraryExerciseId) ? lastCreatedLibraryExerciseId : "");
         refreshExercisePickerOptions(preferredExerciseId);
         root.querySelector("#picker-sets").value = existing?.sets?.length || 3;
-        root.querySelector("#picker-rep-target").value = repTargetLabel(existing?.sets?.find(set => !set.warmup)?.repAnchor || "");
         root.querySelector("#picker-rir-enabled").checked = existing?.rirEnabled !== false;
         root.querySelector("#picker-warmup-default").checked = existing ? Boolean(existing.warmupDefault) : Boolean(getLibraryExercise(root.querySelector("#picker-exercise")?.value)?.warmupDefault);
         root.querySelector("#picker-create-exercise").hidden = false;
         openDialog(pickerDialog);
       }
 
-      function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null, rirEnabled = true, warmupDefault = libraryExercise.warmupDefault, repTarget = "") {
+      function draftExerciseFromLibrary(libraryExercise, plannedSets, existing = null, rirEnabled = true, warmupDefault = libraryExercise.warmupDefault) {
         const sets = existing ? [...existing.sets] : [];
-        const plan = setPlanWithRepTarget(existing?.setPlan, plannedSets, warmupDefault, repTarget, normalizePractitionerProfile(state.settings.practitionerProfile));
+        const plan = normalizeSetPlan(existing?.setPlan, plannedSets, warmupDefault);
         while (sets.length < plannedSets) {
-          const item = plan[sets.length] || { role: "free", repAnchor: "" };
-          sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(warmupDefault), role: item.role, repAnchor: item.repAnchor, validated: false, stopReason: "", drops: [] });
+          const item = plan[sets.length] || { role: "free" };
+          sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(warmupDefault), role: item.role, validated: false, stopReason: "", drops: [] });
         }
         if (sets.length > plannedSets) sets.length = plannedSets;
         sets.forEach((set, index) => {
           if (!SET_ROLES.includes(set.role)) set.role = plan[index]?.role || "free";
-          if (normalizeRepAnchor(repTarget, "")) set.repAnchor = plan[index]?.repAnchor ?? "";
-          else if (!hasRecordedValue(set.repAnchor)) set.repAnchor = plan[index]?.repAnchor ?? "";
+          delete set.repAnchor;
         });
         return {
           ...libraryExercise,
@@ -2852,8 +2851,8 @@ svg {
       function formatSetSummary(set) {
         const main = `${esc(set.weight || 0)} kg × ${esc(set.reps || 0)}`;
         const drops = completedDrops(set).map(drop => `${esc(drop.weight || 0)} kg × ${esc(drop.reps || 0)}`);
-        const target = !set.warmup && set.repAnchor ? `cible ${esc(repTargetLabel(set.repAnchor))} · ` : "";
-        return `${set.warmup ? "W · " : target}${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
+        const intent = set.warmup ? "W" : `${setRoleLabel(set.role)} · ${setRoleRangeLabel(set.role)}`;
+        return `${intent} · ${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
       }
 
       function repRangeById(rangeId) {
@@ -2929,13 +2928,15 @@ svg {
         return { passages, trend, best };
       }
 
-      function comparablePassageProofs(sessions, exerciseId, rangeId, loadType) {
+      function comparablePassageProofs(sessions, exerciseId, rangeId, loadType, role = "all") {
         const range = repRangeById(rangeId);
         if (!range) return [];
+        const filterByRole = SET_ROLES.includes(role);
         return sessions.flatMap(session => {
           const candidates = (session.exercises || [])
             .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
             .flatMap(exercise => workingSets(exercise))
+            .filter(set => !filterByRole || normalizeSetRole(set.role) === role)
             .filter(set => setIsInRepRange(set, range) && hasRecordedComparableWeight(set))
             .map(set => ({ weight: finiteNumber(set.weight), reps: setMainReps(set), set }));
           if (!candidates.length) return [];
@@ -2953,8 +2954,8 @@ svg {
         return "stable";
       }
 
-      function exerciseProgressEvidence(sessions, exerciseId, loadType, rangeId) {
-        const passages = comparablePassageProofs(sessions, exerciseId, rangeId, loadType);
+      function exerciseProgressEvidence(sessions, exerciseId, loadType, rangeId, role = "all") {
+        const passages = comparablePassageProofs(sessions, exerciseId, rangeId, loadType, role);
         const range = repRangeById(rangeId);
         const current = passages.at(-1) || null;
         const previous = passages.at(-2) || null;
@@ -2997,13 +2998,15 @@ svg {
 
       function exerciseProgressOverview(sessions) {
         return uniqueExercises(sessions).map(exercise => {
-          const ranges = availableRepRanges(sessions, exercise.id, exercise.loadType, "all")
-            .sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount);
-          const range = ranges[0];
+          const candidates = SET_ROLES.flatMap((role, rolePriority) => availableRepRanges(sessions, exercise.id, exercise.loadType, role)
+            .map(range => ({ role, rolePriority, range })))
+            .sort((a, b) => b.range.passageCount - a.range.passageCount || b.range.setCount - a.range.setCount || a.rolePriority - b.rolePriority);
+          const role = candidates[0]?.role || "free";
+          const range = candidates[0]?.range;
           const evidence = range
-            ? exerciseProgressEvidence(sessions, exercise.id, exercise.loadType, range.id)
-            : exerciseProgressEvidence([], exercise.id, exercise.loadType, "");
-          return { ...exercise, range, evidence };
+            ? exerciseProgressEvidence(sessions, exercise.id, exercise.loadType, range.id, role)
+            : exerciseProgressEvidence([], exercise.id, exercise.loadType, "", role);
+          return { ...exercise, role, range, evidence };
         });
       }
 
@@ -3115,13 +3118,10 @@ svg {
         const nextSet = nextSetIndex >= 0 ? exercise.sets[nextSetIndex] : null;
         const lastValidated = completedWorkingSetsWithLoad(exercise, true).at(-1);
         const role = normalizeSetRole(nextSet?.role || lastValidated?.role || exercise.setPlan?.[0]?.role || "heavy");
-        const anchor = normalizeRepAnchor(nextSet?.repAnchor, role === "heavy"
-          ? state.settings.practitionerProfile?.heavyRepAnchor
-          : role === "backoff" ? state.settings.practitionerProfile?.backoffRepAnchor : "");
-        const targetBounds = repTargetBounds(anchor);
-        const targetLabel = repTargetLabel(anchor);
+        const targetBounds = setRoleBounds(role);
+        const targetLabel = setRoleRangeLabel(role);
         const roleLabel = setRoleLabel(role);
-        const base = { unit, settings, role, anchor, targetBounds };
+        const base = { unit, settings, role, targetBounds };
         const currentRoleSets = completedWorkingSetsWithLoad(exercise, true, role);
 
         if (nextSetIndex < 0 && lastValidated) {
@@ -3143,46 +3143,40 @@ svg {
           const weight = finiteNumber(latestSet.weight);
           const reps = setMainReps(latestSet);
           const effort = setReachedFailure(latestSet) ? stopReasonLabel(latestSet.stopReason || "muscularFailure") : hasRecordedValue(latestSet.rir) ? `RIR ${finiteNumber(latestSet.rir)}` : "effort non précisé";
-          const observation = `${roleLabel} validée · ${formatNumber(weight, 2)} ${unit} × ${reps} · ${effort}`;
+          const observation = `Série validée · ${roleLabel} · ${formatNumber(weight, 2)} ${unit} × ${reps} · ${effort}`;
           if (latestSet.stopReason === "pain") {
-            return { ...base, kind: "caution", title: `N’augmente pas la prochaine série ${roleLabel.toLowerCase()}`, observation, why: "La série a été limitée par une gêne ou une douleur, pas par la capacité musculaire recherchée.", confidence: "priorité sécurité", recommendedLoadKg: null, applyScope: "next" };
+            return { ...base, kind: "caution", title: `N’augmente pas ${setRoleNextLabel(role)}`, observation, why: "La série a été limitée par une gêne ou une douleur, pas par la capacité musculaire recherchée.", confidence: "priorité sécurité", recommendedLoadKg: null, applyScope: "next" };
           }
           let recommendedLoadKg = weight;
           let kind = "hold";
-          let title = `Garde ${formatNumber(weight, 2)} ${unit} pour la prochaine ${roleLabel.toLowerCase()}`;
-          const targetIncreaseReached = targetBounds && (targetBounds.isRange
-            ? reps >= targetBounds.max
-            : reps >= targetBounds.max + (role === "backoff" ? 3 : 2));
-          let why = `La charge reste cohérente pour ce rôle de série${targetLabel ? ` avec une cible de ${targetLabel} répétitions` : ""}.`;
-          if (targetBounds?.isRange && reps < targetBounds.min && setReachedFailure(latestSet)) {
+          let title = `Garde ${formatNumber(weight, 2)} ${unit} pour ${setRoleNextLabel(role)}`;
+          const targetIncreaseReached = targetBounds && reps >= targetBounds.max;
+          let why = targetBounds
+            ? `La charge reste cohérente pour ${setRoleIndefiniteLabel(role)} dans sa plage de ${targetLabel}.`
+            : "Cette série est libre : la charge est conservée à partir de l’effort et de l’historique, sans plage de répétitions imposée.";
+          if (targetBounds && reps < targetBounds.min && setReachedFailure(latestSet)) {
             recommendedLoadKg = Math.max(0, weight - settings.loadIncrementKg);
             kind = "caution";
-            title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
-            why = `L’échec est arrivé à ${reps} répétition${reps > 1 ? "s" : ""}, sous ta cible de ${targetLabel}. Un palier en moins doit aider à retrouver la zone prévue.`;
-          } else if (reps < settings.minRepsGuardrail && setReachedFailure(latestSet)) {
-            recommendedLoadKg = Math.max(0, weight - settings.loadIncrementKg);
-            kind = "caution";
-            title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
-            why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. Un seul palier en moins doit permettre de conserver un travail productif.`;
+            title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit} sur ${setRoleNextLabel(role)}`;
+            why = `L’échec est arrivé à ${reps} répétition${reps > 1 ? "s" : ""}, sous la plage ${targetLabel} ${setRoleDefiniteLabel(role)}. Un palier en moins doit aider à retrouver cette zone.`;
           } else if (hasRecordedValue(latestSet.rir) && finiteNumber(latestSet.rir) > settings.targetRirMax) {
             recommendedLoadKg = weight + settings.loadIncrementKg;
             kind = "increase";
-            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
+            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur ${setRoleNextLabel(role)}`;
             why = `Il restait ${finiteNumber(latestSet.rir)} répétitions possibles, au-dessus de ton repère RIR ${settings.targetRirMin}–${settings.targetRirMax}. La hausse reste limitée à un palier.`;
           } else if (targetIncreaseReached && setMatchesEffortTarget(latestSet, settings)) {
             recommendedLoadKg = weight + settings.loadIncrementKg;
             kind = "increase";
-            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur la prochaine ${roleLabel.toLowerCase()}`;
-            why = targetBounds.isRange
-              ? `Tu as atteint le haut de ta cible ${targetLabel} avec l’effort prévu.`
-              : `Tu as nettement dépassé ta cible de ${targetLabel} répétitions avec l’effort prévu.`;
+            title = `Tu peux tenter ${formatNumber(recommendedLoadKg, 2)} ${unit} sur ${setRoleNextLabel(role)}`;
+            why = `Tu as atteint le haut de la plage ${targetLabel} ${setRoleDefiniteLabel(role)} avec l’effort prévu.`;
           }
           return { ...base, kind, title, observation, why, confidence: "ajustement en direct", recommendedLoadKg, applyScope: "next", recommendedRole: role };
         }
 
         const passages = exerciseAdaptivePassages(exercise, role);
         if (!passages.length) {
-          return { ...base, kind: "baseline", title: `Choisis ta charge ${roleLabel.toLowerCase()}`, observation: `Aucun passage ${roleLabel.toLowerCase()} comparable n’est encore enregistré.`, why: `${targetLabel ? `Cible enregistrée : ${targetLabel} reps.` : "Aucune cible de répétitions."} Le RIR ${settings.targetRirMin}–${settings.targetRirMax} sera utilisé pour les prochains ajustements.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all", recommendedRole: role };
+          const rangeCopy = targetBounds ? `La plage prévue ${setRoleDefiniteLabel(role)} est ${targetLabel}.` : "Cette série reste libre, sans plage de répétitions imposée.";
+          return { ...base, kind: "baseline", title: `Choisis une charge pour ${setRoleNextLabel(role)}`, observation: `Aucun passage comparable en ${roleLabel} n’est encore enregistré.`, why: `${rangeCopy} Le RIR ${settings.targetRirMin}–${settings.targetRirMax} sera utilisé pour les prochains ajustements.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all", recommendedRole: role };
         }
 
         const latest = passages[0];
@@ -3193,63 +3187,42 @@ svg {
         const effortMatched = setMatchesEffortTarget(latest.lastSet, settings);
         let kind = "hold";
         let recommendedLoadKg = latest.weight;
-        let title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit} en ${roleLabel.toLowerCase()}`;
-        const historyTargetIncreaseReached = targetBounds && (targetBounds.isRange
-          ? latest.reps >= targetBounds.max
-          : latest.reps >= targetBounds.max + (role === "backoff" ? 3 : 2));
-        let why = `Cette charge reste cohérente pour une série ${roleLabel.toLowerCase()}${targetLabel ? ` avec une cible de ${targetLabel} reps` : ""}.`;
+        let title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit} pour ${setRoleNextLabel(role)}`;
+        const historyTargetIncreaseReached = targetBounds && latest.reps >= targetBounds.max;
+        let why = targetBounds
+          ? `Cette charge reste cohérente pour ${setRoleIndefiniteLabel(role)} dans sa plage de ${targetLabel}.`
+          : "Cette série est libre : la charge est conservée à partir de l’effort et de l’historique, sans plage de répétitions imposée.";
 
         if (latest.painLimited) {
           kind = "caution";
           recommendedLoadKg = null;
           title = "Reprends prudemment, sans hausse automatique";
           why = "Le dernier passage a été limité par une gêne ou une douleur. L’assistant ne transforme pas cette série en signal de progression.";
-        } else if (targetBounds?.isRange && latest.reps < targetBounds.min && latest.reachedFailure) {
+        } else if (targetBounds && latest.reps < targetBounds.min && latest.reachedFailure) {
           kind = "caution";
           recommendedLoadKg = Math.max(0, latest.weight - settings.loadIncrementKg);
           title = `Essaie ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `L’échec est arrivé à ${latest.reps} répétition${latest.reps > 1 ? "s" : ""}, sous ta cible de ${targetLabel}. La baisse proposée se limite à un palier.`;
-        } else if (latest.reps < settings.minRepsGuardrail && latest.reachedFailure) {
-          kind = "caution";
-          recommendedLoadKg = Math.max(0, latest.weight - settings.loadIncrementKg);
-          title = `Essaie ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. La baisse proposée se limite à un palier.`;
-        } else if (sameLoadHistory && latest.reps > sameLoadHistory.reps && effortMatched && (!targetBounds?.isRange || latest.reps >= targetBounds.max)) {
+          why = `L’échec est arrivé à ${latest.reps} répétition${latest.reps > 1 ? "s" : ""}, sous la plage ${targetLabel} ${setRoleDefiniteLabel(role)}. La baisse proposée se limite à un palier.`;
+        } else if (sameLoadHistory && latest.reps > sameLoadHistory.reps && effortMatched && (!targetBounds || latest.reps >= targetBounds.max)) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
           title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
           why = `À charge identique, la série de référence ${roleLabel.toLowerCase()} est passée de ${sameLoadHistory.reps} à ${latest.reps} répétitions avec l’effort prévu. La proposition ajoute un palier.`;
-        } else if ((latest.reps > settings.maxRepsGuardrail || historyTargetIncreaseReached) && setMatchesEffortTarget(latest.topSet, settings)) {
+        } else if (historyTargetIncreaseReached && setMatchesEffortTarget(latest.topSet, settings)) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
           title = `Passe à ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = latest.reps > settings.maxRepsGuardrail
-            ? `Tu as dépassé le garde-fou haut de ${settings.maxRepsGuardrail} répétitions avec un effort élevé.`
-            : targetBounds.isRange
-              ? `Tu as atteint le haut de ta cible ${targetLabel} avec l’effort prévu.`
-              : `Tu as nettement dépassé ta cible de ${targetLabel} répétitions avec l’effort prévu.`;
+          why = `Tu as atteint le haut de la plage ${targetLabel} ${setRoleDefiniteLabel(role)} avec l’effort prévu.`;
         } else if (latest.lastRir !== null && latest.lastRir > settings.targetRirMax) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
           title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `La dernière ${roleLabel.toLowerCase()} s’est terminée à RIR ${latest.lastRir}, au-dessus de ton repère ${settings.targetRirMin}–${settings.targetRirMax}. La proposition ajoute un seul palier.`;
+          why = `Le dernier passage en ${roleLabel} s’est terminé à RIR ${latest.lastRir}, au-dessus de ton repère ${settings.targetRirMin}–${settings.targetRirMax}. La proposition ajoute un seul palier.`;
         } else if (!effortMatched) {
           title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit}`;
           why = `Le RIR du dernier passage n’est pas dans la zone ${settings.targetRirMin}–${settings.targetRirMax} ou n’est pas renseigné. La charge est conservée.`;
         }
         return { ...base, kind, title, observation, why, confidence, recommendedLoadKg, applyScope: "all", recommendedRole: role };
-      }
-
-      function neutralizeSeriesRoleCopy(value) {
-        return String(value || "")
-          .replace(/les séries lourdes et les back-off/gi, "les séries de zones de répétitions différentes")
-          .replace(/série de référence (?:lourde|back-off|libre)/gi, "série de référence")
-          .replace(/série (?:lourde|back-off|libre)/gi, "série")
-          .replace(/passage (?:lourde|back-off|libre)/gi, "passage")
-          .replace(/(?:lourde|back-off|libre) validée/gi, "série validée")
-          .replace(/ en (?:lourde|back-off|libre)/gi, "")
-          .replace(/\s{2,}/g, " ")
-          .trim();
       }
 
       function renderAdaptiveRecommendation(exercise, exerciseIndex) {
@@ -3260,13 +3233,14 @@ svg {
         let title = "Repère enregistré";
         if (recommendation.recommendedLoadKg !== null) {
           const verb = recommendation.kind === "increase" ? "Tu peux tenter" : recommendation.kind === "caution" ? "Essaie" : "Repars sur";
-          title = `${verb} ${formatNumber(recommendation.recommendedLoadKg, 2)} ${recommendation.unit}${recommendation.applyScope === "next" ? " sur la prochaine série" : ""}`;
+          const nextRole = recommendation.applyScope === "next" ? ` sur ${setRoleNextLabel(recommendation.role)}` : "";
+          title = `${verb} ${formatNumber(recommendation.recommendedLoadKg, 2)} ${recommendation.unit}${nextRole}`;
         } else if (recommendation.kind === "baseline") title = "Choisis un premier poids de travail";
         else if (recommendation.kind === "caution") title = "Pas de hausse automatique sur ce passage";
         const applyButton = recommendation.recommendedLoadKg !== null
           ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-recommended-role="${esc(recommendation.recommendedRole || recommendation.role)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? "Appliquer à la prochaine série" : "Préremplir les séries concernées"}</button>`
           : "";
-        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(title)}</strong><span class="badge accent">fiabilité ${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(neutralizeSeriesRoleCopy(recommendation.observation))}</p><p class="recommendation-why"><strong>Motif :</strong> ${esc(neutralizeSeriesRoleCopy(recommendation.why))}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Facultatif · aucune saisie existante ne sera écrasée</span></div>` : ""}</div>`;
+        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(title)}</strong><span class="badge accent">fiabilité ${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(recommendation.observation)}</p><p class="recommendation-why"><strong>Motif :</strong> ${esc(recommendation.why)}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Facultatif · aucune saisie existante ne sera écrasée</span></div>` : ""}</div>`;
       }
 
       function applyAdaptiveLoad(exercise, recommendedLoad, scope = "all", role = "") {
@@ -3635,7 +3609,7 @@ svg {
                   </summary>
                   <div class="program-content">
                     <div class="list-divider">
-                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · sans RIR" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(setTargetSummary(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
+                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · sans RIR" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(setPlanSummary(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
                     </div>
                     ${session.exercises.length ? `<button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${esc(session.name)}</button>` : `<div class="notice">Cette séance est vide. Ajoute-lui des exercices avant de la démarrer.</div>`}
                     <div class="row session-template-actions"><button class="btn btn-sm" type="button" data-action="edit-template" data-template-id="${esc(session.id)}">Modifier la séance</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-template" data-template-id="${esc(session.id)}">Supprimer la séance</button></div>
@@ -3672,7 +3646,7 @@ svg {
       function renderTemplateExerciseRow(exercise, index) {
         const settings = normalizeAdaptiveSettings(exercise);
         const progressionUnit = comparableWeightUnit(exercise.loadType);
-        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault, normalizePractitionerProfile(state.settings.practitionerProfile));
+        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, exercise.warmupDefault);
         return `<div class="exercise-plan-row template-exercise-row">
           <span class="order-dot">${index + 1}</span>
           <div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${equipmentTypeLabel(exercise.equipmentType)}</p></div>
@@ -3685,8 +3659,8 @@ svg {
             <button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button>
           </div>
           <div class="set-plan-editor">
-            <div class="set-plan-editor-head"><div><strong>Repères par série</strong><p class="small muted">Une valeur exacte (6), une fourchette (8-10), ou rien si tu veux rester libre.</p></div><span class="badge accent">${esc(setTargetSummary({ ...exercise, setPlan: plan }))}</span></div>
-            <div class="set-plan-list">${plan.map((item, setIndex) => `<label class="set-plan-row target-line"><span class="order-dot">${setIndex + 1}</span><span class="sr-only">Cible de répétitions série ${setIndex + 1}</span><input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="Ex. 6 ou 8-10" value="${esc(repTargetLabel(item.repAnchor))}" data-template-set-anchor data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}></label>`).join("")}</div>
+            <div class="set-plan-editor-head"><div><strong>Type de chaque série</strong><p class="small muted">Top set : 4–6 reps · Back-off : 8–12 reps · Libre : aucune plage imposée.</p></div><span class="badge accent">${esc(setPlanSummary({ ...exercise, setPlan: plan }))}</span></div>
+            <div class="set-plan-list">${plan.map((item, setIndex) => `<label class="set-plan-row series-role-row"><span class="order-dot">${setIndex + 1}</span><span class="sr-only">Type de la série ${setIndex + 1}</span>${exercise.warmupDefault ? `<span class="badge">Échauffement · W</span>` : `<select aria-label="Type de la série ${setIndex + 1}" data-template-set-role data-index="${index}" data-set-index="${setIndex}">${setRoleOptions(item.role)}</select>`}</label>`).join("")}</div>
           </div>
           <details class="template-progress-options">
             <summary>Aide de charge · ${esc(adaptiveSettingsLabel(exercise))}</summary>
@@ -3697,10 +3671,8 @@ svg {
               ${settings.assistantEnabled && !settings.useProfileDefaults ? `<div class="template-progress-grid">
                 <div class="field"><label for="custom-rir-min-${index}">RIR minimum</label><input id="custom-rir-min-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMin}" data-template-adaptive-field="customTargetRirMin" data-index="${index}"></div>
                 <div class="field"><label for="custom-rir-max-${index}">RIR maximum</label><input id="custom-rir-max-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMax}" data-template-adaptive-field="customTargetRirMax" data-index="${index}"></div>
-                <div class="field"><label for="custom-min-${index}">Repère bas, non obligatoire</label><input id="custom-min-${index}" type="number" inputmode="numeric" min="1" max="30" value="${settings.customMinRepsGuardrail}" data-template-adaptive-field="customMinRepsGuardrail" data-index="${index}"></div>
-                <div class="field"><label for="custom-max-${index}">Repère haut, non obligatoire</label><input id="custom-max-${index}" type="number" inputmode="numeric" min="1" max="50" value="${settings.customMaxRepsGuardrail}" data-template-adaptive-field="customMaxRepsGuardrail" data-index="${index}"></div>
                 <div class="field field-wide"><label for="custom-increment-${index}">Palier de charge disponible (${esc(progressionUnit)})</label><input id="custom-increment-${index}" type="number" inputmode="decimal" min="0.25" max="50" step="0.25" value="${settings.customLoadIncrementKg}" data-template-adaptive-field="customLoadIncrementKg" data-index="${index}"></div>
-              </div><p class="small muted">Ces nombres sont des garde-fous pour détecter une charge manifestement trop lourde ou trop légère. Ils ne constituent pas un objectif de répétitions.</p>` : ""}
+              </div><p class="small muted">Les plages Top set 4–6 et Back-off 8–12 restent fixes. Seuls l’effort attendu et le palier de charge sont personnalisables.</p>` : ""}
             </div>
           </details>
         </div>`;
@@ -3712,7 +3684,7 @@ svg {
         const resolvedExercises = template.exercises.map(resolveTemplateExercise);
         return `
           <section class="page">
-            <div class="section-head"><div class="page-intro"><p class="eyebrow">Modifier la séance</p><h1>${esc(template.name)}</h1><p class="muted">Définis l’ordre, le nombre de séries et les repères de répétitions. Ces valeurs restent modifiables pendant la séance.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Modifier la séance</p><h1>${esc(template.name)}</h1><p class="muted">Définis l’ordre, le nombre et le type de chaque série. Ces choix restent modifiables pendant la séance.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
             <div class="card stack"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div></div>
             <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
             <div class="card list-divider">
@@ -3748,7 +3720,7 @@ svg {
                 <div class="field"><label for="workout-date">Date</label><input id="workout-date" type="date" value="${esc(draft.date)}" data-draft-field="date"></div>
                 <div class="field"><label for="workout-duration">Durée (min, optionnel)</label><input id="workout-duration" type="number" inputmode="numeric" min="1" max="600" placeholder="Auto : ${elapsed}" value="${esc(draft.durationOverride)}" data-draft-field="durationOverride"></div>
               </div>
-              <p class="measure-note">Chaque série renseignée doit être validée avant l’enregistrement de la séance. Les cibles de répétitions et le RIR restent modifiables.</p>
+              <p class="measure-note">Chaque série renseignée doit être validée avant l’enregistrement de la séance. Son type et le RIR restent modifiables jusqu’à sa validation.</p>
             </div>
 
             <div class="card live-strip" aria-label="Résumé en direct">
@@ -3819,7 +3791,7 @@ svg {
                 const stopReasonControl = locked ? "" : `<details class="set-stop-details" ${set.stopReason ? "open" : ""}><summary>Pourquoi la série s’est arrêtée ? ${set.stopReason ? `· ${esc(stopReasonLabel(set.stopReason))}` : "· optionnel"}</summary><select aria-label="Raison d’arrêt série ${setIndex + 1}" data-set-stop-reason data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">${stopReasonOptions.map(([value, label]) => `<option value="${value}" ${set.stopReason === value ? "selected" : ""}>${label}</option>`).join("")}</select></details>`;
                 const intentLockedAttr = locked || set.warmup ? "disabled" : "";
                 return `<div class="set-block ${locked ? "validated" : ""}" data-set-block data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">
-                  <div class="set-intent-row"><span class="set-target-label">${set.warmup ? "Échauffement" : "Repère reps"}</span>${set.warmup ? `<span class="badge">W</span>` : `<input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="libre" value="${esc(repTargetLabel(set.repAnchor))}" data-live-set-anchor data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}>`}</div>
+                  <div class="set-intent-row"><span class="set-target-label">${set.warmup ? "Échauffement" : "Type de série"}</span>${set.warmup ? `<span class="badge">W</span>` : `<select aria-label="Type de la série ${setIndex + 1}" data-live-set-role data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}>${setRoleOptions(set.role)}</select>`}</div>
                   <div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>${rirCell}<button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement" ${lockedAttr}>W</button></div>
                   ${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}" ${dropLockedAttr}>×</button></div>`).join("")}
                   <button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${dropLockedAttr}>${mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop"}</button>${stopReasonControl}<div class="set-validation-row">${validation}</div>
@@ -3863,7 +3835,7 @@ svg {
         const sessions = sessionsForPeriod(statsDays);
         const periodControl = statsPeriodControl();
         if (!sessions.length) {
-          return `<section class="page"><div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, variante de charge et zone de répétitions.</p></div>${periodControl}</div><div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">04</span><h2>Aucune séance sur cette période</h2><p class="muted">Choisis une période plus large ou enregistre une séance.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
+          return `<section class="page"><div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, type de série, variante de charge et zone de répétitions.</p></div>${periodControl}</div><div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">04</span><h2>Aucune séance sur cette période</h2><p class="muted">Choisis une période plus large ou enregistre une séance.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
         }
 
         const totalMainTonnage = sessions.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
@@ -3876,6 +3848,7 @@ svg {
         const dropSetShare = totalSets ? totalDropSets / totalSets * 100 : 0;
         const avgDuration = sessions.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0) / sessions.length;
         const effortTracking = effortTrackingSummary(sessions);
+        const roleSummary = roleWorkSummary(sessions);
         const subjectiveFeedback = subjectiveFeedbackSummary(sessions);
         const earliest = dateFromYmd(sessions[0].date);
         const spanDays = statsDays || Math.max(1, Math.ceil((new Date() - earliest) / 86400000) + 1);
@@ -3895,16 +3868,23 @@ svg {
           selectedRepRange = "";
         }
         const selectedMeta = exerciseOptions.find(exercise => exercise.key === selectedExercise);
-        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, "all") : [];
+        const availableRoles = selectedMeta
+          ? SET_ROLES.filter(role => availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, role).length)
+          : [];
+        if (!availableRoles.includes(selectedSetRole)) {
+          selectedSetRole = availableRoles[0] || "heavy";
+          selectedRepRange = "";
+        }
+        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, selectedSetRole) : [];
         if (!repRanges.some(range => range.id === selectedRepRange)) {
           selectedRepRange = [...repRanges].sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount)[0]?.id || "";
         }
         const comparable = selectedMeta
-          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType, "all")
+          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType, selectedSetRole)
           : { passages: [], trend: [], best: null };
         const evidence = selectedMeta
-          ? exerciseProgressEvidence(sessions, selectedMeta.id, selectedMeta.loadType, selectedRepRange)
-          : exerciseProgressEvidence([], "", "total", "");
+          ? exerciseProgressEvidence(sessions, selectedMeta.id, selectedMeta.loadType, selectedRepRange, selectedSetRole)
+          : exerciseProgressEvidence([], "", "total", "", selectedSetRole);
         const comparisonUnit = comparableWeightUnit(selectedMeta?.loadType);
         const progressionPoints = comparable.passages.map(passage => ({ label: passage.label, value: passage.best }));
         const overview = exerciseProgressOverview(sessions)
@@ -3924,7 +3904,7 @@ svg {
 
         return `
           <section class="page">
-            <div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, variante de charge et zone de répétitions.</p></div>${periodControl}</div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, type de série, variante de charge et zone de répétitions.</p></div>${periodControl}</div>
 
             <div class="ledger" aria-label="Repères de la période">
               <div class="ledger-cell"><span>Séances</span><strong>${sessions.length}</strong><small>sur la période</small></div>
@@ -3935,18 +3915,18 @@ svg {
 
             <div class="section-head section-rule"><div><p class="eyebrow">Exercice</p><h2>Évolution comparable</h2></div></div>
             <div class="card stack">
-              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et variante de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Zone comparable</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
+              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et variante de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="set-role-stat">Type de série</label><select id="set-role-stat" data-set-role-stat ${availableRoles.length ? "" : "disabled"}>${availableRoles.map(role => `<option value="${role}" ${role === selectedSetRole ? "selected" : ""}>${esc(setRoleOptionLabel(role))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Zone réellement effectuée</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
               <div class="proof-card ${esc(evidence.status)}">
                 <div class="row-between"><span class="proof-state">${esc(evidence.label)}</span>${evidence.current ? `<span class="small muted">${formatDate(evidence.current.date, true)}</span>` : ""}</div>
                 <strong class="proof-value">${esc(evidence.summary)}</strong>
                 <p class="small muted">${esc(evidence.detail)}</p>
               </div>
-              ${progressionPoints.length ? `${lineChart(progressionPoints, comparisonUnit, { ariaLabel: `Meilleurs poids par passage comparable pour ${selectedMeta?.name || "l’exercice"}`, title: "Repères de charge comparables", compactAxis: true })}<p class="small muted">Chaque point est le poids le plus élevé réalisé dans la zone choisie lors d’un passage. Ce n’est pas une estimation de force maximale.</p>` : `<p class="muted">Aucun point comparable dans cette zone.</p>`}
+              ${progressionPoints.length ? `${lineChart(progressionPoints, comparisonUnit, { ariaLabel: `Meilleurs poids par passage comparable en ${setRoleLabel(selectedSetRole)} pour ${selectedMeta?.name || "l’exercice"}`, title: `Repères de charge comparables · ${setRoleLabel(selectedSetRole)}`, compactAxis: true })}<p class="small muted">Chaque point est le poids le plus élevé réalisé pour ce type de série dans la zone choisie lors d’un passage. Les Top sets, Back-off et séries libres ne sont jamais mélangés.</p>` : `<p class="muted">Aucun point comparable pour ce type de série dans cette zone.</p>`}
               ${evidence.passages.length ? `<div class="evidence-grid">${evidence.passages.slice(-4).reverse().map(passage => `<div class="evidence-row"><div><strong>${formatDate(passage.date, true)}</strong><p class="small muted">Passage comparable</p></div><strong>${formatNumber(passage.weight, 2)} ${comparisonUnit} × ${passage.reps}</strong></div>`).join("")}</div>` : ""}
             </div>
 
             <div class="section-head section-rule"><div><p class="eyebrow">Vue d’ensemble</p><h2>État des comparaisons</h2><p class="small muted">Une hausse ou une baisse sur deux comparaisons successives est distinguée d’une variation isolée.</p></div><div class="row"><span class="badge accent">${(statusCounts.confirmed || 0) + (statusCounts.progress || 0)} en hausse</span><span class="badge">${statusCounts.insufficient || 0} sans assez de données</span></div></div>
-            ${overview.length ? `<div class="evidence-grid">${overview.map(item => `<div class="evidence-row"><div class="row" style="flex-wrap:nowrap"><span class="evidence-mark ${esc(item.evidence.status)}" aria-hidden="true"></span><div><strong>${esc(item.name)}</strong><p class="small muted">${item.range ? esc(item.range.label) : "Zone non disponible"} · ${esc(loadTypeLabel(item.loadType))}</p></div></div><strong>${esc(item.evidence.label)}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Aucun exercice exploitable sur la période.</p></div>`}
+            ${overview.length ? `<div class="evidence-grid">${overview.map(item => `<div class="evidence-row"><div class="row" style="flex-wrap:nowrap"><span class="evidence-mark ${esc(item.evidence.status)}" aria-hidden="true"></span><div><strong>${esc(item.name)}</strong><p class="small muted">${esc(setRoleLabel(item.role))} · ${item.range ? esc(item.range.label) : "Zone non disponible"} · ${esc(loadTypeLabel(item.loadType))}</p></div></div><strong>${esc(item.evidence.label)}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Aucun exercice exploitable sur la période.</p></div>`}
 
             <div class="section-head section-rule"><div><p class="eyebrow">Programme</p><h2>Prévu et réalisé</h2><p class="small muted">La comparaison utilise le dernier passage de chaque séance modèle. Un exercice ajouté pendant la séance ne modifie pas le programme.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>
             ${templateRows.length ? `<div class="evidence-grid">${templateRows.map(item => `<div class="evidence-row"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.passages} passage${item.passages > 1 ? "s" : ""} sur la période${item.last ? ` · dernier le ${formatDate(item.last.date)}` : ""}</p></div><strong>${item.last ? `${item.actual} réalisées / ${item.planned} prévues${item.delta ? ` · ${item.delta > 0 ? "+" : ""}${item.delta}` : ""}` : "Pas encore passée"}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Le programme actif ne contient aucune séance.</p></div>`}
@@ -3966,6 +3946,13 @@ svg {
               <summary><span><span class="eyebrow">Mesures secondaires</span><strong>Volume, drops et répartition musculaire</strong></span><span aria-hidden="true">＋</span></summary>
               <div class="stack">
                 <p class="small muted">Le volume-charge correspond à la somme des charges effectives multipliées par les répétitions enregistrées.</p>
+                <div><p class="eyebrow">Types de séries</p><h3>Travail réellement effectué</h3></div>
+                <div class="ledger">
+                  ${SET_ROLES.map(role => {
+                    const item = roleSummary[role];
+                    return `<div class="ledger-cell"><span>${esc(setRoleLabel(role))}</span><strong>${item.sets}</strong><small>${item.sets ? `${formatNumber(item.reps / item.sets, 1)} reps / série · ${compactWeight(item.tonnage)} kg principaux` : setRoleRangeLabel(role)}</small></div>`;
+                  }).join("")}
+                </div>
                 ${volumeCompositionChart(totalMainTonnage, totalDropTonnage)}
                 <div class="ledger">
                   <div class="ledger-cell"><span>Reps principales</span><strong>${totalMainReps}</strong><small>${formatNumber(totalSets ? totalMainReps / totalSets : 0, 1)} par série</small></div>
@@ -4064,14 +4051,11 @@ svg {
             <details class="card stack profile-defaults">
               <summary><span><span class="eyebrow">Saisie</span><strong>Valeurs par défaut de l’aide de charge</strong></span><span class="journal-chevron" aria-hidden="true">＋</span></summary>
               <div class="stack">
-                <p class="small muted">Ces valeurs servent uniquement à initialiser de nouveaux exercices. Elles restent modifiables exercice par exercice.</p>
+                <div class="notice"><strong>Types fixes :</strong> Top set 4–6 reps · Back-off 8–12 reps · série libre sans plage imposée.</div>
+                <p class="small muted">Le RIR sert à contextualiser l’effort. Il reste désactivable exercice par exercice.</p>
                 <div class="form-grid">
-                  <div class="field"><label for="profile-heavy-anchor">Répétitions par défaut · séries 1 et 2</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
-                  <div class="field"><label for="profile-backoff-anchor">Répétitions par défaut · séries suivantes</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
                   <div class="field"><label for="profile-rir-min">RIR minimum utilisé</label><input id="profile-rir-min" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMin}" data-profile-setting="targetRirMin"></div>
                   <div class="field"><label for="profile-rir-max">RIR maximum utilisé</label><input id="profile-rir-max" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMax}" data-profile-setting="targetRirMax"></div>
-                  <div class="field"><label for="profile-rep-min">Seuil bas de répétitions</label><input id="profile-rep-min" type="number" inputmode="numeric" min="1" max="30" value="${profile.minRepsGuardrail}" data-profile-setting="minRepsGuardrail"></div>
-                  <div class="field"><label for="profile-rep-max">Seuil haut de répétitions</label><input id="profile-rep-max" type="number" inputmode="numeric" min="1" max="50" value="${profile.maxRepsGuardrail}" data-profile-setting="maxRepsGuardrail"></div>
                 </div>
               </div>
             </details>
@@ -4123,7 +4107,8 @@ svg {
           const sets = (exercise.sets || []).map((set, setIndex) => {
             const completed = finiteNumber(set.reps) > 0;
             const drops = (set.drops || []).map((drop, dropIndex) => `<div class="detail-drop row-between"><div><strong>Drop ${dropIndex + 1}</strong><p class="small muted">Enchaîné sans repos</p></div><div class="row"><span class="badge">${recordedValue(drop.weight, " kg")}</span><span class="badge accent">${recordedValue(drop.reps, " reps")}</span></div></div>`).join("");
-            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row"><span class="badge ${set.warmup ? "" : "accent"}">${set.warmup ? "Échauffement" : set.repAnchor ? `Cible ${esc(repTargetLabel(set.repAnchor))} reps` : "Série de travail"}</span><span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
+            const typeLabel = set.warmup ? "Échauffement" : `${setRoleLabel(set.role)} · ${setRoleRangeLabel(set.role)}`;
+            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row"><span class="badge ${set.warmup ? "" : "accent"}">${esc(typeLabel)}</span><span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
           }).join("");
           return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
         }).join("");
@@ -4232,7 +4217,7 @@ svg {
             order: exerciseIndex + 1,
             bodyweightKg: finiteNumber(state.settings.bodyweightKg),
             comments: "",
-            sets: exercise.sets.map(set => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: normalizeSetRole(set.role), repAnchor: normalizeRepAnchor(set.repAnchor, ""), validated: false, stopReason: "", drops: [] }))
+            sets: exercise.sets.map(set => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: normalizeSetRole(set.role), validated: false, stopReason: "", drops: [] }))
           }))
         };
         delete state.draft.endedAt;
@@ -4265,7 +4250,7 @@ svg {
       }
 
       function exportCsv() {
-        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "role_serie", "repere_reps", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "difficulte_seance", "energie_percue", "performance_percue", "congestion_percue", "impact_gene_douleur", "zone_gene_douleur", "note_gene_douleur", "effort_ancienne_echelle", "douleur_ancienne_echelle", "commentaire_seance", "commentaire_exercice"];
+        const headers = ["date", "seance", "duree_min", "ordre_exercice", "exercice", "groupe", "serie", "role_serie", "plage_reps_type", "palier", "type_palier", "charge_saisie_kg", "repetitions", "rir", "raison_arret", "echauffement", "mode_charge", "charge_effective_kg", "volume_charge_kg", "difficulte_seance", "energie_percue", "performance_percue", "congestion_percue", "impact_gene_douleur", "zone_gene_douleur", "note_gene_douleur", "effort_ancienne_echelle", "douleur_ancienne_echelle", "commentaire_seance", "commentaire_exercice"];
         const rows = [headers];
         getSortedSessions().forEach(session => {
           const feedback = session.feedback || {};
@@ -4276,7 +4261,7 @@ svg {
               ...(set.drops || []).map((drop, dropIndex) => ({ palier: dropIndex + 1, type: `drop ${dropIndex + 1}`, weight: drop.weight, reps: drop.reps, rir: "" }))
             ];
             components.forEach(component => rows.push([
-              session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, setRoleLabel(set.role, set.warmup), set.repAnchor || "", component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), modern && feedback.difficulty ? feedbackValueLabel("difficulty", feedback.difficulty) : "", modern && feedback.energy ? feedbackValueLabel("energy", feedback.energy) : "", modern && feedback.performance ? feedbackValueLabel("performance", feedback.performance) : "", modern && feedback.pump ? feedbackValueLabel("pump", feedback.pump) : "", modern && feedback.painImpact ? feedbackValueLabel("painImpact", feedback.painImpact) : "", modern ? feedback.painArea : "", modern ? feedback.painNote : "", modern ? "" : feedback.effort, modern ? "" : feedback.pain, session.comments, exercise.comments
+              session.date, session.name, session.durationMin, exerciseIndex + 1, exercise.name, muscleMap[exercise.muscle]?.label || exercise.muscle, setIndex + 1, setRoleLabel(set.role, set.warmup), set.warmup ? "échauffement" : setRoleRangeLabel(set.role), component.palier, component.type, component.weight, component.reps, component.rir, component.palier === 0 && set.stopReason ? stopReasonLabel(set.stopReason) : "", set.warmup ? "oui" : "non", loadTypeLabel(exercise.loadType), finiteNumber(component.reps) > 0 ? effectiveLoad(component.weight, exercise.loadType, exercise.bodyweightKg) : "", componentTonnage(component.weight, component.reps, exercise, set.warmup), modern && feedback.difficulty ? feedbackValueLabel("difficulty", feedback.difficulty) : "", modern && feedback.energy ? feedbackValueLabel("energy", feedback.energy) : "", modern && feedback.performance ? feedbackValueLabel("performance", feedback.performance) : "", modern && feedback.pump ? feedbackValueLabel("pump", feedback.pump) : "", modern && feedback.painImpact ? feedbackValueLabel("painImpact", feedback.painImpact) : "", modern ? feedback.painArea : "", modern ? feedback.painNote : "", modern ? "" : feedback.effort, modern ? "" : feedback.pain, session.comments, exercise.comments
             ]));
           }));
         });
@@ -4333,7 +4318,7 @@ svg {
         }
         if (action === "add-set" && state.draft) {
           const exercise = state.draft.exercises[finiteNumber(button.dataset.exerciseIndex)];
-          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: "free", repAnchor: "", validated: false, stopReason: "", drops: [] });
+          exercise.sets.push({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: "free", validated: false, stopReason: "", drops: [] });
           saveState(); render();
         }
         if (action === "remove-last-set" && state.draft) {
@@ -4412,10 +4397,7 @@ svg {
           const targetIndex = pickerTargetIndex;
           const rirEnabled = root.querySelector("#picker-rir-enabled")?.checked !== false;
           const warmupDefault = root.querySelector("#picker-warmup-default")?.checked === true;
-          const rawRepTarget = String(root.querySelector("#picker-rep-target")?.value || "").trim();
-          const repTarget = normalizeRepAnchor(rawRepTarget, "");
-          if (rawRepTarget && !repTarget) return showToast("Utilise une cible comme 6 ou une fourchette comme 8-10.");
-          switchDialog(pickerDialog, () => openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, repTarget, rirEnabled, warmupDefault }));
+          switchDialog(pickerDialog, () => openLibraryExerciseDialog("", { mode, targetIndex, plannedSets, rirEnabled, warmupDefault }));
         }
         if (action === "remove-draft-exercise" && state.draft) {
           const index = finiteNumber(button.dataset.index);
@@ -4553,22 +4535,6 @@ svg {
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
           if (exercise) { resizeTemplateSetPlan(exercise, target.value); saveState(); }
         }
-        if (target.hasAttribute("data-template-set-anchor")) {
-          const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
-          const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
-          if (exercise) {
-            resizeTemplateSetPlan(exercise, exercise.plannedSets);
-            exercise.setPlan[finiteNumber(target.dataset.setIndex)].repAnchor = normalizeRepAnchor(target.value, "");
-            saveState();
-          }
-        }
-        if (target.hasAttribute("data-live-set-anchor") && state.draft) {
-          const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
-          if (set && !set.validated) {
-            set.repAnchor = normalizeRepAnchor(target.value, "");
-            saveState();
-          }
-        }
         if (target.dataset.templateAdaptiveField && target.tagName !== "SELECT") {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
@@ -4581,12 +4547,6 @@ svg {
 
       root.addEventListener("change", event => {
         const target = event.target;
-        if (target.hasAttribute("data-template-set-anchor") || target.hasAttribute("data-live-set-anchor")) {
-          const raw = String(target.value || "").trim();
-          const normalized = normalizeRepAnchor(raw, "");
-          if (raw && !normalized) showToast("Utilise une cible comme 6 ou une fourchette comme 8-10.");
-          target.value = repTargetLabel(normalized);
-        }
         if (target.dataset.setField === "rir" && state.draft) {
           const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
           if (set) {
@@ -4620,11 +4580,7 @@ svg {
         if (target.dataset.profileSetting) {
           const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
           const field = target.dataset.profileSetting;
-          profile[field] = ["heavyRepAnchor", "backoffRepAnchor", "targetRirMin", "targetRirMax", "minRepsGuardrail", "maxRepsGuardrail"].includes(field) ? finiteNumber(target.value) : target.value;
-          if (field === "goal") {
-            profile.minRepsGuardrail = GOAL_GUARDRAILS[target.value]?.min || profile.minRepsGuardrail;
-            profile.maxRepsGuardrail = GOAL_GUARDRAILS[target.value]?.max || profile.maxRepsGuardrail;
-          }
+          profile[field] = ["targetRirMin", "targetRirMax"].includes(field) ? finiteNumber(target.value) : target.value;
           if (field === "effortStyle") {
             profile.targetRirMin = target.value === "controlled" ? 1 : 0;
             profile.targetRirMax = target.value === "controlled" ? 2 : 1;
@@ -4659,7 +4615,7 @@ svg {
         if (target.hasAttribute("data-template-warmup")) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
           const exercise = template?.exercises?.[finiteNumber(target.dataset.index)];
-          if (exercise) { exercise.warmupDefault = target.checked; exercise.setPlan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, target.checked, normalizePractitionerProfile(state.settings.practitionerProfile)); saveState(); render(); }
+          if (exercise) { exercise.warmupDefault = target.checked; exercise.setPlan = defaultSetPlan(exercise.plannedSets, target.checked); saveState(); render(); }
         }
         if (target.hasAttribute("data-template-set-role")) {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
@@ -4669,10 +4625,6 @@ svg {
             const item = exercise.setPlan[finiteNumber(target.dataset.setIndex)];
             if (item) {
               item.role = normalizeSetRole(target.value);
-              if (!item.repAnchor) {
-                const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
-                item.repAnchor = item.role === "heavy" ? profile.heavyRepAnchor : item.role === "backoff" ? profile.backoffRepAnchor : "";
-              }
             }
             saveState();
             render();
@@ -4687,10 +4639,6 @@ svg {
           const set = state.draft.exercises?.[finiteNumber(target.dataset.exerciseIndex)]?.sets?.[finiteNumber(target.dataset.setIndex)];
           if (set && !set.validated && !set.warmup) {
             set.role = normalizeSetRole(target.value);
-            if (!set.repAnchor) {
-              const profile = normalizePractitionerProfile(state.settings.practitionerProfile);
-              set.repAnchor = set.role === "heavy" ? profile.heavyRepAnchor : set.role === "backoff" ? profile.backoffRepAnchor : "";
-            }
             saveState();
             render();
           }
@@ -4732,9 +4680,6 @@ svg {
         event.preventDefault();
         const data = new FormData(libraryForm);
         const isNewExercise = !editingLibraryExerciseId;
-        const rawRepTarget = isNewExercise && isExerciseCreationMode(libraryDialogMode) ? String(data.get("sessionRepTarget") || "").trim() : "";
-        const repTarget = normalizeRepAnchor(rawRepTarget, "");
-        if (rawRepTarget && !repTarget) return showToast("Utilise une cible comme 6 ou une fourchette comme 8-10.");
         const exercise = normalizeLibraryExercise({
           id: editingLibraryExerciseId || uid("library"),
           name: String(data.get("name") || "Exercice").trim(),
@@ -4761,7 +4706,7 @@ svg {
           if (template) {
             const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sessionSets"), 3)));
             const rirEnabled = data.get("sessionRirEnabled") === "on";
-            const setPlan = setPlanWithRepTarget(null, plannedSets, exercise.warmupDefault, repTarget, normalizePractitionerProfile(state.settings.practitionerProfile));
+            const setPlan = defaultSetPlan(plannedSets, exercise.warmupDefault);
             template.exercises.push({ libraryExerciseId: exercise.id, plannedSets, setPlan, rirEnabled, warmupDefault: exercise.warmupDefault, order: template.exercises.length + 1 });
             contextAction = `ajouté à « ${template.name} »`;
           }
@@ -4771,10 +4716,10 @@ svg {
           const rirEnabled = data.get("sessionRirEnabled") === "on";
           if (libraryDialogMode === "draft-replace" && state.draft.exercises[libraryDraftTargetIndex]) {
             const existing = state.draft.exercises[libraryDraftTargetIndex];
-            state.draft.exercises[libraryDraftTargetIndex] = draftExerciseFromLibrary(exercise, plannedSets, existing, rirEnabled, exercise.warmupDefault, repTarget);
+            state.draft.exercises[libraryDraftTargetIndex] = draftExerciseFromLibrary(exercise, plannedSets, existing, rirEnabled, exercise.warmupDefault);
             contextAction = "remplacé dans la séance en cours";
           } else {
-            const draftExercise = draftExerciseFromLibrary(exercise, plannedSets, null, rirEnabled, exercise.warmupDefault, repTarget);
+            const draftExercise = draftExerciseFromLibrary(exercise, plannedSets, null, rirEnabled, exercise.warmupDefault);
             draftExercise.order = state.draft.exercises.length + 1;
             state.draft.exercises.push(draftExercise);
             contextAction = "ajouté à la séance en cours";
@@ -4794,21 +4739,18 @@ svg {
         const data = new FormData(pickerForm);
         const libraryExercise = getLibraryExercise(String(data.get("exerciseId")));
         const plannedSets = Math.max(1, Math.min(12, finiteNumber(data.get("sets"), 3)));
-        const rawRepTarget = String(data.get("repTarget") || "").trim();
-        const repTarget = normalizeRepAnchor(rawRepTarget, "");
         const rirEnabled = data.get("rirEnabled") === "on";
         const warmupDefault = data.get("warmupDefault") === "on";
         if (!libraryExercise) return;
-        if (rawRepTarget && !repTarget) return showToast("Utilise une cible comme 6 ou une fourchette comme 8-10.");
         if (pickerMode === "template-add") {
           const template = state.workoutTemplates.find(item => item.id === editingTemplateId);
-          const setPlan = setPlanWithRepTarget(null, plannedSets, warmupDefault, repTarget, normalizePractitionerProfile(state.settings.practitionerProfile));
+          const setPlan = defaultSetPlan(plannedSets, warmupDefault);
           if (template) template.exercises.push({ libraryExerciseId: libraryExercise.id, plannedSets, setPlan, rirEnabled, warmupDefault, order: template.exercises.length + 1 });
         } else if (state.draft) {
           if (pickerMode === "draft-replace" && state.draft.exercises[pickerTargetIndex]) {
-            state.draft.exercises[pickerTargetIndex] = draftExerciseFromLibrary(libraryExercise, plannedSets, state.draft.exercises[pickerTargetIndex], rirEnabled, warmupDefault, repTarget);
+            state.draft.exercises[pickerTargetIndex] = draftExerciseFromLibrary(libraryExercise, plannedSets, state.draft.exercises[pickerTargetIndex], rirEnabled, warmupDefault);
           } else {
-            const exercise = draftExerciseFromLibrary(libraryExercise, plannedSets, null, rirEnabled, warmupDefault, repTarget);
+            const exercise = draftExerciseFromLibrary(libraryExercise, plannedSets, null, rirEnabled, warmupDefault);
             exercise.order = state.draft.exercises.length + 1;
             state.draft.exercises.push(exercise);
           }

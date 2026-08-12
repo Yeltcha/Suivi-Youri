@@ -7,10 +7,10 @@ const directory = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(directory, "..", "index.html"), "utf8");
 const serviceWorker = fs.readFileSync(path.join(directory, "..", "service-worker.js"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(directory, "..", "manifest.webmanifest"), "utf8"));
-assert.match(html, /const APP_VERSION = "2\.1\.1"/, "La version visible doit correspondre à MYGYM 2.1.1.");
+assert.match(html, /const APP_VERSION = "2\.2\.0"/, "La version visible doit correspondre à MYGYM 2.2.0.");
 assert.doesNotMatch(html, /brand-mark|logo-transparent/, "L’en-tête ne doit plus afficher ni charger de logo.");
 assert.doesNotMatch(serviceWorker, /logo-transparent/, "Le cache PWA ne doit plus charger l’ancien logo.");
-assert.match(serviceWorker, /const CACHE_NAME = "mygym-v28"/, "Le cache PWA doit être renouvelé pour diffuser MYGYM.");
+assert.match(serviceWorker, /const CACHE_NAME = "mygym-v29"/, "Le cache PWA doit être renouvelé pour diffuser MYGYM.");
 assert.match(html, /\.program-grid \{ display: grid; gap: 16px; align-items: start; \}/, "Les cartes d’entraînement doivent garder un espacement net.");
 assert.match(html, /\.program-card \{ align-self: start;/, "Chaque entraînement doit conserver sa propre hauteur dans la grille desktop.");
 assert.equal((html.match(/class="nav-btn"/g) || []).length, 4, "La navigation principale doit se limiter à quatre destinations.");
@@ -90,7 +90,6 @@ mainScript = mainScript.replace(
         muscleComparisonRows,
         normalizeAdaptiveSettings,
         normalizePractitionerProfile,
-        normalizeRepAnchor,
         normalizeSetPlan,
         normalizeSessionFeedback,
         programMuscleTargets,
@@ -102,8 +101,6 @@ mainScript = mainScript.replace(
         renderTemplateExerciseRow,
         renderTrackedExercise,
         renderWorkout,
-        repTargetBounds,
-        repTargetLabel,
         roleWorkSummary,
         sessionDropReps,
         sessionDropTonnage,
@@ -113,8 +110,9 @@ mainScript = mainScript.replace(
         sessionTonnage,
         sessionWorkSets,
         setReachedFailure,
-        setPlanWithRepTarget,
-        setTargetSummary,
+        setPlanSummary,
+        setRoleBounds,
+        setRoleRangeLabel,
         setState: value => { state = normalizeState(value); },
         setStatsDays: value => { statsDays = finiteNumber(value); },
         statsPeriodControl,
@@ -155,27 +153,20 @@ const baseState = {
   sessions: [],
   draft: null
 };
-assert.equal(api.defaultState().version, 10, "Le schéma des rôles de séries doit incrémenter la version des données.");
+assert.equal(api.defaultState().version, 11, "Le schéma des types fixes de séries doit incrémenter la version des données.");
 assert.deepEqual(api.defaultSetPlan(3), [
-  { role: "heavy", repAnchor: 6 },
-  { role: "heavy", repAnchor: 6 },
-  { role: "backoff", repAnchor: 10 }
+  { role: "heavy" },
+  { role: "heavy" },
+  { role: "backoff" }
 ], "Le profil par défaut doit créer deux séries lourdes puis un back-off.");
-assert.equal(api.normalizeRepAnchor("8–10"), "8-10", "Une fourchette avec tiret typographique doit être normalisée.");
-assert.equal(api.normalizeRepAnchor("10 à 8"), "8-10", "Une fourchette inversée doit être remise dans l’ordre.");
-assert.equal(api.normalizeRepAnchor("6"), 6, "Une cible exacte doit rester compatible avec les anciennes données numériques.");
-assert.equal(api.normalizeRepAnchor("abc"), "", "Une cible invalide ne doit pas être enregistrée.");
-assert.deepEqual(api.repTargetBounds("8-10"), { min: 8, max: 10, isRange: true });
-assert.equal(api.repTargetLabel("8-10"), "8–10");
-assert.deepEqual(api.setPlanWithRepTarget(null, 3, false, "8-10"), [
-  { role: "heavy", repAnchor: "8-10" },
-  { role: "heavy", repAnchor: "8-10" },
-  { role: "backoff", repAnchor: "8-10" }
-], "La cible choisie lors de l’ajout d’un exercice doit être appliquée à toutes ses séries de travail.");
-assert.deepEqual(api.setPlanWithRepTarget(null, 2, true, "8-10"), [
-  { role: "free", repAnchor: "" },
-  { role: "free", repAnchor: "" }
-], "Une cible de répétitions ne doit pas être imposée aux séries W.");
+assert.deepEqual(api.defaultSetPlan(2), [{ role: "heavy" }, { role: "backoff" }], "Deux séries doivent proposer un Top set puis un Back-off.");
+assert.deepEqual(api.defaultSetPlan(2, true), [{ role: "free" }, { role: "free" }], "Les séries W ne doivent recevoir aucun type de travail.");
+assert.deepEqual(api.setRoleBounds("heavy"), { min: 4, max: 6, isRange: true });
+assert.deepEqual(api.setRoleBounds("backoff"), { min: 8, max: 12, isRange: true });
+assert.equal(api.setRoleBounds("free"), null);
+assert.equal(api.setRoleRangeLabel("heavy"), "4–6 reps");
+assert.equal(api.setRoleRangeLabel("backoff"), "8–12 reps");
+assert.equal(api.setRoleRangeLabel("free"), "sans plage imposée");
 assert.deepEqual(api.blankSessionFeedback(), {
   schemaVersion: 2,
   difficulty: "",
@@ -228,7 +219,8 @@ rangeProgramState.workoutTemplates[0].exercises[0].setPlan = [
 ];
 api.setState(rangeProgramState);
 api.createDraft("template-a");
-assert.deepEqual(api.getState().draft.exercises[0].sets.map(set => set.repAnchor), ["5-7", "5-7", "8-10"], "Les ranges du programme doivent être transmises à la séance sans modification.");
+assert.deepEqual(api.getState().draft.exercises[0].sets.map(set => set.role), ["heavy", "heavy", "backoff"], "Les anciennes ranges doivent être converties en types de séries.");
+assert.ok(api.getState().draft.exercises[0].sets.every(set => !Object.hasOwn(set, "repAnchor")), "Les anciennes cibles ne doivent plus être propagées dans une séance.");
 api.setState(baseState);
 
 const stateWithDraft = structuredClone(baseState);
@@ -310,8 +302,8 @@ const subjectiveStatsHtml = api.renderStats();
 assert.match(subjectiveStatsHtml, /Suivi de progression/);
 assert.match(subjectiveStatsHtml, /Ressenti/);
 assert.match(subjectiveStatsHtml, /Gêne signalée/);
+assert.match(subjectiveStatsHtml, /Types de séries/);
 assert.doesNotMatch(subjectiveStatsHtml, /Signaux moyens|Difficulté habituelle/);
-assert.doesNotMatch(subjectiveStatsHtml, /Rôle de la série|Intentions de travail|Lourdes, back-off/);
 const subjectiveDetailHtml = api.renderSessionDetail(subjectiveSessions[3]);
 assert.match(subjectiveDetailHtml, /Normale · comme d’habitude/);
 assert.match(subjectiveDetailHtml, /Mieux que prévu/);
@@ -373,31 +365,31 @@ const bodyweightSession = {
 assert.equal(api.sessionTonnage(bodyweightSession), 500, "Le poids du corps doit rester celui mémorisé au moment de la séance.");
 
 const progressionSessions = [
-  ["s1", "2026-07-01", 80, 8],
-  ["s2", "2026-07-08", 82.5, 8],
-  ["s3", "2026-07-15", 85, 7],
-  ["s4", "2026-07-20", 90, 5]
+  ["s1", "2026-07-01", 80, 6],
+  ["s2", "2026-07-08", 82.5, 6],
+  ["s3", "2026-07-15", 85, 5],
+  ["s4", "2026-07-20", 90, 3]
 ].map(([id, date, weight, reps]) => ({
   id,
   date,
   exercises: [{ id: "press", name: "Press", loadType: "total", sets: [{ weight, reps, role: "heavy", validated: true, warmup: false, drops: [] }] }]
 }));
 const ranges = api.availableRepRanges(progressionSessions, "press", "total", "heavy");
-assert.equal(ranges.find(range => range.id === "6-8").passageCount, 3);
-const progress = api.exerciseComparableProgress(progressionSessions, "press", "6-8", "total", "heavy");
+assert.equal(ranges.find(range => range.id === "4-6").passageCount, 3);
+const progress = api.exerciseComparableProgress(progressionSessions, "press", "4-6", "total", "heavy");
 assert.equal(progress.passages.length, 3);
 assert.equal(progress.best.weight, 85);
-assert.equal(progress.best.reps, 7);
+assert.equal(progress.best.reps, 5);
 assert.equal(progress.trend.at(-1).value, 82.5, "La tendance doit être la moyenne mobile des trois passages comparables.");
-const evidence = api.exerciseProgressEvidence(progressionSessions, "press", "total", "6-8");
+const evidence = api.exerciseProgressEvidence(progressionSessions, "press", "total", "4-6", "heavy");
 assert.equal(evidence.status, "confirmed", "Deux améliorations comparables successives doivent confirmer la progression.");
 assert.match(evidence.summary, /\+2,50 kg|\+2,5 kg/, "La comparaison doit exprimer le gain concret.");
 const isolatedLowerPassage = [...progressionSessions.slice(0, 3), {
   id: "s5",
   date: "2026-07-22",
-  exercises: [{ id: "press", name: "Press", loadType: "total", sets: [{ weight: 82.5, reps: 7, validated: true, warmup: false, drops: [] }] }]
+  exercises: [{ id: "press", name: "Press", loadType: "total", sets: [{ weight: 82.5, reps: 5, role: "heavy", validated: true, warmup: false, drops: [] }] }]
 }];
-assert.notEqual(api.exerciseProgressEvidence(isolatedLowerPassage, "press", "total", "6-8").status, "down", "Un seul passage inférieur ne doit pas créer une tendance négative.");
+assert.notEqual(api.exerciseProgressEvidence(isolatedLowerPassage, "press", "total", "4-6", "heavy").status, "down", "Un seul passage inférieur ne doit pas créer une tendance négative.");
 
 api.setStatsDays(0);
 const periodHtml = api.statsPeriodControl();
@@ -408,13 +400,14 @@ assert.match(periodHtml, /Depuis toujours/);
 const profile = api.normalizePractitionerProfile({});
 assert.equal(profile.goal, "hypertrophy");
 assert.equal(profile.effortStyle, "highIntensity");
-assert.deepEqual([profile.heavyRepAnchor, profile.backoffRepAnchor], [6, 10]);
 assert.deepEqual([profile.targetRirMin, profile.targetRirMax], [0, 1]);
-assert.deepEqual([profile.minRepsGuardrail, profile.maxRepsGuardrail], [4, 15]);
+assert.ok(!Object.hasOwn(profile, "heavyRepAnchor") && !Object.hasOwn(profile, "backoffRepAnchor"), "Le profil ne doit plus stocker de cible de répétitions.");
+assert.ok(!Object.hasOwn(profile, "minRepsGuardrail") && !Object.hasOwn(profile, "maxRepsGuardrail"), "Le profil ne doit plus stocker de garde-fous de répétitions personnalisés.");
 assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "trackOnly" }).assistantEnabled, false, "L’ancien mode sans recommandation doit être migré.");
 assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "double" }).useProfileDefaults, true, "Les anciens objectifs rigides doivent migrer vers le profil.");
 api.setState(baseState);
 assert.match(api.renderData(), /Valeurs par défaut de l’aide de charge/);
+assert.match(api.renderData(), /Top set 4–6 reps · Back-off 8–12 reps/);
 assert.doesNotMatch(api.renderData(), /Profil pratiquant|Objectif principal|Expérience|Style d’effort/);
 
 const adaptiveExercise = {
@@ -433,47 +426,47 @@ adaptiveState.sessions = [
   {
     id: "adaptive-old",
     date: "2026-07-10",
-    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 7, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 5, role: "heavy", rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
   },
   {
     id: "adaptive-latest",
     date: "2026-07-17",
-    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+    exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 6, role: "heavy", rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
   }
 ];
 api.setState(adaptiveState);
 const increaseRecommendation = api.adaptiveRecommendation(adaptiveExercise);
 assert.equal(increaseRecommendation.kind, "increase");
 assert.equal(increaseRecommendation.recommendedLoadKg, 82.5, "Une performance améliorée à charge et effort identiques doit proposer un palier.");
-assert.match(increaseRecommendation.why, /passée de 7 à 8/);
+assert.match(increaseRecommendation.why, /passée de 5 à 6/);
 
 const freeRepState = structuredClone(baseState);
 freeRepState.sessions = [{
   id: "five-reps",
   date: "2026-07-17",
-  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 5, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 5, role: "heavy", rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
 }];
 api.setState(freeRepState);
 const fiveRepRecommendation = api.adaptiveRecommendation(adaptiveExercise);
 assert.equal(fiveRepRecommendation.kind, "hold");
-assert.equal(fiveRepRecommendation.recommendedLoadKg, 80, "Cinq répétitions à l’échec doivent rester valides sans cible rigide.");
+assert.equal(fiveRepRecommendation.recommendedLoadKg, 80, "Cinq répétitions à l’échec doivent rester dans la zone Top set.");
 
 const tooHeavyState = structuredClone(baseState);
 tooHeavyState.sessions = [{
   id: "too-heavy",
   date: "2026-07-17",
-  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 3, rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 3, role: "heavy", rir: 0, stopReason: "muscularFailure", validated: true, warmup: false, drops: [] }] }]
 }];
 api.setState(tooHeavyState);
 const decreaseRecommendation = api.adaptiveRecommendation(adaptiveExercise);
 assert.equal(decreaseRecommendation.kind, "caution");
-assert.equal(decreaseRecommendation.recommendedLoadKg, 77.5, "Un échec sous le garde-fou doit retirer un seul palier.");
+assert.equal(decreaseRecommendation.recommendedLoadKg, 77.5, "Un échec sous les 4 reps du Top set doit retirer un seul palier.");
 
 const highRirState = structuredClone(baseState);
 highRirState.sessions = [{
   id: "too-easy",
   date: "2026-07-17",
-  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 3, stopReason: "voluntary", validated: true, warmup: false, drops: [] }] }]
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 6, role: "heavy", rir: 3, stopReason: "voluntary", validated: true, warmup: false, drops: [] }] }]
 }];
 api.setState(highRirState);
 const highRirRecommendation = api.adaptiveRecommendation(adaptiveExercise);
@@ -484,7 +477,7 @@ const painState = structuredClone(baseState);
 painState.sessions = [{
   id: "pain-limited",
   date: "2026-07-17",
-  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "pain", validated: true, warmup: false, drops: [] }] }]
+  exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 6, role: "heavy", rir: 0, stopReason: "pain", validated: true, warmup: false, drops: [] }] }]
 }];
 api.setState(painState);
 const painRecommendation = api.adaptiveRecommendation(adaptiveExercise);
@@ -493,9 +486,9 @@ assert.equal(painRecommendation.recommendedLoadKg, null, "Une série limitée pa
 const failureSets = {
   ...adaptiveExercise,
   sets: [
-    { weight: "", reps: "", role: "free", repAnchor: "", warmup: true, validated: false, drops: [] },
-    { weight: "", reps: "", role: "heavy", repAnchor: 6, warmup: false, validated: false, drops: [] },
-    { weight: "", reps: "", role: "backoff", repAnchor: 10, warmup: false, validated: false, drops: [] }
+    { weight: "", reps: "", role: "free", warmup: true, validated: false, drops: [] },
+    { weight: "", reps: "", role: "heavy", warmup: false, validated: false, drops: [] },
+    { weight: "", reps: "", role: "backoff", warmup: false, validated: false, drops: [] }
   ]
 };
 api.setState(baseState);
@@ -505,33 +498,37 @@ assert.equal(api.setReachedFailure({ rir: 0 }), true);
 assert.equal(api.setReachedFailure({ rir: "", stopReason: "technicalFailure" }), true);
 const templateExerciseHtml = api.renderTemplateExerciseRow({ ...failureSets, plannedSets: 3, muscle: "chest" }, 0);
 assert.match(templateExerciseHtml, /Utiliser les valeurs par défaut de l’application/);
-assert.match(templateExerciseHtml, /Repères par série/);
-assert.doesNotMatch(templateExerciseHtml, /Rôle de la série|>Lourde<|>Back-off<|>Libre</);
-assert.doesNotMatch(templateExerciseHtml, /Répétitions minimum|Double progression/);
+assert.match(templateExerciseHtml, /Type de chaque série/);
+assert.match(templateExerciseHtml, /data-template-set-role/);
+assert.match(templateExerciseHtml, /Top set · 4–6 reps/);
+assert.match(templateExerciseHtml, /Back-off · 8–12 reps/);
+assert.match(templateExerciseHtml, /Libre · sans plage imposée/);
+assert.doesNotMatch(templateExerciseHtml, /Cible de répétitions|data-template-set-anchor|Répétitions minimum|Double progression/);
 api.setState(baseState);
 const programHtml = api.renderProgram();
-assert.match(programHtml, /1 × 6 reps|2 × 6 reps/);
-assert.doesNotMatch(programHtml, /série lourde|back-off/i, "Le programme ne doit plus exposer le jargon de rôles internes.");
+assert.match(programHtml, /2 × Top set · 4–6 reps/);
+assert.match(programHtml, /1 × Back-off · 8–12 reps/);
 const rangeTemplateHtml = api.renderTemplateExerciseRow({ ...failureSets, plannedSets: 3, muscle: "chest", setPlan: [
   { role: "heavy", repAnchor: "5-7" },
   { role: "heavy", repAnchor: "5-7" },
   { role: "backoff", repAnchor: "8-10" }
 ] }, 0);
-assert.match(rangeTemplateHtml, /Cible de répétitions série 1/);
-assert.match(rangeTemplateHtml, /value="5–7"/);
-assert.match(rangeTemplateHtml, /value="8–10"/);
-assert.match(rangeTemplateHtml, /type="text" inputmode="text"/, "L’éditeur mobile doit laisser saisir le tiret d’une fourchette.");
+assert.match(rangeTemplateHtml, /Top set · 4–6 reps/);
+assert.match(rangeTemplateHtml, /Back-off · 8–12 reps/);
+assert.doesNotMatch(rangeTemplateHtml, /5–7|8–10|data-template-set-anchor/, "Les anciennes ranges doivent être remplacées par les plages fixes des types.");
 const trackedExerciseHtml = api.renderTrackedExercise({ ...failureSets, name: "Press", muscle: "chest" }, 0);
 assert.match(trackedExerciseHtml, /Valider la série/);
 assert.doesNotMatch(trackedExerciseHtml, /Valider à l’échec|Échec atteint|Valider autrement/);
-assert.doesNotMatch(trackedExerciseHtml, /data-live-set-role|\blourde\b|back-off/i, "La séance ne doit plus demander ni afficher un rôle de série.");
+assert.match(trackedExerciseHtml, /data-live-set-role/, "Le type doit rester modifiable avant validation pendant la séance.");
+assert.match(trackedExerciseHtml, /Top set · 4–6 reps/);
+assert.match(trackedExerciseHtml, /Back-off · 8–12 reps/);
 assert.match(trackedExerciseHtml, /Pourquoi la série s’est arrêtée/);
 
 const liveExercise = {
   ...adaptiveExercise,
   sets: [
-    { weight: 80, reps: 8, rir: 3, stopReason: "voluntary", role: "heavy", repAnchor: 6, warmup: false, validated: true, drops: [] },
-    { weight: "", reps: "", rir: "", stopReason: "", role: "heavy", repAnchor: 6, warmup: false, validated: false, drops: [] }
+    { weight: 80, reps: 6, rir: 3, stopReason: "voluntary", role: "heavy", warmup: false, validated: true, drops: [] },
+    { weight: "", reps: "", rir: "", stopReason: "", role: "heavy", warmup: false, validated: false, drops: [] }
   ]
 };
 api.setState(baseState);
@@ -539,23 +536,36 @@ const liveRecommendation = api.adaptiveRecommendation(liveExercise);
 assert.equal(liveRecommendation.applyScope, "next");
 assert.equal(liveRecommendation.recommendedLoadKg, 82.5, "L’ajustement en direct doit réagir après une série trop loin de l’échec.");
 
-const rangeExercise = {
+const topSetExercise = {
   ...adaptiveExercise,
   sets: [
-    { weight: 80, reps: 10, rir: 0, stopReason: "muscularFailure", role: "heavy", repAnchor: "8-10", warmup: false, validated: true, drops: [] },
-    { weight: "", reps: "", rir: "", stopReason: "", role: "heavy", repAnchor: "8-10", warmup: false, validated: false, drops: [] }
+    { weight: 80, reps: 6, rir: 0, stopReason: "muscularFailure", role: "heavy", warmup: false, validated: true, drops: [] },
+    { weight: "", reps: "", rir: "", stopReason: "", role: "heavy", warmup: false, validated: false, drops: [] }
   ]
 };
-const rangeIncrease = api.adaptiveRecommendation(rangeExercise);
-assert.equal(rangeIncrease.recommendedLoadKg, 82.5, "Atteindre le haut de la fourchette à l’effort prévu doit proposer un palier supplémentaire.");
-assert.match(rangeIncrease.why, /haut de ta cible 8–10/);
-rangeExercise.sets[0].reps = 9;
-const rangeHold = api.adaptiveRecommendation(rangeExercise);
-assert.equal(rangeHold.recommendedLoadKg, 80, "Rester dans la fourchette doit conserver la charge.");
-rangeExercise.sets[0].reps = 7;
-const rangeDecrease = api.adaptiveRecommendation(rangeExercise);
-assert.equal(rangeDecrease.recommendedLoadKg, 77.5, "Échouer sous le bas de la fourchette doit proposer un seul palier en moins.");
-assert.match(rangeDecrease.why, /sous ta cible de 8–10/);
+const topSetIncrease = api.adaptiveRecommendation(topSetExercise);
+assert.equal(topSetIncrease.recommendedLoadKg, 82.5, "Atteindre 6 reps sur un Top set à l’effort prévu doit proposer un palier supplémentaire.");
+assert.match(topSetIncrease.why, /haut de la plage 4–6 reps du Top set/);
+topSetExercise.sets[0].reps = 5;
+const topSetHold = api.adaptiveRecommendation(topSetExercise);
+assert.equal(topSetHold.recommendedLoadKg, 80, "Rester entre 4 et 6 reps sur un Top set doit conserver la charge.");
+topSetExercise.sets[0].reps = 3;
+const topSetDecrease = api.adaptiveRecommendation(topSetExercise);
+assert.equal(topSetDecrease.recommendedLoadKg, 77.5, "Échouer sous 4 reps sur un Top set doit proposer un seul palier en moins.");
+assert.match(topSetDecrease.why, /sous la plage 4–6 reps du Top set/);
+
+const backoffExercise = {
+  ...adaptiveExercise,
+  sets: [
+    { weight: 70, reps: 12, rir: 0, stopReason: "muscularFailure", role: "backoff", warmup: false, validated: true, drops: [] },
+    { weight: "", reps: "", rir: "", stopReason: "", role: "backoff", warmup: false, validated: false, drops: [] }
+  ]
+};
+assert.equal(api.adaptiveRecommendation(backoffExercise).recommendedLoadKg, 72.5, "Atteindre 12 reps sur un Back-off doit proposer un palier supplémentaire.");
+backoffExercise.sets[0].reps = 10;
+assert.equal(api.adaptiveRecommendation(backoffExercise).recommendedLoadKg, 70, "Rester entre 8 et 12 reps sur un Back-off doit conserver la charge.");
+backoffExercise.sets[0].reps = 7;
+assert.equal(api.adaptiveRecommendation(backoffExercise).recommendedLoadKg, 67.5, "Échouer sous 8 reps sur un Back-off doit proposer un palier en moins.");
 
 const effortSummary = api.effortTrackingSummary([
   { exercises: [{ ...adaptiveExercise, sets: [{ weight: 80, reps: 8, rir: 0, stopReason: "muscularFailure", warmup: false, validated: true, drops: [] }] }] },
@@ -581,7 +591,7 @@ assert.equal(api.applyAdaptiveLoad(nextOnlyExercise, 82.5, "next", "heavy"), 1);
 assert.deepEqual(nextOnlyExercise.sets.map(set => set.weight), ["82.5", ""], "L’ajustement en direct ne doit préremplir que la prochaine série.");
 
 const migratedState = structuredClone(baseState);
-migratedState.version = 9;
+migratedState.version = 10;
 migratedState.workoutTemplates[0].exercises[0].setPlan = undefined;
 migratedState.sessions = [{
   id: "legacy-series",
@@ -590,24 +600,25 @@ migratedState.sessions = [{
     id: "press",
     name: "Press",
     loadType: "total",
+    customMinRepsGuardrail: 4,
+    customMaxRepsGuardrail: 15,
     sets: [
-      { weight: 80, reps: 7, warmup: false, validated: true, drops: [] },
+      { weight: 80, reps: 6, role: "free", repAnchor: "5-7", warmup: false, validated: true, drops: [] },
       { weight: 80, reps: 6, warmup: false, validated: true, drops: [] },
-      { weight: 70, reps: 10, warmup: false, validated: true, drops: [] }
+      { weight: 70, reps: 10, role: "free", repAnchor: "8-10", warmup: false, validated: true, drops: [] }
     ]
   }]
 }];
 api.setState(migratedState);
-assert.deepEqual(api.getState().sessions[0].exercises[0].sets.map(set => [set.role, set.repAnchor]), [
-  ["heavy", 6],
-  ["heavy", 6],
-  ["backoff", 10]
-], "Les anciennes séances doivent être migrées automatiquement sans perdre leurs performances.");
-assert.deepEqual(api.getState().workoutTemplates[0].exercises[0].setPlan.map(item => [item.role, item.repAnchor]), [
-  ["heavy", 6],
-  ["heavy", 6],
-  ["backoff", 10]
-], "Les anciens programmes doivent recevoir la nouvelle structure par défaut.");
+assert.equal(api.getState().version, 11);
+assert.deepEqual(api.getState().sessions[0].exercises[0].sets.map(set => set.role), ["heavy", "heavy", "backoff"], "Les anciennes séances doivent être migrées automatiquement sans perdre leurs performances.");
+assert.ok(api.getState().sessions[0].exercises[0].sets.every(set => !Object.hasOwn(set, "repAnchor")), "Les anciennes cibles doivent être retirées des séries historiques.");
+assert.ok(!Object.hasOwn(api.getState().sessions[0].exercises[0], "customMinRepsGuardrail") && !Object.hasOwn(api.getState().sessions[0].exercises[0], "customMaxRepsGuardrail"), "Les anciens garde-fous personnalisés doivent être retirés du document normalisé.");
+assert.deepEqual(api.getState().workoutTemplates[0].exercises[0].setPlan, [
+  { role: "heavy" },
+  { role: "heavy" },
+  { role: "backoff" }
+], "Les anciens programmes doivent recevoir la structure Top set / Back-off par défaut.");
 
 const separatedRoles = [
   {
@@ -627,9 +638,19 @@ const separatedRoles = [
     ] }]
   }
 ];
-assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "6-8", "total", "heavy").best.weight, 102.5);
-assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "9-12", "total", "backoff").best.weight, 77.5);
-assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "6-8", "total", "backoff").best, null, "Une série back-off ne doit jamais contaminer la progression lourde.");
+assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "4-6", "total", "heavy").best.weight, 102.5);
+assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "8-12", "total", "backoff").best.weight, 77.5);
+assert.equal(api.exerciseComparableProgress(separatedRoles, "press", "4-6", "total", "backoff").best, null, "Une série back-off ne doit jamais contaminer la progression lourde.");
+const separatedSummary = api.roleWorkSummary(separatedRoles);
+assert.deepEqual([separatedSummary.heavy.sets, separatedSummary.backoff.sets, separatedSummary.free.sets], [2, 2, 0]);
+const overviewRoles = [...separatedRoles, {
+  id: "roles-3",
+  date: "2026-07-24",
+  exercises: [{ id: "press", name: "Press", loadType: "total", sets: [
+    { weight: 80, reps: 10, role: "backoff", warmup: false, validated: true, drops: [] }
+  ] }]
+}];
+assert.equal(api.exerciseProgressOverview(overviewRoles)[0].role, "backoff", "La vue d’ensemble doit utiliser le type de série offrant le plus de passages comparables.");
 
 const roleAwareState = structuredClone(baseState);
 roleAwareState.sessions = [{
@@ -638,8 +659,8 @@ roleAwareState.sessions = [{
   exercises: [{
     ...adaptiveExercise,
     sets: [
-      { weight: 100, reps: 6, rir: 0, role: "heavy", repAnchor: 6, warmup: false, validated: true, drops: [] },
-      { weight: 75, reps: 10, rir: 0, role: "backoff", repAnchor: 10, warmup: false, validated: true, drops: [] }
+      { weight: 100, reps: 6, rir: 0, role: "heavy", warmup: false, validated: true, drops: [] },
+      { weight: 75, reps: 10, rir: 0, role: "backoff", warmup: false, validated: true, drops: [] }
     ]
   }]
 }];
@@ -647,13 +668,21 @@ api.setState(roleAwareState);
 const currentRoleExercise = {
   ...adaptiveExercise,
   sets: [
-    { weight: 102.5, reps: 6, rir: 0, role: "heavy", repAnchor: 6, warmup: false, validated: true, drops: [] },
-    { weight: 102.5, reps: 5, rir: 0, role: "heavy", repAnchor: 6, warmup: false, validated: true, drops: [] },
-    { weight: "", reps: "", rir: "", role: "backoff", repAnchor: 10, warmup: false, validated: false, drops: [] }
+    { weight: 102.5, reps: 6, rir: 0, role: "heavy", warmup: false, validated: true, drops: [] },
+    { weight: 102.5, reps: 5, rir: 0, role: "heavy", warmup: false, validated: true, drops: [] },
+    { weight: "", reps: "", rir: "", role: "backoff", warmup: false, validated: false, drops: [] }
   ]
 };
 const backoffRecommendation = api.adaptiveRecommendation(currentRoleExercise);
 assert.equal(backoffRecommendation.role, "backoff");
 assert.equal(backoffRecommendation.recommendedLoadKg, 75, "Le back-off doit repartir de son propre historique, jamais de la charge lourde en cours.");
 
-console.log("Régressions MYGYM v2.1.1 : OK");
+api.setState({ ...baseState, sessions: separatedRoles });
+api.setStatsDays(0);
+const roleStatsHtml = api.renderStats();
+assert.match(roleStatsHtml, /data-set-role-stat/);
+assert.match(roleStatsHtml, /Top set · 4–6 reps/);
+assert.match(roleStatsHtml, /Types de séries/);
+assert.match(roleStatsHtml, /Les Top sets, Back-off et séries libres ne sont jamais mélangés/);
+
+console.log("Régressions MYGYM v2.2.0 : OK");
