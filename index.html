@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0D1117">
-<meta name="description" content="Carnet bodybuilding avec bibliothèque d’exercices, programmes personnalisés, séries dégressives et synchronisation sécurisée.">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="description" content="INNERSET, le carnet d’entraînement qui transforme chaque série en preuve de progression personnelle.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,7 +14,7 @@
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>INNERSET — Workout &amp; Progress</title>
-<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0D1117 !important; }</style>
+<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0A0B0D !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
   color-scheme: light dark;
@@ -704,25 +704,26 @@ svg {
 <div id="volume-tracker-app" class="volume-app">
   <style>
     #volume-tracker-app {
-      --bg: #0D1117;
-      --surface: #151B24;
-      --surface-2: #1B2330;
-      --surface-3: #263244;
-      --text: #F3F5F7;
-      --muted: #98A5B5;
-      --line: #2B3748;
-      --accent: #7C8CFF;
-      --accent-ink: #0B0E16;
-      --positive: #72C5A3;
-      --orange: #E5A266;
-      --red: #E47F73;
-      --blue: #56B8C7;
-      --radius: 16px;
-      --radius-sm: 11px;
+      --bg: #0A0B0D;
+      --surface: #111316;
+      --surface-2: #171A1E;
+      --surface-3: #22262B;
+      --text: #F2EFE8;
+      --muted: #9B9891;
+      --line: #333438;
+      --line-strong: #505157;
+      --accent: #F06B4F;
+      --accent-ink: #160B08;
+      --positive: #9DB39C;
+      --orange: #D6A36F;
+      --red: #E07768;
+      --blue: #9AA9C1;
+      --radius: 7px;
+      --radius-sm: 4px;
       min-height: 100vh;
       min-height: 100dvh;
       background:
-        radial-gradient(circle at 18% -12%, color-mix(in srgb, var(--accent) 12%, transparent) 0, transparent 32rem),
+        linear-gradient(90deg, transparent 0 49.9%, color-mix(in srgb, var(--line) 12%, transparent) 50%, transparent 50.1%) 0 0 / min(100vw, 980px) 100%,
         var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -737,7 +738,7 @@ svg {
     #volume-tracker-app select,
     #volume-tracker-app textarea { font: inherit; }
     #volume-tracker-app button { -webkit-tap-highlight-color: transparent; }
-    #volume-tracker-app .app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: 92px; }
+    #volume-tracker-app .app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: 96px; }
     #volume-tracker-app .topbar {
       position: sticky;
       top: 0;
@@ -746,10 +747,10 @@ svg {
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: max(14px, env(safe-area-inset-top)) 18px 12px;
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+      padding: max(13px, env(safe-area-inset-top)) 18px 11px;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(22px);
+      border-bottom: 1px solid var(--line);
     }
     #volume-tracker-app .brand {
       display: flex;
@@ -763,7 +764,7 @@ svg {
       text-align: left;
       cursor: pointer;
     }
-    #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 12px; }
+    #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 3px; }
     #volume-tracker-app .brand-mark {
       width: 28px;
       height: 46px;
@@ -773,72 +774,84 @@ svg {
       background: transparent;
     }
     #volume-tracker-app .brand-copy { line-height: 1.05; }
-    #volume-tracker-app .brand-name { display: block; font-weight: 800; letter-spacing: .17em; font-size: 13px; }
-    #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-size: 10px; letter-spacing: .025em; margin-top: 5px; }
+    #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .21em; font-size: 12px; }
+    #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 10px; font-style: italic; letter-spacing: .01em; margin-top: 5px; }
     #volume-tracker-app .header-status { color: var(--muted); font-size: 12px; text-align: right; }
-    #volume-tracker-app main { width: min(100%, 980px); margin: 0 auto; padding: 20px 16px 36px; }
-    #volume-tracker-app .page { display: grid; gap: 20px; animation: page-in .22s ease-out; }
+    #volume-tracker-app .header-control { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 0 0 0 10px; border: 0; border-left: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+    #volume-tracker-app .header-control-mark { color: var(--accent); font-size: 13px; letter-spacing: .14em; }
+    #volume-tracker-app .header-control:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+    #volume-tracker-app main { width: min(100%, 1040px); margin: 0 auto; padding: 24px 16px 42px; }
+    #volume-tracker-app .page { display: grid; gap: 24px; animation: page-in .22s ease-out; }
     @keyframes page-in { from { opacity: .35; transform: translateY(5px); } }
     #volume-tracker-app h1,
     #volume-tracker-app h2,
     #volume-tracker-app h3,
     #volume-tracker-app p { margin: 0; }
-    #volume-tracker-app h1 { font-size: clamp(28px, 8vw, 44px); line-height: 1.02; letter-spacing: -.045em; }
-    #volume-tracker-app h2 { font-size: 20px; line-height: 1.15; letter-spacing: -.02em; }
+    #volume-tracker-app h1 { max-width: 16ch; font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(34px, 9vw, 64px); font-weight: 850; line-height: .94; letter-spacing: -.055em; }
+    #volume-tracker-app h2 { font-size: 20px; line-height: 1.12; letter-spacing: -.025em; }
     #volume-tracker-app h3 { font-size: 16px; line-height: 1.2; }
-    #volume-tracker-app .eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    #volume-tracker-app .eyebrow { color: var(--accent); font-size: 10px; font-weight: 850; letter-spacing: .2em; text-transform: uppercase; }
     #volume-tracker-app .muted { color: var(--muted); }
     #volume-tracker-app .small { font-size: 12px; }
-    #volume-tracker-app .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: end; flex-wrap: wrap; }
+    #volume-tracker-app .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; flex-wrap: wrap; padding-top: 2px; }
     #volume-tracker-app .section-head > div { min-width: 0; }
     #volume-tracker-app .stack { display: grid; gap: 14px; }
     #volume-tracker-app .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     #volume-tracker-app .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    #volume-tracker-app .program-grid { display: grid; gap: 14px; align-items: start; }
+    #volume-tracker-app .program-grid { display: grid; gap: 16px; align-items: start; }
     #volume-tracker-app .program-grid > .btn { width: 100%; }
     #volume-tracker-app .program-grid > .btn > span:first-child { min-width: 0; text-align: left; }
     #volume-tracker-app .hero {
       position: relative;
       overflow: hidden;
       display: grid;
-      gap: 20px;
-      padding: 24px;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background:
-        linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, var(--surface-2)), var(--surface) 72%);
-      box-shadow: 0 24px 64px rgba(0,0,0,.18);
+      gap: 28px;
+      min-height: 292px;
+      padding: 32px 26px 28px;
+      border: 0;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+      border-radius: 0;
+      background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 7%, var(--surface)) 0 36%, var(--surface) 72%);
+      box-shadow: none;
     }
     #volume-tracker-app .hero::after {
-      content: "";
+      content: "SET";
       position: absolute;
-      width: 190px;
-      height: 190px;
-      right: -70px;
-      top: -85px;
-      border-radius: 50%;
-      background: color-mix(in srgb, var(--accent) 18%, transparent);
-      filter: blur(12px);
+      width: auto;
+      height: auto;
+      right: -9px;
+      top: 2px;
+      border-radius: 0;
+      background: transparent;
+      color: color-mix(in srgb, var(--text) 4%, transparent);
+      font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+      font-size: clamp(112px, 26vw, 260px);
+      font-weight: 900;
+      line-height: .8;
+      letter-spacing: -.1em;
+      filter: none;
       pointer-events: none;
     }
     #volume-tracker-app .hero > * { position: relative; z-index: 1; }
-    #volume-tracker-app .hero-copy { display: grid; gap: 8px; max-width: 600px; }
+    #volume-tracker-app .hero-copy { display: grid; align-content: end; gap: 12px; max-width: 650px; }
     #volume-tracker-app .card {
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 18px;
     }
     #volume-tracker-app .card.soft { background: var(--surface-2); }
-    #volume-tracker-app .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    #volume-tracker-app .kpi { min-height: 106px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+    #volume-tracker-app .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); background: var(--line); }
+    #volume-tracker-app .kpi-grid > .card { border: 0; border-radius: 0; }
+    #volume-tracker-app .kpi { min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; border-radius: 0; }
     #volume-tracker-app .kpi-label { color: var(--muted); font-size: 12px; }
-    #volume-tracker-app .kpi-value { font-size: clamp(24px, 7vw, 34px); line-height: 1; font-weight: 850; letter-spacing: -.045em; }
+    #volume-tracker-app .kpi-value { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(26px, 7vw, 38px); line-height: .95; font-weight: 850; letter-spacing: -.05em; }
     #volume-tracker-app .kpi-unit { color: var(--muted); font-size: 12px; margin-left: 3px; font-weight: 500; }
     #volume-tracker-app .btn {
       min-height: 44px;
       border: 1px solid var(--line);
-      border-radius: 13px;
+      border-radius: 3px;
       padding: 10px 14px;
       background: var(--surface-2);
       color: var(--text);
@@ -855,11 +868,11 @@ svg {
     #volume-tracker-app input:focus-visible,
     #volume-tracker-app select:focus-visible,
     #volume-tracker-app textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 40%, transparent); outline-offset: 2px; }
-    #volume-tracker-app .btn-primary { background: linear-gradient(135deg, #8D9AFF, var(--accent)); color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 88%, white); box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 16%, transparent); }
+    #volume-tracker-app .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: none; clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%); }
     #volume-tracker-app .btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
     #volume-tracker-app .btn-ghost { background: transparent; }
     #volume-tracker-app .btn-danger { color: #ff9b9b; background: color-mix(in srgb, var(--red) 8%, var(--surface)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
-    #volume-tracker-app .btn-sm { min-height: 36px; padding: 7px 10px; border-radius: 10px; font-size: 12px; }
+    #volume-tracker-app .btn-sm { min-height: 36px; padding: 7px 10px; border-radius: 3px; font-size: 12px; }
     #volume-tracker-app .btn-icon { width: 38px; min-height: 38px; padding: 0; }
     #volume-tracker-app .btn-block { width: 100%; }
     #volume-tracker-app .badge {
@@ -868,11 +881,13 @@ svg {
       gap: 5px;
       min-height: 26px;
       padding: 4px 9px;
-      border-radius: 999px;
+      border-radius: 2px;
       background: var(--surface-3);
       color: var(--muted);
       font-size: 11px;
       font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .055em;
       white-space: nowrap;
     }
     #volume-tracker-app .badge.accent { background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); color: var(--accent); }
@@ -892,7 +907,7 @@ svg {
     #volume-tracker-app .session-line { padding: 14px 0; display: grid; gap: 8px; }
     #volume-tracker-app .session-line:first-child { padding-top: 0; }
     #volume-tracker-app .session-line:last-child { padding-bottom: 0; }
-    #volume-tracker-app .program-card { align-self: start; padding: 0; overflow: hidden; }
+    #volume-tracker-app .program-card { align-self: start; padding: 0; overflow: hidden; border-left: 3px solid var(--line-strong); }
     #volume-tracker-app .program-card summary {
       list-style: none;
       cursor: pointer;
@@ -900,9 +915,10 @@ svg {
       grid-template-columns: 1fr auto;
       gap: 12px;
       align-items: center;
-      padding: 17px;
+      padding: 19px 18px;
     }
     #volume-tracker-app .program-card summary::-webkit-details-marker { display: none; }
+    #volume-tracker-app .program-card[open] { border-left-color: var(--accent); }
     #volume-tracker-app .program-card[open] summary { border-bottom: 1px solid var(--line); }
     #volume-tracker-app .program-content { padding: 6px 17px 17px; display: grid; gap: 14px; }
     #volume-tracker-app .session-template-actions .btn { flex: 1 1 145px; }
@@ -918,7 +934,7 @@ svg {
       gap: 12px;
       padding: 10px 12px;
       border: 1px solid var(--line);
-      border-radius: 11px;
+      border-radius: 3px;
       background: var(--surface-2);
       color: var(--text);
       font-size: 13px;
@@ -938,18 +954,17 @@ svg {
     #volume-tracker-app .template-progress-options[open] summary { color: var(--text); }
     #volume-tracker-app .template-progress-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; padding-top: 10px; }
     #volume-tracker-app .template-progress-grid .field-wide { grid-column: 1 / -1; }
-    #volume-tracker-app .set-plan-editor { grid-column: 2 / -1; display: grid; gap: 8px; width: 100%; padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+    #volume-tracker-app .set-plan-editor { grid-column: 2 / -1; display: grid; gap: 10px; width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface-2); }
     #volume-tracker-app .set-plan-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     #volume-tracker-app .set-plan-list { display: grid; gap: 7px; }
-    #volume-tracker-app .set-plan-row { display: grid; grid-template-columns: 30px minmax(100px, 1fr) minmax(82px, .7fr); gap: 8px; align-items: center; }
-    #volume-tracker-app .set-plan-row select,
+    #volume-tracker-app .set-plan-row { display: grid; grid-template-columns: 30px minmax(100px, 1fr); gap: 8px; align-items: center; }
     #volume-tracker-app .set-plan-row input { min-height: 39px; padding: 7px 9px; }
-    #volume-tracker-app .progression-card { display: grid; gap: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 13px; background: color-mix(in srgb, var(--blue) 7%, var(--surface)); }
+    #volume-tracker-app .progression-card { display: grid; gap: 10px; padding: 14px; border: 0; border-left: 2px solid var(--blue); border-radius: 0; background: color-mix(in srgb, var(--blue) 6%, var(--surface)); }
     #volume-tracker-app .progression-card.increase { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
     #volume-tracker-app .progression-card.caution { border-color: color-mix(in srgb, var(--orange) 42%, var(--line)); background: color-mix(in srgb, var(--orange) 8%, var(--surface)); }
     #volume-tracker-app .progression-card .recommendation-title { font-size: 14px; line-height: 1.3; }
     #volume-tracker-app .progression-card .recommendation-why { color: var(--muted); font-size: 12px; }
-    #volume-tracker-app .order-dot { width: 26px; height: 26px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; color: var(--muted); font-size: 11px; font-weight: 800; }
+    #volume-tracker-app .order-dot { width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 50%; background: transparent; display: grid; place-items: center; color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; font-weight: 800; }
     #volume-tracker-app .field { display: grid; gap: 6px; min-width: 0; }
     #volume-tracker-app .field label,
     #volume-tracker-app .field-label { color: var(--muted); font-size: 12px; font-weight: 650; }
@@ -959,7 +974,7 @@ svg {
       width: 100%;
       min-height: 44px;
       border: 1px solid var(--line);
-      border-radius: 11px;
+      border-radius: 3px;
       background: var(--surface-2);
       color: var(--text);
       padding: 10px 11px;
@@ -971,12 +986,12 @@ svg {
     #volume-tracker-app .feedback-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     #volume-tracker-app .kpi-value.textual { font-size: clamp(18px, 5vw, 24px); line-height: 1.12; letter-spacing: -.02em; overflow-wrap: anywhere; }
     #volume-tracker-app .workout-head { display: grid; gap: 14px; }
-    #volume-tracker-app .live-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; overflow: hidden; padding: 8px; background: var(--surface); }
-    #volume-tracker-app .live-metric { background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; padding: 10px 7px; text-align: center; }
+    #volume-tracker-app .live-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; overflow: hidden; padding: 0; border: 1px solid var(--line); background: var(--line); }
+    #volume-tracker-app .live-metric { background: var(--surface); border: 0; border-radius: 0; padding: 12px 7px; text-align: center; }
     #volume-tracker-app .live-metric strong { display: block; font-size: 17px; }
     #volume-tracker-app .live-metric span { color: var(--muted); font-size: 10px; }
     #volume-tracker-app .exercise-track { padding: 0; overflow: hidden; }
-    #volume-tracker-app .exercise-track-head { display: grid; gap: 10px; padding: 15px; background: var(--surface-2); }
+    #volume-tracker-app .exercise-track-head { display: grid; gap: 11px; padding: 17px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
     #volume-tracker-app .exercise-title-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
     #volume-tracker-app .exercise-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; max-width: 82px; }
     #volume-tracker-app .previous { color: var(--muted); font-size: 11px; }
@@ -987,10 +1002,10 @@ svg {
     #volume-tracker-app .set-index { text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; }
     #volume-tracker-app .set-block { display: grid; gap: 7px; padding: 5px 0 9px; }
     #volume-tracker-app .set-block + .set-block { border-top: 1px solid var(--line); padding-top: 12px; }
-    #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 11px; background: color-mix(in srgb, var(--positive) 8%, transparent); }
+    #volume-tracker-app .set-block.validated { margin: 0 -5px; padding: 10px 5px; border-radius: 2px; background: color-mix(in srgb, var(--positive) 8%, transparent); }
     #volume-tracker-app .set-intent-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-left: 37px; }
-    #volume-tracker-app .set-intent-row select { width: auto; min-width: 120px; min-height: 36px; padding: 6px 9px; }
-    #volume-tracker-app .set-intent-row input { width: 78px; min-height: 36px; padding: 6px 8px; text-align: center; }
+    #volume-tracker-app .set-intent-row input { width: 94px; min-height: 36px; padding: 6px 8px; text-align: center; }
+    #volume-tracker-app .set-target-label { color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
     #volume-tracker-app .role-badge.heavy { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
     #volume-tracker-app .role-badge.backoff { color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--surface-2)); }
     #volume-tracker-app .role-badge.free { color: var(--muted); }
@@ -1048,30 +1063,34 @@ svg {
       left: 50%;
       bottom: 0;
       transform: translateX(-50%);
-      width: min(100%, 980px);
+      width: min(100%, 1040px);
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
-      background: color-mix(in srgb, var(--bg) 94%, transparent);
+      grid-template-columns: repeat(4, 1fr);
+      padding: 0 8px max(6px, env(safe-area-inset-bottom));
+      background: color-mix(in srgb, var(--bg) 96%, transparent);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--line);
     }
     #volume-tracker-app .nav-btn {
       min-width: 0;
-      min-height: 55px;
+      position: relative;
+      min-height: 64px;
       border: 0;
-      border-radius: 13px;
+      border-radius: 0;
       background: transparent;
       color: var(--muted);
       display: grid;
       place-items: center;
       align-content: center;
-      gap: 3px;
+      gap: 2px;
       font-size: 10px;
       cursor: pointer;
     }
-    #volume-tracker-app .nav-btn .nav-icon { font-size: 18px; line-height: 1; }
-    #volume-tracker-app .nav-btn[aria-current="page"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+    #volume-tracker-app .nav-index { color: var(--line-strong); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .08em; line-height: 1; }
+    #volume-tracker-app .nav-btn::before { content: ""; position: absolute; top: -1px; left: 22%; width: 56%; height: 2px; background: transparent; }
+    #volume-tracker-app .nav-btn[aria-current="page"] { color: var(--text); background: transparent; }
+    #volume-tracker-app .nav-btn[aria-current="page"] .nav-index { color: var(--accent); }
+    #volume-tracker-app .nav-btn[aria-current="page"]::before { background: var(--accent); }
     #volume-tracker-app .toast {
       position: fixed;
       z-index: 80;
@@ -1117,6 +1136,53 @@ svg {
     #volume-tracker-app .detail-drop { padding: 10px; border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; background: color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
     #volume-tracker-app .detail-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
     #volume-tracker-app .guard-copy { line-height: 1.55; }
+    #volume-tracker-app .page-intro { position: relative; display: grid; gap: 10px; padding: 8px 0 4px 18px; border-left: 2px solid var(--accent); }
+    #volume-tracker-app .page-intro .muted { max-width: 62ch; }
+    #volume-tracker-app .manifesto { color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 12px; font-style: italic; letter-spacing: .025em; }
+    #volume-tracker-app .ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); }
+    #volume-tracker-app .ledger-cell { min-width: 0; display: grid; align-content: space-between; gap: 13px; min-height: 102px; padding: 15px; background: var(--surface); }
+    #volume-tracker-app .ledger-cell > span:first-child { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    #volume-tracker-app .ledger-cell strong { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(23px, 6vw, 34px); line-height: .95; letter-spacing: -.045em; }
+    #volume-tracker-app .ledger-cell small { color: var(--muted); font-size: 11px; }
+    #volume-tracker-app .journal { border-top: 1px solid var(--line-strong); }
+    #volume-tracker-app .journal-entry { position: relative; display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; padding: 17px 0; border-bottom: 1px solid var(--line); }
+    #volume-tracker-app .journal-date { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.4; text-transform: uppercase; }
+    #volume-tracker-app .journal-body { min-width: 0; display: grid; gap: 9px; }
+    #volume-tracker-app .journal-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+    #volume-tracker-app .section-rule { display: flex; align-items: center; gap: 12px; }
+    #volume-tracker-app .section-rule::after { content: ""; min-width: 24px; height: 1px; flex: 1; background: var(--line); }
+    #volume-tracker-app .proof-card { display: grid; gap: 16px; padding: 19px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); background: var(--surface); }
+    #volume-tracker-app .proof-card.progress { border-left-color: var(--accent); }
+    #volume-tracker-app .proof-card.confirmed { border-left-color: var(--positive); }
+    #volume-tracker-app .proof-card.down { border-left-color: var(--orange); }
+    #volume-tracker-app .proof-state { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    #volume-tracker-app .proof-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+    #volume-tracker-app .proof-card.progress .proof-state::before { background: var(--accent); }
+    #volume-tracker-app .proof-card.confirmed .proof-state::before { background: var(--positive); }
+    #volume-tracker-app .proof-card.down .proof-state::before { background: var(--orange); }
+    #volume-tracker-app .proof-value { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(28px, 8vw, 48px); line-height: .95; letter-spacing: -.055em; }
+    #volume-tracker-app .evidence-grid { display: grid; gap: 1px; border: 1px solid var(--line); background: var(--line); }
+    #volume-tracker-app .evidence-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 14px; background: var(--surface); }
+    #volume-tracker-app .evidence-row strong:last-child { text-align: right; }
+    #volume-tracker-app .evidence-mark { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); }
+    #volume-tracker-app .evidence-mark.progress { background: var(--accent); }
+    #volume-tracker-app .evidence-mark.confirmed { background: var(--positive); }
+    #volume-tracker-app .evidence-mark.down { background: var(--orange); }
+    #volume-tracker-app .quiet-panel { padding: 17px 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    #volume-tracker-app .target-line { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: center; }
+    #volume-tracker-app .target-line input { border-color: var(--line-strong); background: var(--surface); }
+    #volume-tracker-app .measure-note { padding: 12px 0 0 13px; border-left: 1px solid var(--line-strong); color: var(--muted); font-size: 12px; }
+    #volume-tracker-app .notice { border-radius: 3px; }
+    #volume-tracker-app .empty-icon { border-radius: 50%; }
+    #volume-tracker-app .chart-wrap { padding-top: 5px; }
+    #volume-tracker-app .chart-line { stroke-width: 2; }
+    #volume-tracker-app .chart-dot { fill: var(--surface); stroke-width: 2; }
+    #volume-tracker-app .form-grid.compact-feedback { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #volume-tracker-app .secondary-measures > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+    #volume-tracker-app .secondary-measures > summary::-webkit-details-marker { display: none; }
+    #volume-tracker-app .secondary-measures > summary > span:first-child { display: grid; gap: 4px; }
+    #volume-tracker-app .secondary-measures[open] > summary { padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+    #volume-tracker-app .secondary-measures[open] > summary > span:last-child { transform: rotate(45deg); }
     #volume-tracker-app .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     @media (max-width: 420px) {
       #volume-tracker-app .topbar { gap: 10px; padding-left: 14px; padding-right: 14px; }
@@ -1125,7 +1191,8 @@ svg {
       #volume-tracker-app .brand-name,
       #volume-tracker-app .brand-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       #volume-tracker-app .brand-sub { font-size: 10px; }
-      #volume-tracker-app .header-status { flex: 0 1 36%; max-width: 36%; font-size: 10px; line-height: 1.25; }
+      #volume-tracker-app .header-status { display: block; max-width: none; overflow: hidden; font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+      #volume-tracker-app .header-control { flex: 0 1 40%; max-width: 40%; }
       #volume-tracker-app main { padding-left: 14px; padding-right: 14px; }
       #volume-tracker-app .hero { padding: 20px; }
       #volume-tracker-app .card { padding: 15px; }
@@ -1141,6 +1208,9 @@ svg {
       #volume-tracker-app .dialog-actions { flex-wrap: wrap; }
       #volume-tracker-app .dialog-actions .btn { flex: 1 1 120px; }
       #volume-tracker-app .detail-set-grid { grid-template-columns: 1fr; }
+      #volume-tracker-app .form-grid.compact-feedback { grid-template-columns: 1fr; }
+      #volume-tracker-app .evidence-row { grid-template-columns: 1fr; align-items: start; }
+      #volume-tracker-app .evidence-row > strong:last-child { text-align: left; }
     }
     @media (max-width: 350px) {
       #volume-tracker-app .feedback-grid,
@@ -1158,7 +1228,7 @@ svg {
       #volume-tracker-app .feedback-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #volume-tracker-app .hero { grid-template-columns: minmax(0, 1.4fr) auto; align-items: end; }
       #volume-tracker-app .hero .btn { min-width: 200px; }
-      #volume-tracker-app .program-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #volume-tracker-app .program-grid { grid-template-columns: 1fr; }
       #volume-tracker-app .live-strip { grid-template-columns: repeat(4, minmax(0,1fr)); }
       #volume-tracker-app .set-grid { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
       #volume-tracker-app .drop-row { grid-template-columns: 38px 1fr 1fr 1fr 44px; }
@@ -1166,6 +1236,8 @@ svg {
       #volume-tracker-app .template-exercise-row > .row { grid-column: auto; justify-content: end; }
       #volume-tracker-app .template-progress-options { grid-column: 2 / -1; }
       #volume-tracker-app .volume-composition { grid-template-columns: minmax(200px, .8fr) minmax(0, 1.2fr); }
+      #volume-tracker-app .ledger { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      #volume-tracker-app .journal-entry { grid-template-columns: 90px minmax(0, 1fr); }
     }
     @media (prefers-reduced-motion: reduce) {
       #volume-tracker-app *, #volume-tracker-app *::before, #volume-tracker-app *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1181,17 +1253,16 @@ svg {
           <span class="brand-sub">Every set builds you.</span>
         </span>
       </button>
-      <div id="header-status" class="header-status">Données locales</div>
+      <button class="header-control" type="button" data-action="navigate" data-view="data" aria-label="Ouvrir le profil et la synchronisation"><span id="header-status" class="header-status">Données locales</span><span class="header-control-mark" aria-hidden="true">••</span></button>
     </header>
 
     <main id="app-main" aria-live="polite"></main>
 
     <nav class="bottom-nav" aria-label="Navigation principale">
-      <button class="nav-btn" type="button" data-action="navigate" data-view="home" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span><span>Accueil</span></button>
-      <button class="nav-btn" type="button" data-action="navigate" data-view="program"><span class="nav-icon" aria-hidden="true">≡</span><span>Programme</span></button>
-      <button class="nav-btn" type="button" data-action="navigate" data-view="workout"><span class="nav-icon" aria-hidden="true">＋</span><span>Séance</span></button>
-      <button class="nav-btn" type="button" data-action="navigate" data-view="stats"><span class="nav-icon" aria-hidden="true">↗</span><span>Stats</span></button>
-      <button class="nav-btn" type="button" data-action="navigate" data-view="data"><span class="nav-icon" aria-hidden="true">◎</span><span>Profil</span></button>
+      <button class="nav-btn" type="button" data-action="navigate" data-view="home" aria-current="page"><span class="nav-index" aria-hidden="true">01</span><span>Aujourd’hui</span></button>
+      <button class="nav-btn" type="button" data-action="navigate" data-view="program"><span class="nav-index" aria-hidden="true">02</span><span>Programme</span></button>
+      <button class="nav-btn" type="button" data-action="navigate" data-view="workout"><span class="nav-index" aria-hidden="true">03</span><span>Séance</span></button>
+      <button class="nav-btn" type="button" data-action="navigate" data-view="stats"><span class="nav-index" aria-hidden="true">04</span><span>Progression</span></button>
     </nav>
   </div>
 
@@ -1296,7 +1367,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "1.15.0";
+      const APP_VERSION = "2.0.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1534,7 +1605,7 @@ svg {
       let statsDays = 7;
       let selectedExercise = "";
       let selectedRepRange = "";
-      let selectedSetRole = "heavy";
+      let selectedSetRole = "all";
       let libraryQuery = "";
       let libraryMuscleFilter = "all";
       let editingLibraryExerciseId = "";
@@ -2252,6 +2323,19 @@ svg {
         return groups.join(" · ");
       }
 
+      function setTargetSummary(exercise) {
+        if (exercise.warmupDefault) return `${exercise.plannedSets} série${exercise.plannedSets > 1 ? "s" : ""} W`;
+        const plan = normalizeSetPlan(exercise.setPlan, exercise.plannedSets, false, normalizePractitionerProfile(state.settings?.practitionerProfile));
+        const targets = plan.map(item => repTargetLabel(item.repAnchor) || "libre");
+        const groups = [];
+        targets.forEach(target => {
+          const previous = groups.at(-1);
+          if (previous?.target === target) previous.count += 1;
+          else groups.push({ target, count: 1 });
+        });
+        return groups.map(group => `${group.count} × ${group.target}${group.target === "libre" ? "" : " reps"}`).join(" · ");
+      }
+
       function defaultIncrementForExercise(exercise) {
         if (exercise.equipmentType === "barbell" && exercise.loadType === "perSide") return 1.25;
         if (exercise.equipmentType === "dumbbell" && exercise.loadType === "perSide") return 2;
@@ -2284,7 +2368,7 @@ svg {
 
       function practitionerProfileSummary(profile = state.settings?.practitionerProfile) {
         const normalized = normalizePractitionerProfile(profile);
-        return `${goalLabel(normalized.goal)} · ${experienceLabel(normalized.experience)} · 2 lourdes ≈${normalized.heavyRepAnchor} + 1 back-off ≈${normalized.backoffRepAnchor} · RIR ${normalized.targetRirMin}–${normalized.targetRirMax}`;
+        return `${goalLabel(normalized.goal)} · ${experienceLabel(normalized.experience)} · repères ${normalized.heavyRepAnchor} puis ${normalized.backoffRepAnchor} reps · RIR ${normalized.targetRirMin}–${normalized.targetRirMax}`;
       }
 
       function getLibraryExercise(exerciseId) {
@@ -2721,7 +2805,8 @@ svg {
       function formatSetSummary(set) {
         const main = `${esc(set.weight || 0)} kg × ${esc(set.reps || 0)}`;
         const drops = completedDrops(set).map(drop => `${esc(drop.weight || 0)} kg × ${esc(drop.reps || 0)}`);
-        return `${esc(setRoleShortLabel(set.role, set.warmup))} · ${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
+        const target = !set.warmup && set.repAnchor ? `cible ${esc(repTargetLabel(set.repAnchor))} · ` : "";
+        return `${set.warmup ? "W · " : target}${[main, ...drops].join(" → ")}${setReachedFailure(set) ? " · échec" : ""}`;
       }
 
       function repRangeById(rangeId) {
@@ -2744,12 +2829,13 @@ svg {
       }
 
       function availableRepRanges(sessions, exerciseId, loadType, role = "heavy") {
+        const filterByRole = role && role !== "all";
         return REP_RANGES.map(range => {
           const passageIds = new Set();
           let setCount = 0;
           sessions.forEach(session => (session.exercises || [])
             .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
-            .forEach(exercise => workingSets(exercise).filter(set => normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
+            .forEach(exercise => workingSets(exercise).filter(set => !filterByRole || normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
               if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
               setCount += 1;
               passageIds.add(session.id);
@@ -2761,13 +2847,14 @@ svg {
       function exerciseComparableProgress(sessions, exerciseId, rangeId, loadType, role = "heavy") {
         const range = repRangeById(rangeId);
         if (!range) return { passages: [], trend: [], best: null };
+        const filterByRole = role && role !== "all";
         const passages = [];
         let best = null;
         sessions.forEach(session => {
           const entries = [];
           (session.exercises || [])
             .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
-            .forEach(exercise => workingSets(exercise).filter(set => normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
+            .forEach(exercise => workingSets(exercise).filter(set => !filterByRole || normalizeSetRole(set.role) === normalizeSetRole(role)).forEach(set => {
               if (!setIsInRepRange(set, range) || !hasRecordedComparableWeight(set)) return;
               const entry = { weight: finiteNumber(set.weight), reps: setMainReps(set), date: session.date, sessionId: session.id };
               entries.push(entry);
@@ -2793,6 +2880,84 @@ svg {
           };
         });
         return { passages, trend, best };
+      }
+
+      function comparablePassageProofs(sessions, exerciseId, rangeId, loadType) {
+        const range = repRangeById(rangeId);
+        if (!range) return [];
+        return sessions.flatMap(session => {
+          const candidates = (session.exercises || [])
+            .filter(exercise => exercise.id === exerciseId && (exercise.loadType || "total") === loadType)
+            .flatMap(exercise => workingSets(exercise))
+            .filter(set => setIsInRepRange(set, range) && hasRecordedComparableWeight(set))
+            .map(set => ({ weight: finiteNumber(set.weight), reps: setMainReps(set), set }));
+          if (!candidates.length) return [];
+          const reference = [...candidates].sort((a, b) => b.weight - a.weight || b.reps - a.reps)[0];
+          return [{ sessionId: session.id, date: session.date, ...reference }];
+        }).sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      function progressionStep(previous, current) {
+        if (!previous || !current) return "insufficient";
+        if (current.weight > previous.weight) return "progress";
+        if (current.weight === previous.weight && current.reps > previous.reps) return "progress";
+        if (current.weight < previous.weight && current.reps <= previous.reps) return "down";
+        if (current.weight === previous.weight && current.reps < previous.reps) return "down";
+        return "stable";
+      }
+
+      function exerciseProgressEvidence(sessions, exerciseId, loadType, rangeId) {
+        const passages = comparablePassageProofs(sessions, exerciseId, rangeId, loadType);
+        const range = repRangeById(rangeId);
+        const current = passages.at(-1) || null;
+        const previous = passages.at(-2) || null;
+        if (!previous) return {
+          status: "insufficient",
+          label: "Base en construction",
+          summary: current ? "Un premier passage comparable est enregistré." : "Aucun passage comparable n’est encore enregistré.",
+          detail: "Il faut au moins deux passages dans la même zone de répétitions pour lire une évolution.",
+          passages, current, previous
+        };
+        const lastStep = progressionStep(previous, current);
+        const priorStep = passages.length >= 3 ? progressionStep(passages.at(-3), previous) : "insufficient";
+        let status = "stable";
+        if (lastStep === "progress" && priorStep === "progress") status = "confirmed";
+        else if (lastStep === "progress") status = "progress";
+        else if (lastStep === "down" && priorStep === "down") status = "down";
+        const unit = comparableWeightUnit(loadType);
+        const rangeCopy = range ? (range.max === 100 ? `${range.min}+ reps` : `${range.min}–${range.max} reps`) : "répétitions comparables";
+        let summary = "Performance stable dans cette zone.";
+        let detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}.`;
+        if (status === "progress" || status === "confirmed") {
+          if (current.weight > previous.weight) {
+            summary = `+${formatNumber(current.weight - previous.weight, 2)} ${unit} à répétitions comparables.`;
+            detail = `${formatNumber(previous.weight, 2)} ${unit} × ${previous.reps} puis ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}, dans la zone ${rangeCopy}.`;
+          } else {
+            summary = `+${current.reps - previous.reps} répétition${current.reps - previous.reps > 1 ? "s" : ""} à charge identique.`;
+            detail = `${formatNumber(current.weight, 2)} ${unit} : ${previous.reps} puis ${current.reps} répétitions.`;
+          }
+          if (status === "confirmed") detail += " Le signal se répète sur deux comparaisons successives.";
+        } else if (status === "down") {
+          summary = "Deux passages successifs sont sous les repères précédents.";
+          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. C’est un signal à contextualiser, pas un verdict.`;
+        } else if (lastStep === "down") {
+          summary = "Un passage plus bas, sans tendance confirmée.";
+          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. Un seul passage ne suffit pas à conclure.`;
+        }
+        const label = ({ confirmed: "Progression confirmée", progress: "Nouveau repère", stable: "Stable", down: "À contextualiser" })[status];
+        return { status, label, summary, detail, passages, current, previous };
+      }
+
+      function exerciseProgressOverview(sessions) {
+        return uniqueExercises(sessions).map(exercise => {
+          const ranges = availableRepRanges(sessions, exercise.id, exercise.loadType, "all")
+            .sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount);
+          const range = ranges[0];
+          const evidence = range
+            ? exerciseProgressEvidence(sessions, exercise.id, exercise.loadType, range.id)
+            : exerciseProgressEvidence([], exercise.id, exercise.loadType, "");
+          return { ...exercise, range, evidence };
+        });
       }
 
       function getSortedSessions() {
@@ -3028,15 +3193,33 @@ svg {
         return { ...base, kind, title, observation, why, confidence, recommendedLoadKg, applyScope: "all", recommendedRole: role };
       }
 
+      function neutralizeSeriesRoleCopy(value) {
+        return String(value || "")
+          .replace(/les séries lourdes et les back-off/gi, "les séries de zones de répétitions différentes")
+          .replace(/série de référence (?:lourde|back-off|libre)/gi, "série de référence")
+          .replace(/série (?:lourde|back-off|libre)/gi, "série")
+          .replace(/passage (?:lourde|back-off|libre)/gi, "passage")
+          .replace(/(?:lourde|back-off|libre) validée/gi, "série validée")
+          .replace(/ en (?:lourde|back-off|libre)/gi, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+      }
+
       function renderAdaptiveRecommendation(exercise, exerciseIndex) {
         const recommendation = adaptiveRecommendation(exercise);
         if (!recommendation) {
-          return `<div class="progression-card"><div class="row-between"><strong class="recommendation-title">Suivi simple</strong><span class="badge">Assistant en pause</span></div><p class="recommendation-why">${esc(adaptiveSettingsLabel(exercise))}</p></div>`;
+          return `<div class="progression-card"><div class="row-between"><strong class="recommendation-title">Tes charges restent entièrement libres</strong><span class="badge">Aide en pause</span></div><p class="recommendation-why">${esc(adaptiveSettingsLabel(exercise))}</p></div>`;
         }
+        let title = "Repère enregistré";
+        if (recommendation.recommendedLoadKg !== null) {
+          const verb = recommendation.kind === "increase" ? "Tu peux tenter" : recommendation.kind === "caution" ? "Essaie" : "Repars sur";
+          title = `${verb} ${formatNumber(recommendation.recommendedLoadKg, 2)} ${recommendation.unit}${recommendation.applyScope === "next" ? " sur la prochaine série" : ""}`;
+        } else if (recommendation.kind === "baseline") title = "Choisis un premier poids de travail";
+        else if (recommendation.kind === "caution") title = "Pas de hausse automatique sur ce passage";
         const applyButton = recommendation.recommendedLoadKg !== null
-          ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-recommended-role="${esc(recommendation.recommendedRole || recommendation.role)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? `Mettre sur la prochaine ${esc(setRoleLabel(recommendation.role).toLowerCase())}` : `Préremplir les ${esc(setRoleLabel(recommendation.role).toLowerCase())}s vides`}</button>`
+          ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-recommended-role="${esc(recommendation.recommendedRole || recommendation.role)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? "Appliquer à la prochaine série" : "Préremplir les séries concernées"}</button>`
           : "";
-        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(recommendation.title)}</strong><span class="badge accent">${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(recommendation.observation)}</p><p class="recommendation-why"><strong>Pourquoi :</strong> ${esc(recommendation.why)}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Proposition facultative · aucune saisie écrasée</span></div>` : ""}</div>`;
+        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(title)}</strong><span class="badge accent">preuve ${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(neutralizeSeriesRoleCopy(recommendation.observation))}</p><p class="recommendation-why"><strong>Lecture :</strong> ${esc(neutralizeSeriesRoleCopy(recommendation.why))}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Facultatif · aucune saisie existante ne sera écrasée</span></div>` : ""}</div>`;
       }
 
       function applyAdaptiveLoad(exercise, recommendedLoad, scope = "all", role = "") {
@@ -3284,8 +3467,9 @@ svg {
         }
         if (previousView === "template-editor" && view !== "template-editor") templateEditorSnapshot = null;
         currentView = view;
+        const navigationView = ["library", "template-editor"].includes(view) ? "program" : view;
         root.querySelectorAll(".nav-btn").forEach(button => {
-          if (button.dataset.view === view) button.setAttribute("aria-current", "page");
+          if (button.dataset.view === navigationView) button.setAttribute("aria-current", "page");
           else button.removeAttribute("aria-current");
         });
         render();
@@ -3325,18 +3509,21 @@ svg {
       function renderHistoryBlock() {
         const sessions = getSortedSessions().reverse();
         return `
-          <div class="section-head"><div><p class="eyebrow">Historique</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""}</h2></div></div>
-          ${sessions.length ? `<div class="card list-divider">${sessions.map(session => `<div class="history-item"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${formatDate(session.date, true)} · ${finiteNumber(session.durationMin)} min</p></div><div class="history-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Voir le détail</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Dupliquer</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div><div class="row"><span class="badge accent">${sessionWorkSets(session)} séries</span><span class="badge">${compactWeight(sessionTonnage(session))} kg volume-charge</span><span class="badge">${sessionReps(session)} reps</span>${sessionDropSegments(session) ? `<span class="badge accent">${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}</span>` : ""}</div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div>`).join("")}</div>` : `<div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h3>Ta progression commence ici</h3><p class="muted">Enregistre ta première séance pour débloquer les tendances, records et moyennes.</p></div></div>`}
+          <div class="section-head section-rule"><div><p class="eyebrow">Journal</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""} enregistrée${sessions.length > 1 ? "s" : ""}</h2></div></div>
+          ${sessions.length ? `<div class="journal">${sessions.map(session => `<article class="journal-entry"><time class="journal-date" datetime="${esc(session.date)}">${formatDate(session.date, true)}</time><div class="journal-body"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${finiteNumber(session.durationMin)} min · ${sessionWorkSets(session)} séries de travail · ${sessionReps(session)} reps${sessionDropSegments(session) ? ` · ${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}` : ""}</p></div><div class="journal-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Ouvrir</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Refaire</button><button class="btn btn-sm btn-ghost" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div></article>`).join("")}</div>` : `<div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">01</span><h3>Le premier repère manque encore</h3><p class="muted">Enregistre une séance. INNERSET attendra des données comparables avant de parler de progression.</p></div></div>`}
           ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}`;
       }
 
       function renderHome() {
         const week = currentWeekSessions();
         const weekSets = week.reduce((sum, session) => sum + sessionWorkSets(session), 0);
-        const weekTonnage = week.reduce((sum, session) => sum + sessionTonnage(session), 0);
         const weekMinutes = week.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0);
         const weekStreak = activeWeekStreak();
         const next = nextProgram();
+        const latest = latestSession();
+        const recentSignal = exerciseProgressOverview(getSortedSessions())
+          .filter(item => ["confirmed", "progress"].includes(item.evidence.status) && item.evidence.current)
+          .sort((a, b) => b.evidence.current.date.localeCompare(a.evidence.current.date))[0];
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
           : next
@@ -3346,23 +3533,25 @@ svg {
         return `
           <section class="page">
             ${installNotice()}
-            <div class="notice row-between"><span><strong>Profil actif :</strong> ${esc(practitionerProfileSummary())}</span><button class="btn btn-sm" type="button" data-action="navigate" data-view="data">Ajuster</button></div>
             <div class="hero">
               <div class="hero-copy">
-                <p class="eyebrow">Cycle hebdomadaire</p>
-                <h1>${state.draft ? "Ta séance t’attend." : next ? `Prochaine étape : ${esc(next.name)}` : "Construis ton prochain programme."}</h1>
-                <p class="muted">${state.draft ? "Tes saisies sont conservées automatiquement." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries prévues` : "Crée librement ton programme, puis compose chaque séance depuis ta bibliothèque."}</p>
+                <p class="eyebrow">Aujourd’hui</p>
+                <h1>${state.draft ? "Reprends là où tu t’es arrêté." : next ? esc(next.name) : "Pose ton premier repère."}</h1>
+                <p class="muted">${state.draft ? "Tes séries validées et tes saisies sont déjà conservées." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries prévues. Le reste se décide sous la barre.` : "Crée librement un programme et une séance qui te ressemblent."}</p>
+                <p class="manifesto">Un corps construit. Rien de figé.</p>
               </div>
               ${action}
             </div>
 
-            <div class="section-head"><div><p class="eyebrow">Cette semaine</p><h2>Charge de travail</h2></div><div class="row"><span class="badge accent">${week.length}/${state.settings.targetSessionsWeek} séances</span>${weekStreak ? `<span class="badge">${weekStreak} semaine${weekStreak > 1 ? "s" : ""} régulière${weekStreak > 1 ? "s" : ""}</span>` : ""}</div></div>
-            <div class="kpi-grid">
-              <div class="card kpi"><span class="kpi-label">Séances</span><strong class="kpi-value">${week.length}</strong><span class="small muted">objectif ${state.settings.targetSessionsWeek}</span></div>
-              <div class="card kpi"><span class="kpi-label">Séries de travail</span><strong class="kpi-value">${weekSets}</strong><span class="small muted">échauffement exclu</span></div>
-              <div class="card kpi"><span class="kpi-label">Volume-charge</span><strong class="kpi-value">${compactWeight(weekTonnage)}<span class="kpi-unit">kg</span></strong><span class="small muted">repère interne, pas un score de force</span></div>
-              <div class="card kpi"><span class="kpi-label">Temps</span><strong class="kpi-value">${weekMinutes}<span class="kpi-unit">min</span></strong><span class="small muted">temps enregistré</span></div>
+            <div class="section-head section-rule"><div><p class="eyebrow">Semaine en cours</p><h2>Le rythme, sans jugement</h2></div></div>
+            <div class="ledger" aria-label="Repères de la semaine">
+              <div class="ledger-cell"><span>Passages</span><strong>${week.length}<small> / ${state.settings.targetSessionsWeek}</small></strong><small>objectif personnel</small></div>
+              <div class="ledger-cell"><span>Séries utiles</span><strong>${weekSets}</strong><small>W exclues</small></div>
+              <div class="ledger-cell"><span>Temps sous la barre</span><strong>${weekMinutes}<small> min</small></strong><small>temps enregistré</small></div>
+              <div class="ledger-cell"><span>Continuité</span><strong>${weekStreak || "—"}</strong><small>${weekStreak ? `semaine${weekStreak > 1 ? "s" : ""} au rythme visé` : "aucune série forcée"}</small></div>
             </div>
+
+            ${recentSignal ? `<div class="proof-card ${recentSignal.evidence.status}"><div class="row-between"><span class="proof-state">${esc(recentSignal.evidence.label)}</span><span class="small muted">${formatDate(recentSignal.evidence.current.date, true)}</span></div><div><p class="eyebrow">${esc(recentSignal.name)}</p><strong class="proof-value">${esc(recentSignal.evidence.summary)}</strong></div><p class="small muted">${esc(recentSignal.evidence.detail)}</p><button class="btn btn-sm" type="button" data-action="navigate" data-view="stats">Voir les preuves</button></div>` : latest ? `<div class="quiet-panel"><p class="eyebrow">Lecture honnête</p><h2>Les données s’accumulent. Pas encore de conclusion.</h2><p class="measure-note">INNERSET affichera un signal quand au moins deux passages seront comparables sur un même exercice et une même zone de répétitions.</p></div>` : ""}
 
             ${renderHistoryBlock()}
           </section>`;
@@ -3372,22 +3561,21 @@ svg {
         const activeProgram = getActiveProgram();
         const templates = getActiveWorkoutTemplates();
         const totalWeeklySets = templates.reduce((sum, session) => sum + sessionPlannedSets(session), 0);
-        const targetRows = muscleComparisonRows(programMuscleTargets(activeProgram));
         if (!activeProgram) return `
           <section class="page">
-            <div><p class="eyebrow">Programmes</p><h1>Construis ton entraînement</h1><p class="muted">Crée le programme que tu souhaites, nomme ses séances librement puis compose-les avec ta bibliothèque.</p></div>
+            <div class="page-intro"><p class="eyebrow">Programme</p><h1>Construis ton entraînement.</h1><p class="muted">Aucun modèle imposé : tu nommes ton programme, ses séances et chaque repère de répétitions.</p></div>
             <div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h2>Aucun programme actif</h2><p class="muted">Ton historique reste conservé. Commence simplement une nouvelle organisation.</p><button class="btn btn-primary" type="button" data-action="open-program-dialog">Créer un programme</button></div></div>
             <button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque d’exercices</button>
           </section>`;
         return `
           <section class="page">
-            <div class="section-head"><div><p class="eyebrow">Programme actif</p><h1>${esc(activeProgram.name)}</h1></div><span class="badge accent">${templates.length} séance${templates.length > 1 ? "s" : ""}</span></div>
+            <div class="page-intro"><p class="eyebrow">Programme actif</p><h1>${esc(activeProgram.name)}</h1><p class="muted">Le plan donne une direction. La séance enregistrée reste une photographie indépendante de ce que tu as réellement fait.</p></div>
             <div class="card stack">
               <div class="form-grid">
                 <div class="field"><label for="active-program">Programme affiché</label><select id="active-program" data-active-program>${state.programs.map(program => `<option value="${esc(program.id)}" ${program.id === activeProgram.id ? "selected" : ""}>${esc(program.name)}</option>`).join("")}</select></div>
-                <div class="field"><label>Volume du cycle</label><div class="row"><span class="badge accent">${templates.length} séance${templates.length > 1 ? "s" : ""}</span><span class="badge">${totalWeeklySets} séries prévues</span></div></div>
+                <div class="field"><label>Architecture actuelle</label><div class="row"><span class="badge accent">${templates.length} séance${templates.length > 1 ? "s" : ""}</span><span class="badge">${totalWeeklySets} séries prévues au total</span></div></div>
               </div>
-              <div class="row program-main-actions"><button class="btn btn-primary" type="button" data-action="create-template">＋ Créer une séance</button><button class="btn" type="button" data-action="navigate" data-view="library">Bibliothèque d’exercices</button></div>
+              <div class="row program-main-actions"><button class="btn btn-primary" type="button" data-action="create-template">＋ Nouvelle séance</button><button class="btn" type="button" data-action="navigate" data-view="library">Bibliothèque</button></div>
               <details class="program-management">
                 <summary><span>Gérer le programme</span><span class="program-management-chevron" aria-hidden="true">▾</span></summary>
                 <div class="program-management-actions"><button class="btn" type="button" data-action="open-program-dialog">Nouveau programme</button><button class="btn" type="button" data-action="open-rename-program" data-program-id="${esc(activeProgram.id)}">Renommer ce programme</button><button class="btn btn-danger" type="button" data-action="delete-program" data-program-id="${esc(activeProgram.id)}">Supprimer ce programme</button></div>
@@ -3397,12 +3585,12 @@ svg {
               ${templates.map((session, sessionIndex) => `
                 <details class="card program-card" ${sessionIndex === 0 ? "open" : ""}>
                   <summary>
-                    <div><h2>${esc(session.name)}</h2><p class="small muted">${session.exercises.length} exercice${session.exercises.length > 1 ? "s" : ""}</p></div>
-                    <span class="badge accent">${sessionPlannedSets(session)} séries</span>
+                    <div><p class="eyebrow">S${String(sessionIndex + 1).padStart(2, "0")}</p><h2>${esc(session.name)}</h2><p class="small muted">${session.exercises.length} exercice${session.exercises.length > 1 ? "s" : ""} · ${sessionPlannedSets(session)} séries</p></div>
+                    <span class="badge accent">Ouvrir ↓</span>
                   </summary>
                   <div class="program-content">
                     <div class="list-divider">
-                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · RIR désactivé" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(setPlanSummary(exercise))} · ${esc(adaptiveSettingsLabel(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
+                      ${session.exercises.map((exercise, index) => `<div class="exercise-plan-row"><span class="order-dot">${index + 1}</span><div><strong>${esc(exercise.name)}</strong><p class="small muted">${muscleMap[exercise.muscle]?.short || "Autre"} · ${loadTypeLabel(exercise.loadType)}${exercise.rirEnabled === false ? " · sans RIR" : ""}${exercise.warmupDefault ? " · W par défaut" : ""}</p><p class="small muted">${esc(setTargetSummary(exercise))}</p></div><span class="badge">${exercise.plannedSets} séries</span></div>`).join("")}
                     </div>
                     ${session.exercises.length ? `<button class="btn btn-primary btn-block" type="button" data-action="start-session" data-program="${session.id}">Démarrer ${esc(session.name)}</button>` : `<div class="notice">Cette séance est vide. Ajoute-lui des exercices avant de la démarrer.</div>`}
                     <div class="row session-template-actions"><button class="btn btn-sm" type="button" data-action="edit-template" data-template-id="${esc(session.id)}">Modifier la séance</button><button class="btn btn-sm btn-danger" type="button" data-action="delete-template" data-template-id="${esc(session.id)}">Supprimer la séance</button></div>
@@ -3410,7 +3598,7 @@ svg {
                 </details>`).join("")}
             </div>
             ${templates.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">＋</span><h2>Programme vide</h2><p class="muted">Crée ta première séance puis ajoute les exercices de ta bibliothèque.</p><button class="btn btn-primary" type="button" data-action="create-template">Créer une séance</button></div></div>`}
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Volume programmé</p><h2>Cibles musculaires du programme</h2><p class="small muted">Calcul automatique des séries prévues dans les séances ci-dessus. Les exercices W par défaut sont exclus.</p></div></div>${targetRows.length ? `<div class="row">${targetRows.map(muscle => `<span class="badge">${esc(muscle.short)} · ${muscle.target}</span>`).join("")}</div>` : `<p class="muted">Aucune série de travail prévue pour le moment.</p>`}</div>
+            <div class="quiet-panel row-between"><div><p class="eyebrow">Bibliothèque</p><h2>Tes mouvements, tes machines, tes repères.</h2><p class="small muted">Une variante de machine reste un exercice distinct pour conserver des comparaisons honnêtes.</p></div><button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque</button></div>
           </section>`;
       }
 
@@ -3452,13 +3640,13 @@ svg {
             <button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-template-exercise" data-index="${index}" aria-label="Retirer">×</button>
           </div>
           <div class="set-plan-editor">
-            <div class="set-plan-editor-head"><div><strong>Structure des séries</strong><p class="small muted">Indique une cible exacte (6) ou une fourchette (8-10), modifiable aussi pendant la séance.</p></div><span class="badge accent">${esc(setPlanSummary({ ...exercise, setPlan: plan }))}</span></div>
-            <div class="set-plan-list">${plan.map((item, setIndex) => `<div class="set-plan-row"><span class="order-dot">${setIndex + 1}</span><select aria-label="Rôle de la série ${setIndex + 1}" data-template-set-role data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}><option value="heavy" ${item.role === "heavy" ? "selected" : ""}>Lourde</option><option value="backoff" ${item.role === "backoff" ? "selected" : ""}>Back-off</option><option value="free" ${item.role === "free" ? "selected" : ""}>Libre</option></select><input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="6 ou 8-10" value="${esc(repTargetLabel(item.repAnchor))}" data-template-set-anchor data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}></div>`).join("")}</div>
+            <div class="set-plan-editor-head"><div><strong>Repères par série</strong><p class="small muted">Une valeur exacte (6), une fourchette (8-10), ou rien si tu veux rester libre.</p></div><span class="badge accent">${esc(setTargetSummary({ ...exercise, setPlan: plan }))}</span></div>
+            <div class="set-plan-list">${plan.map((item, setIndex) => `<label class="set-plan-row target-line"><span class="order-dot">${setIndex + 1}</span><span class="sr-only">Cible de répétitions série ${setIndex + 1}</span><input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="Ex. 6 ou 8-10" value="${esc(repTargetLabel(item.repAnchor))}" data-template-set-anchor data-index="${index}" data-set-index="${setIndex}" ${exercise.warmupDefault ? "disabled" : ""}></label>`).join("")}</div>
           </div>
           <details class="template-progress-options">
-            <summary>Assistant · ${esc(adaptiveSettingsLabel(exercise))}</summary>
+            <summary>Aide de charge · ${esc(adaptiveSettingsLabel(exercise))}</summary>
             <div class="stack" style="padding-top:10px">
-              <label class="row small"><input type="checkbox" data-template-adaptive-toggle="assistantEnabled" data-index="${index}" ${settings.assistantEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Me proposer une charge de travail</label>
+              <label class="row small"><input type="checkbox" data-template-adaptive-toggle="assistantEnabled" data-index="${index}" ${settings.assistantEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Me suggérer un poids de départ à partir de mes passages précédents</label>
               ${settings.assistantEnabled ? `<label class="row small"><input type="checkbox" data-template-adaptive-toggle="useProfileDefaults" data-index="${index}" ${settings.useProfileDefaults ? "checked" : ""} style="width:auto;min-height:auto"> Utiliser automatiquement mon profil pratiquant</label>` : ""}
               ${settings.assistantEnabled && settings.useProfileDefaults ? `<div class="notice"><strong>Réglage automatique :</strong> ${esc(practitionerProfileSummary())}. Tu n’as rien d’autre à configurer pour cet exercice.</div>` : ""}
               ${settings.assistantEnabled && !settings.useProfileDefaults ? `<div class="template-progress-grid">
@@ -3479,7 +3667,7 @@ svg {
         const resolvedExercises = template.exercises.map(resolveTemplateExercise);
         return `
           <section class="page">
-            <div class="section-head"><div><p class="eyebrow">Éditeur de séance</p><h1>${esc(template.name)}</h1></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Composer la séance</p><h1>${esc(template.name)}</h1><p class="muted">L’ordre, le nombre de séries et les repères de répétitions forment le plan. Tu resteras libre de les adapter pendant un passage réel.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
             <div class="card stack"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div></div>
             <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
             <div class="card list-divider">
@@ -3492,11 +3680,11 @@ svg {
       function renderWorkout() {
         if (!state.draft) {
           const templates = getActiveWorkoutTemplates();
-          return `<section class="page"><div><p class="eyebrow">Nouvelle séance</p><h1>Choisis ton entraînement</h1><p class="muted">Le dernier passage est affiché sous chaque exercice dès que tu commences.</p></div><div class="program-grid">${templates.filter(session => session.exercises.length).map(session => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><strong>${esc(session.name)}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div>${templates.some(session => session.exercises.length) ? "" : `<div class="card empty"><div class="empty-inner"><h2>Aucune séance prête</h2><p class="muted">Crée ou complète une séance dans l’onglet Programme.</p><button class="btn" type="button" data-action="navigate" data-view="program">Gérer le programme</button></div></div>`}</section>`;
+          return `<section class="page"><div class="page-intro"><p class="eyebrow">Passage du jour</p><h1>Quelle séance vas-tu écrire ?</h1><p class="muted">Le dernier résultat utile de chaque exercice réapparaîtra au moment de saisir tes séries.</p></div><div class="program-grid">${templates.filter(session => session.exercises.length).map((session, index) => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><span class="eyebrow">S${String(index + 1).padStart(2, "0")}</span><strong>${esc(session.name)}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div>${templates.some(session => session.exercises.length) ? "" : `<div class="card empty"><div class="empty-inner"><h2>Aucune séance prête</h2><p class="muted">Crée ou complète une séance dans l’onglet Programme.</p><button class="btn" type="button" data-action="navigate" data-view="program">Gérer le programme</button></div></div>`}</section>`;
         }
         const draft = state.draft;
         const liveSets = sessionWorkSets(draft);
-        const liveTonnage = sessionTonnage(draft);
+        const liveReps = sessionReps(draft);
         const liveDrops = sessionDropSegments(draft);
         const pendingValidationCount = unvalidatedEnteredSets(draft).length;
         const elapsed = Math.max(0, Math.round((Date.now() - new Date(draft.startedAt).getTime()) / 60000));
@@ -3504,17 +3692,17 @@ svg {
         return `
           <section class="page">
             <div class="workout-head">
-              <div class="section-head"><div><p class="eyebrow">Séance en cours</p><h1>${esc(draft.name)}</h1></div><button class="btn btn-sm btn-danger" type="button" data-action="discard-draft">Abandonner</button></div>
+              <div class="section-head"><div class="page-intro"><p class="eyebrow">Séance en cours</p><h1>${esc(draft.name)}</h1><p class="manifesto">Une série à la fois.</p></div><button class="btn btn-sm btn-danger" type="button" data-action="discard-draft">Abandonner</button></div>
               <div class="form-grid">
                 <div class="field"><label for="workout-date">Date</label><input id="workout-date" type="date" value="${esc(draft.date)}" data-draft-field="date"></div>
                 <div class="field"><label for="workout-duration">Durée (min, optionnel)</label><input id="workout-duration" type="number" inputmode="numeric" min="1" max="600" placeholder="Auto : ${elapsed}" value="${esc(draft.durationOverride)}" data-draft-field="durationOverride"></div>
               </div>
-              <div class="notice"><strong>Simple et sans friction :</strong> chaque série garde son intention — lourde, back-off, libre ou W. Saisis la charge et les répétitions puis valide avec un bouton unique. Le RIR décrit l’effort séparément ; RIR 0 correspond à l’échec musculaire. Les repères de répétitions restent indicatifs.</div>
+              <p class="measure-note">Saisis, valide, avance. Une cible de répétitions reste un repère modifiable, jamais une obligation. Le RIR décrit l’effort ; il ne décide pas si une série « compte ».</p>
             </div>
 
             <div class="card live-strip" aria-label="Résumé en direct">
               <div class="live-metric"><strong id="live-set-count">${liveSets}</strong><span>séries</span></div>
-              <div class="live-metric"><strong id="live-tonnage">${compactWeight(liveTonnage)}</strong><span>kg volume-charge</span></div>
+              <div class="live-metric"><strong id="live-reps">${liveReps}</strong><span>répétitions</span></div>
               <div class="live-metric"><strong id="live-drop-count">${liveDrops}</strong><span>drops</span></div>
               <div class="live-metric"><strong id="live-time">${elapsed}</strong><span>minutes</span></div>
             </div>
@@ -3528,19 +3716,17 @@ svg {
             </div>
 
             <div class="card stack">
-              <div><p class="eyebrow">Ressenti</p><h2>Fin de séance</h2></div>
-              <p class="small muted">Tous les critères sont facultatifs et comparés uniquement à ton niveau habituel. Ils contextualisent tes performances, mais ne déclenchent jamais seuls une hausse de charge.</p>
-              <div class="feedback-grid">
-                ${feedbackSelect("difficulty", "Difficulté de la séance", feedback.difficulty)}
+              <div><p class="eyebrow">Contexte du passage</p><h2>Ce que les chiffres ne disent pas</h2></div>
+              <p class="small muted">Trois réponses facultatives suffisent. Elles donnent du contexte sans transformer une sensation subjective en score de performance.</p>
+              <div class="form-grid compact-feedback">
                 ${feedbackSelect("energy", "Énergie disponible", feedback.energy)}
                 ${feedbackSelect("performance", "Performance perçue", feedback.performance)}
-                ${feedbackSelect("pump", "Congestion", feedback.pump)}
                 ${feedbackSelect("painImpact", "Gêne / douleur", feedback.painImpact)}
               </div>
               ${feedback.painImpact && feedback.painImpact !== "none" ? `<div class="notice warning stack"><div><strong>Précise seulement si cela t’aide à suivre une récurrence.</strong><p class="small muted">Ce signal est séparé de la fatigue musculaire et ne constitue pas un diagnostic.</p></div><div class="form-grid"><div class="field"><label for="feedback-pain-area">Zone concernée</label><input id="feedback-pain-area" maxlength="80" value="${esc(feedback.painArea)}" data-feedback-field="painArea" placeholder="Ex. épaule droite, genou gauche…"></div><div class="field"><label for="feedback-pain-note">Contexte facultatif</label><input id="feedback-pain-note" maxlength="180" value="${esc(feedback.painNote)}" data-feedback-field="painNote" placeholder="Mouvement, amplitude, sensation…"></div></div></div>` : ""}
               <div class="field"><label for="session-comments">Commentaires</label><textarea id="session-comments" data-draft-field="comments" placeholder="Sensations, technique, fatigue, exercice à modifier…">${esc(draft.comments)}</textarea></div>
               <div id="pending-validation-notice" class="notice warning" ${pendingValidationCount ? "" : "hidden"}>${pendingValidationCount ? pendingValidationCopy(pendingValidationCount) : ""}</div>
-              <button class="btn btn-primary btn-block" type="button" data-action="finish-workout">Enregistrer la séance</button>
+              <button class="btn btn-primary btn-block" type="button" data-action="finish-workout">Clore et enregistrer la séance</button>
             </div>
           </section>`;
       }
@@ -3558,16 +3744,15 @@ svg {
                 <div><p class="eyebrow">${exerciseIndex + 1} · ${muscleMap[exercise.muscle]?.short || "Autre"}</p><h2>${esc(exercise.name)}</h2>${exercise.brand || exercise.machineName ? `<p class="small muted">${esc([exercise.brand, exercise.machineName, exercise.machineModel].filter(Boolean).join(" · "))}</p>` : ""}</div>
                 <div class="exercise-actions"><button class="btn btn-icon btn-sm" type="button" data-action="replace-draft-exercise" data-index="${exerciseIndex}" aria-label="Remplacer ${esc(exercise.name)}">⇄</button><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="-1" aria-label="Monter ${esc(exercise.name)}">↑</button><button class="btn btn-icon btn-sm" type="button" data-action="move-exercise" data-index="${exerciseIndex}" data-direction="1" aria-label="Descendre ${esc(exercise.name)}">↓</button><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-draft-exercise" data-index="${exerciseIndex}" aria-label="Retirer ${esc(exercise.name)}">×</button></div>
               </div>
-              <p class="previous">Précédent : ${previousText}</p>
-              <p class="small muted">Assistant : ${esc(adaptiveSettingsLabel(exercise))}</p>
+              <p class="previous">Dernier passage : ${previousText}</p>
+              <p class="small muted">Aide de charge · ${esc(adaptiveSettingsLabel(exercise))}</p>
               ${renderAdaptiveRecommendation(exercise, exerciseIndex)}
             </div>
             <div class="sets-table">
               <div class="set-grid set-head"><span>N°</span><span>Charge kg</span><span>Reps</span><span>${rirEnabled ? "RIR" : "RIR off"}</span><span>W</span></div>
               ${exercise.sets.map((set, setIndex) => {
-                const role = normalizeSetRole(set.role);
-                const rolePosition = exercise.sets.slice(0, setIndex + 1).filter(item => !item.warmup && normalizeSetRole(item.role) === role).length - 1;
-                const previousSet = previous?.sets?.filter(item => !item.warmup && normalizeSetRole(item.role) === role)?.[Math.max(0, rolePosition)];
+                const workSetPosition = exercise.sets.slice(0, setIndex + 1).filter(item => !item.warmup).length - 1;
+                const previousSet = previous?.sets?.filter(item => !item.warmup)?.[Math.max(0, workSetPosition)];
                 const mainRepsCompleted = finiteNumber(set.reps) > 0;
                 const readyForValidation = setReadyForValidation(set);
                 const locked = Boolean(set.validated);
@@ -3583,7 +3768,7 @@ svg {
                 const stopReasonControl = locked ? "" : `<details class="set-stop-details" ${set.stopReason ? "open" : ""}><summary>Pourquoi la série s’est arrêtée ? ${set.stopReason ? `· ${esc(stopReasonLabel(set.stopReason))}` : "· optionnel"}</summary><select aria-label="Raison d’arrêt série ${setIndex + 1}" data-set-stop-reason data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">${stopReasonOptions.map(([value, label]) => `<option value="${value}" ${set.stopReason === value ? "selected" : ""}>${label}</option>`).join("")}</select></details>`;
                 const intentLockedAttr = locked || set.warmup ? "disabled" : "";
                 return `<div class="set-block ${locked ? "validated" : ""}" data-set-block data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">
-                  <div class="set-intent-row"><span class="badge role-badge ${set.warmup ? "free" : role}">${esc(setRoleShortLabel(role, set.warmup))}${!set.warmup && set.repAnchor ? ` · ${esc(repTargetLabel(set.repAnchor))} reps` : ""}</span><select aria-label="Rôle série ${setIndex + 1}" data-live-set-role data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}><option value="heavy" ${role === "heavy" ? "selected" : ""}>Lourde</option><option value="backoff" ${role === "backoff" ? "selected" : ""}>Back-off</option><option value="free" ${role === "free" ? "selected" : ""}>Libre</option></select><input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="6 ou 8-10" value="${esc(repTargetLabel(set.repAnchor))}" data-live-set-anchor data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}></div>
+                  <div class="set-intent-row"><span class="set-target-label">${set.warmup ? "Échauffement" : "Repère reps"}</span>${set.warmup ? `<span class="badge">W</span>` : `<input aria-label="Cible de répétitions série ${setIndex + 1}" type="text" inputmode="text" maxlength="9" autocapitalize="off" spellcheck="false" placeholder="libre" value="${esc(repTargetLabel(set.repAnchor))}" data-live-set-anchor data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${intentLockedAttr}>`}</div>
                   <div class="set-grid set-row"><span class="set-index">${setIndex + 1}</span><input aria-label="Charge série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="${esc(previousSet?.weight ?? "—")}" value="${esc(set.weight)}" data-set-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}><input aria-label="Répétitions série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="${esc(previousSet?.reps ?? "—")}" value="${esc(set.reps)}" data-set-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${lockedAttr}>${rirCell}<button class="btn btn-icon btn-sm warmup-toggle" type="button" data-action="toggle-warmup" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-pressed="${set.warmup ? "true" : "false"}" aria-label="Marquer comme série d’échauffement" ${lockedAttr}>W</button></div>
                   ${(set.drops || []).map((drop, dropIndex) => `<div class="drop-row"><span class="drop-index">↳ D${dropIndex + 1}</span><input aria-label="Charge drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${esc(drop.weight)}" data-drop-field="weight" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><input aria-label="Répétitions drop ${dropIndex + 1} de la série ${setIndex + 1}" type="number" inputmode="numeric" min="0" max="100" placeholder="reps" value="${esc(drop.reps)}" data-drop-field="reps" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" ${dropLockedAttr}><span class="drop-link">sans<br>repos</span><button class="btn btn-icon btn-sm btn-danger" type="button" data-action="remove-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-drop-index="${dropIndex}" aria-label="Supprimer le drop ${dropIndex + 1}" ${dropLockedAttr}>×</button></div>`).join("")}
                   <button class="btn btn-sm drop-add" type="button" data-action="add-drop" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" ${dropLockedAttr}>${mainRepsCompleted ? "↳ + Drop" : "Reps requises avant un drop"}</button>${stopReasonControl}<div class="set-validation-row">${validation}</div>
@@ -3627,12 +3812,11 @@ svg {
         const sessions = sessionsForPeriod(statsDays);
         const periodControl = statsPeriodControl();
         if (!sessions.length) {
-          return `<section class="page"><div class="section-head"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div>${periodControl}</div><div class="card empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">↗</span><h2>Aucune séance sur cette période</h2><p class="muted">Choisis une période plus longue ou enregistre une séance pour afficher tes séries, ton volume-charge et tes progressions.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
+          return `<section class="page"><div class="section-head"><div class="page-intro"><p class="eyebrow">Progression</p><h1>Des preuves, pas un score.</h1><p class="muted">INNERSET attend des passages comparables avant de tirer une conclusion.</p></div>${periodControl}</div><div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">04</span><h2>Aucune séance sur cette période</h2><p class="muted">Élargis la période ou enregistre une séance. Une absence de données n’est ni un recul ni un échec.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
         }
 
         const totalMainTonnage = sessions.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
         const totalDropTonnage = sessions.reduce((sum, session) => sum + sessionDropTonnage(session), 0);
-        const totalTonnage = totalMainTonnage + totalDropTonnage;
         const totalSets = sessions.reduce((sum, session) => sum + sessionWorkSets(session), 0);
         const totalMainReps = sessions.reduce((sum, session) => sum + sessionMainReps(session), 0);
         const totalDropReps = sessions.reduce((sum, session) => sum + sessionDropReps(session), 0);
@@ -3640,23 +3824,18 @@ svg {
         const totalDropSegments = sessions.reduce((sum, session) => sum + sessionDropSegments(session), 0);
         const dropSetShare = totalSets ? totalDropSets / totalSets * 100 : 0;
         const avgDuration = sessions.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0) / sessions.length;
+        const effortTracking = effortTrackingSummary(sessions);
+        const subjectiveFeedback = subjectiveFeedbackSummary(sessions);
         const earliest = dateFromYmd(sessions[0].date);
         const spanDays = statsDays || Math.max(1, Math.ceil((new Date() - earliest) / 86400000) + 1);
         const weeks = Math.max(1, spanDays / 7);
-        const avgWeekSessions = sessions.length / weeks;
-        const weekly = weeklyAggregates(sessions);
+        const activeProgram = getActiveProgram();
         const muscleTotals = muscleSets(sessions);
         const muscleAverages = Object.fromEntries(Object.entries(muscleTotals).map(([id, value]) => [id, value / weeks]));
-        const activeProgram = getActiveProgram();
         const muscleRows = muscleComparisonRows(programMuscleTargets(activeProgram), muscleAverages);
-        const effortTracking = effortTrackingSummary(sessions);
-        const roleSummary = roleWorkSummary(sessions);
-        const subjectiveFeedback = subjectiveFeedbackSummary(sessions);
-        const difficultyLabel = subjectiveFeedback.baselineLabel || "—";
-        const feedbackTrendLabel = ({ harder: "Plus difficile", easier: "Plus facile", stable: "Stable", building: "Base en construction" })[subjectiveFeedback.trend];
         const painContext = [
           subjectiveFeedback.painAreas.length ? `Zones : ${subjectiveFeedback.painAreas.slice(0, 3).map(([name, count]) => `${name}${count > 1 ? ` (${count})` : ""}`).join(", ")}` : "",
-          subjectiveFeedback.painExercises.length ? `Exercices ayant limité une série : ${subjectiveFeedback.painExercises.slice(0, 3).map(([name, count]) => `${name}${count > 1 ? ` (${count})` : ""}`).join(", ")}` : ""
+          subjectiveFeedback.painExercises.length ? `Exercices concernés : ${subjectiveFeedback.painExercises.slice(0, 3).map(([name, count]) => `${name}${count > 1 ? ` (${count})` : ""}`).join(", ")}` : ""
         ].filter(Boolean).join(". ");
 
         const exerciseOptions = uniqueExercises(sessions);
@@ -3665,74 +3844,94 @@ svg {
           selectedRepRange = "";
         }
         const selectedMeta = exerciseOptions.find(exercise => exercise.key === selectedExercise);
-        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, selectedSetRole) : [];
+        const repRanges = selectedMeta ? availableRepRanges(sessions, selectedMeta.id, selectedMeta.loadType, "all") : [];
         if (!repRanges.some(range => range.id === selectedRepRange)) {
           selectedRepRange = [...repRanges].sort((a, b) => b.passageCount - a.passageCount || b.setCount - a.setCount)[0]?.id || "";
         }
         const comparable = selectedMeta
-          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType, selectedSetRole)
+          ? exerciseComparableProgress(sessions, selectedMeta.id, selectedRepRange, selectedMeta.loadType, "all")
           : { passages: [], trend: [], best: null };
-        const trendDelta = comparable.trend.length > 1 ? comparable.trend.at(-1).value - comparable.trend[0].value : 0;
+        const evidence = selectedMeta
+          ? exerciseProgressEvidence(sessions, selectedMeta.id, selectedMeta.loadType, selectedRepRange)
+          : exerciseProgressEvidence([], "", "total", "");
         const comparisonUnit = comparableWeightUnit(selectedMeta?.loadType);
+        const progressionPoints = comparable.passages.map(passage => ({ label: passage.label, value: passage.best }));
+        const overview = exerciseProgressOverview(sessions)
+          .sort((a, b) => ({ confirmed: 0, progress: 1, down: 2, stable: 3, insufficient: 4 })[a.evidence.status] - ({ confirmed: 0, progress: 1, down: 2, stable: 3, insufficient: 4 })[b.evidence.status] || a.name.localeCompare(b.name, "fr"));
+        const statusCounts = overview.reduce((counts, item) => {
+          counts[item.evidence.status] = (counts[item.evidence.status] || 0) + 1;
+          return counts;
+        }, {});
 
-        const workloadByTemplate = getActiveWorkoutTemplates().map(template => {
+        const templateRows = getActiveWorkoutTemplates().map(template => {
           const passages = sessions.filter(session => session.programId === template.id);
-          const main = passages.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
-          const drops = passages.reduce((sum, session) => sum + sessionDropTonnage(session), 0);
-          const total = main + drops;
-          return { id: template.id, name: template.name, count: passages.length, main, drops, total, average: passages.length ? total / passages.length : 0 };
+          const last = passages.at(-1) || null;
+          const planned = sessionPlannedSets(template);
+          const actual = last ? sessionWorkSets(last) : 0;
+          return { id: template.id, name: template.name, passages: passages.length, last, planned, actual, delta: last ? actual - planned : 0 };
         });
 
         return `
           <section class="page">
-            <div class="section-head"><div><p class="eyebrow">Analyses</p><h1>Tes statistiques</h1></div>${periodControl}</div>
-            <div class="kpi-grid">
-              <div class="card kpi"><span class="kpi-label">Volume-charge moyen / séance</span><strong class="kpi-value">${compactWeight(totalTonnage / sessions.length)}<span class="kpi-unit">kg</span></strong><span class="small muted">${compactWeight(totalTonnage)} kg enregistrés</span></div>
-              <div class="card kpi"><span class="kpi-label">Séries moyennes / séance</span><strong class="kpi-value">${formatNumber(totalSets / sessions.length, 1)}</strong><span class="small muted">${totalSets} séries de travail</span></div>
-              <div class="card kpi"><span class="kpi-label">Répétitions principales / série</span><strong class="kpi-value">${formatNumber(totalSets ? totalMainReps / totalSets : 0, 1)}</strong><span class="small muted">${totalMainReps} reps principales</span></div>
-              <div class="card kpi"><span class="kpi-label">Fréquence moyenne</span><strong class="kpi-value">${formatNumber(avgWeekSessions, 1)}<span class="kpi-unit">/sem.</span></strong><span class="small muted">durée moy. ${formatNumber(avgDuration, 0)} min</span></div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Progression</p><h1>Des preuves, pas un score.</h1><p class="muted">Même exercice, même variante de charge et même zone de répétitions. Le reste n’est que du contexte.</p></div>${periodControl}</div>
+
+            <div class="ledger" aria-label="Repères de la période">
+              <div class="ledger-cell"><span>Séances</span><strong>${sessions.length}</strong><small>sur la période</small></div>
+              <div class="ledger-cell"><span>Séries / séance</span><strong>${formatNumber(totalSets / sessions.length, 1)}</strong><small>${totalSets} séries utiles</small></div>
+              <div class="ledger-cell"><span>Durée moyenne</span><strong>${formatNumber(avgDuration, 0)}<small> min</small></strong><small>temps enregistré</small></div>
+              <div class="ledger-cell"><span>Proche de l’échec</span><strong>${effortTracking.total ? formatNumber(effortTracking.nearFailure / effortTracking.total * 100, 0) : "—"}${effortTracking.total ? "<small> %</small>" : ""}</strong><small>RIR 0–1 documenté</small></div>
             </div>
 
+            <div class="section-head section-rule"><div><p class="eyebrow">Exercice</p><h2>La preuve la plus utile</h2></div></div>
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Composition du volume</p><h2>Séries effectives et drops</h2><p class="small muted">Le volume-charge global est réparti entre le travail principal et les paliers dégressifs.</p></div><span class="badge accent">${formatNumber(dropSetShare, 1)} % des séries avec drop</span></div>
-              ${volumeCompositionChart(totalMainTonnage, totalDropTonnage)}
-              <div class="kpi-grid">
-                <div class="kpi"><span class="kpi-label">Répétitions issues des drops</span><strong class="kpi-value">${totalDropReps}</strong><span class="small muted">${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""}</span></div>
-                <div class="kpi"><span class="kpi-label">Séries avec drop</span><strong class="kpi-value">${totalDropSets}</strong><span class="small muted">sur ${totalSets} séries de travail</span></div>
+              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et variante de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Zone comparable</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
+              <div class="proof-card ${esc(evidence.status)}">
+                <div class="row-between"><span class="proof-state">${esc(evidence.label)}</span>${evidence.current ? `<span class="small muted">${formatDate(evidence.current.date, true)}</span>` : ""}</div>
+                <strong class="proof-value">${esc(evidence.summary)}</strong>
+                <p class="small muted">${esc(evidence.detail)}</p>
               </div>
+              ${progressionPoints.length ? `${lineChart(progressionPoints, comparisonUnit, { ariaLabel: `Meilleurs poids par passage comparable pour ${selectedMeta?.name || "l’exercice"}`, title: "Repères de charge comparables", compactAxis: true })}<p class="small muted">Chaque point est le poids le plus élevé réalisé dans la zone choisie lors d’un passage. Ce n’est pas une estimation de force maximale.</p>` : `<p class="muted">Aucun point comparable dans cette zone.</p>`}
+              ${evidence.passages.length ? `<div class="evidence-grid">${evidence.passages.slice(-4).reverse().map(passage => `<div class="evidence-row"><div><strong>${formatDate(passage.date, true)}</strong><p class="small muted">Passage comparable</p></div><strong>${formatNumber(passage.weight, 2)} ${comparisonUnit} × ${passage.reps}</strong></div>`).join("")}</div>` : ""}
             </div>
+
+            <div class="section-head section-rule"><div><p class="eyebrow">Vue d’ensemble</p><h2>Ce qui bouge, ce qui attend</h2><p class="small muted">Une baisse isolée reste stable. Deux signaux successifs sont nécessaires avant d’afficher « à contextualiser ».</p></div><div class="row"><span class="badge accent">${(statusCounts.confirmed || 0) + (statusCounts.progress || 0)} en progression</span><span class="badge">${statusCounts.insufficient || 0} sans assez de données</span></div></div>
+            ${overview.length ? `<div class="evidence-grid">${overview.map(item => `<div class="evidence-row"><div class="row" style="flex-wrap:nowrap"><span class="evidence-mark ${esc(item.evidence.status)}" aria-hidden="true"></span><div><strong>${esc(item.name)}</strong><p class="small muted">${item.range ? esc(item.range.label) : "Zone non disponible"} · ${esc(loadTypeLabel(item.loadType))}</p></div></div><strong>${esc(item.evidence.label)}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Aucun exercice exploitable sur la période.</p></div>`}
+
+            <div class="section-head section-rule"><div><p class="eyebrow">Programme réel</p><h2>Le plan face au terrain</h2><p class="small muted">La comparaison utilise seulement le dernier passage de chaque séance modèle. Un exercice ajouté pendant la séance ne modifie jamais le programme.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>
+            ${templateRows.length ? `<div class="evidence-grid">${templateRows.map(item => `<div class="evidence-row"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.passages} passage${item.passages > 1 ? "s" : ""} sur la période${item.last ? ` · dernier le ${formatDate(item.last.date)}` : ""}</p></div><strong>${item.last ? `${item.actual} réalisées / ${item.planned} prévues${item.delta ? ` · ${item.delta > 0 ? "+" : ""}${item.delta}` : ""}` : "Pas encore passée"}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Le programme actif ne contient aucune séance.</p></div>`}
 
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Intentions de travail</p><h2>Lourdes, back-off et libres</h2><p class="small muted">Les rôles restent séparés : un back-off n’est jamais comparé à une série lourde.</p></div></div>
-              <div class="kpi-grid">${SET_ROLES.map(role => {
-                const item = roleSummary[role];
-                return `<div class="kpi"><span class="kpi-label">${esc(setRoleLabel(role))}</span><strong class="kpi-value">${item.sets}</strong><span class="small muted">${item.reps} reps · ${compactWeight(item.tonnage)} kg principaux</span></div>`;
-              }).join("")}</div>
+              <div class="section-head"><div><p class="eyebrow">Contexte humain</p><h2>Énergie, perception, gêne</h2><p class="small muted">Ces réponses éclairent un passage. Elles ne peuvent jamais créer seules un signal de progression.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div>
+              <div class="ledger">
+                <div class="ledger-cell"><span>Énergie basse</span><strong>${subjectiveFeedback.energyCount ? `${subjectiveFeedback.lowEnergyCount}<small> / ${subjectiveFeedback.energyCount}</small>` : "—"}</strong><small>réponses documentées</small></div>
+                <div class="ledger-cell"><span>Conforme ou mieux</span><strong>${subjectiveFeedback.performanceCount ? formatNumber(subjectiveFeedback.performanceOnTrack / subjectiveFeedback.performanceCount * 100, 0) : "—"}${subjectiveFeedback.performanceCount ? "<small> %</small>" : ""}</strong><small>performance perçue</small></div>
+                <div class="ledger-cell"><span>Passages avec gêne</span><strong>${subjectiveFeedback.painCount}</strong><small>${subjectiveFeedback.impactfulPainCount} avec mouvement modifié ou arrêté</small></div>
+                <div class="ledger-cell"><span>Arrêts de série</span><strong>${effortTracking.pain}</strong><small>gêne distincte de l’échec musculaire</small></div>
+              </div>
+              ${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>À surveiller sans poser de diagnostic :</strong> ${esc(painContext || "une gêne a été signalée sur la période")}.</div>` : `<p class="measure-note">L’absence de réponse n’est pas interprétée. Le ressenti reste facultatif.</p>`}
             </div>
 
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Charge de travail</p><h2>Évolution du volume-charge</h2><p class="small muted">Chaque point représente le volume-charge d’une semaine, séries W exclues.</p></div><span class="badge">${weekly.length} semaine${weekly.length > 1 ? "s" : ""} renseignée${weekly.length > 1 ? "s" : ""}</span></div>${lineChart(weekly.map(item => ({ label: formatDate(item.week), value: item.tonnage })), "kg", { ariaLabel: "Évolution du volume-charge hebdomadaire en kilogrammes", title: "Volume-charge par semaine", compactAxis: true })}</div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Programme actif</p><h2>Volume-charge par séance</h2><p class="small muted">Moyenne et répartition principale/drops par séance modèle sur la période.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>${workloadByTemplate.length ? `<div class="list-divider">${workloadByTemplate.map(item => `<div class="session-line"><div class="row-between"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.count} passage${item.count > 1 ? "s" : ""}</p></div><span class="badge accent">${formatNumber(item.average, 0)} kg / passage</span></div><p class="small muted">Principal ${formatNumber(item.main, 0)} kg · Drops ${formatNumber(item.drops, 0)} kg · Total ${formatNumber(item.total, 0)} kg</p></div>`).join("")}</div>` : `<p class="muted">Le programme actif ne contient aucune séance.</p>`}</div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Volume musculaire</p><h2>Séries moyennes / semaine</h2><p class="small muted">Comparées aux séries prévues dans le programme actif.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div><div class="notice"><strong>Objectif dynamique :</strong> la cible est recalculée quand tu modifies les séries d’une séance modèle. Ajouter ou retirer une série pendant l’entraînement change uniquement le réalisé ; la cible du programme reste intacte. Les séries W et les muscles secondaires sont exclus.</div>${muscleRows.length ? muscleRows.map(muscle => {
-              const percent = muscle.target ? muscle.actual / muscle.target * 100 : (muscle.actual ? 100 : 0);
-              const summary = muscle.target ? `${formatNumber(muscle.actual, 1)} / ${muscle.target} · ${formatNumber(percent, 0)} %` : `${formatNumber(muscle.actual, 1)} · hors cible`;
-              return `<div class="muscle-row"><div class="muscle-row-head"><span>${esc(muscle.short)}</span><span class="muted">${summary}</span></div><div class="progress ${muscle.actual > muscle.target ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
-            }).join("") : `<p class="muted">Aucune série musculaire à comparer sur cette période.</p>`}</div>
-
-            <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Progression comparable</p><h2>Meilleur poids et tendance moyenne</h2><p class="small muted">Même exercice, même mode de charge, même rôle de série et même plage de répétitions.</p></div><span class="badge accent">${esc(setRoleLabel(selectedSetRole))}</span></div>
-              ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et mode de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="set-role-stat">Rôle de la série</label><select id="set-role-stat" data-set-role-stat>${SET_ROLES.map(role => `<option value="${role}" ${role === selectedSetRole ? "selected" : ""}>${esc(setRoleLabel(role))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Répétitions comparables</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
-              ${comparable.trend.length ? `${lineChart(comparable.trend, comparisonUnit)}<div class="row"><span class="badge accent">Meilleur poids ${esc(setRoleLabel(selectedSetRole).toLowerCase())} : ${formatNumber(comparable.best.weight, 1)} ${comparisonUnit} × ${comparable.best.reps} reps</span><span class="badge">${formatDate(comparable.best.date, true)}</span><span class="badge">Moyenne mobile sur 3 passages : ${trendDelta >= 0 ? "+" : ""}${formatNumber(trendDelta, 1)} ${comparisonUnit}</span></div><p class="small muted">Chaque point représente la moyenne mobile des charges moyennes des trois derniers passages de ce rôle dans cette plage de répétitions.</p>` : `<p class="muted">Aucune série ${esc(setRoleLabel(selectedSetRole).toLowerCase())} comparable n’est disponible pour cet exercice sur la période sélectionnée.</p>`}
-            </div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Intensité personnelle</p><h2>Effort réel de tes séries</h2><p class="small muted">Le RIR décrit l’effort ; il n’est pas confondu avec la validation de la série.</p></div><span class="badge accent">Repère RIR ${normalizePractitionerProfile(state.settings.practitionerProfile).targetRirMin}–${normalizePractitionerProfile(state.settings.practitionerProfile).targetRirMax}</span></div>${effortTracking.total ? `<div class="kpi-grid"><div class="kpi"><span class="kpi-label">Séries à RIR 0–1</span><strong class="kpi-value">${formatNumber(effortTracking.nearFailure / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">${effortTracking.nearFailure}/${effortTracking.total} séries de travail</span></div><div class="kpi"><span class="kpi-label">Séries à RIR 0</span><strong class="kpi-value">${formatNumber(effortTracking.failure / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">échec musculaire ou technique</span></div><div class="kpi"><span class="kpi-label">Effort documenté</span><strong class="kpi-value">${formatNumber(effortTracking.documented / effortTracking.total * 100, 0)}<span class="kpi-unit">%</span></strong><span class="small muted">RIR ou raison d’arrêt</span></div><div class="kpi"><span class="kpi-label">Arrêts par gêne</span><strong class="kpi-value">${effortTracking.pain}</strong><span class="small muted">à distinguer d’un échec musculaire</span></div></div>` : `<p class="muted">Renseigne le RIR de quelques séries pour construire ce repère personnel.</p>`}</div>
-
-            <div class="card stack"><div class="section-head"><div><p class="eyebrow">Ressenti personnel</p><h2>Comparé à ton niveau habituel</h2><p class="small muted">Ces signaux donnent du contexte aux performances objectives ; ils ne sont jamais utilisés seuls pour augmenter une charge.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div><div class="kpi-grid"><div class="kpi"><span class="kpi-label">Difficulté habituelle</span><strong class="kpi-value textual">${esc(difficultyLabel)}</strong><span class="small muted">médiane de ${subjectiveFeedback.difficultyCount} ressenti${subjectiveFeedback.difficultyCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Tendance récente</span><strong class="kpi-value textual">${esc(feedbackTrendLabel)}</strong><span class="small muted">derniers passages vs précédents</span></div><div class="kpi"><span class="kpi-label">Performance conforme ou mieux</span><strong class="kpi-value">${subjectiveFeedback.performanceCount ? formatNumber(subjectiveFeedback.performanceOnTrack / subjectiveFeedback.performanceCount * 100, 0) : "—"}${subjectiveFeedback.performanceCount ? `<span class="kpi-unit">%</span>` : ""}</strong><span class="small muted">${subjectiveFeedback.performanceCount} réponse${subjectiveFeedback.performanceCount > 1 ? "s" : ""}</span></div><div class="kpi"><span class="kpi-label">Séances avec gêne</span><strong class="kpi-value">${subjectiveFeedback.painCount}</strong><span class="small muted">${subjectiveFeedback.impactfulPainCount} ayant modifié ou arrêté le mouvement</span></div></div>${subjectiveFeedback.energyCount || subjectiveFeedback.pumpCount ? `<div class="row">${subjectiveFeedback.energyCount ? `<span class="badge">Énergie basse : ${subjectiveFeedback.lowEnergyCount}/${subjectiveFeedback.energyCount}</span>` : ""}${subjectiveFeedback.pumpCount ? `<span class="badge">Congestion forte : ${subjectiveFeedback.highPumpCount}/${subjectiveFeedback.pumpCount}</span>` : ""}</div><p class="small muted">L’énergie et la congestion restent des éléments de contexte : elles ne valident ni n’invalident à elles seules la qualité d’une séance.</p>` : ""}${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>Signal de sécurité :</strong> ${subjectiveFeedback.painCount} séance${subjectiveFeedback.painCount > 1 ? "s ont" : " a"} comporté une gêne${subjectiveFeedback.stoppedPainCount ? `, dont ${subjectiveFeedback.stoppedPainCount} avec arrêt` : ""}.${painContext ? ` ${esc(painContext)}.` : ""} Ce suivi aide à repérer une récurrence, sans poser de diagnostic.</div>` : subjectiveFeedback.painAnsweredCount ? `<div class="notice"><strong>Aucune gêne déclarée</strong> sur les ${subjectiveFeedback.painAnsweredCount} séance${subjectiveFeedback.painAnsweredCount > 1 ? "s" : ""} où ce critère a été renseigné.</div>` : `<div class="notice">Le ressenti reste facultatif. Quelques réponses suffiront pour construire progressivement ta référence personnelle.</div>`}${subjectiveFeedback.legacyCount ? `<p class="small muted">${subjectiveFeedback.legacyCount} ancienne${subjectiveFeedback.legacyCount > 1 ? "s" : ""} évaluation${subjectiveFeedback.legacyCount > 1 ? "s numériques sont conservées" : " numérique est conservée"} dans l’historique, mais exclue${subjectiveFeedback.legacyCount > 1 ? "s" : ""} de cette analyse pour éviter de mélanger deux échelles.</p>` : ""}</div>
-            <div class="notice"><strong>Lecture utile :</strong> le volume-charge global décrit la quantité de travail enregistrée, pas la force ni la qualité d’une séance. Pour juger ta progression, compare le même exercice, la même machine, le même mode de charge et une plage de répétitions similaire.</div>
+            <details class="card stack secondary-measures">
+              <summary><span><span class="eyebrow">Mesures secondaires</span><strong>Volume, drops et répartition musculaire</strong></span><span aria-hidden="true">＋</span></summary>
+              <div class="stack">
+                <p class="small muted">Le volume-charge décrit une quantité de travail saisie. Il n’est ni un score de force, ni une preuve de qualité.</p>
+                ${volumeCompositionChart(totalMainTonnage, totalDropTonnage)}
+                <div class="ledger">
+                  <div class="ledger-cell"><span>Reps principales</span><strong>${totalMainReps}</strong><small>${formatNumber(totalSets ? totalMainReps / totalSets : 0, 1)} par série</small></div>
+                  <div class="ledger-cell"><span>Reps de drops</span><strong>${totalDropReps}</strong><small>${totalDropSegments} palier${totalDropSegments > 1 ? "s" : ""}</small></div>
+                  <div class="ledger-cell"><span>Séries avec drop</span><strong>${formatNumber(dropSetShare, 0)}<small> %</small></strong><small>${totalDropSets} sur ${totalSets}</small></div>
+                  <div class="ledger-cell"><span>Volume-charge</span><strong>${compactWeight(totalMainTonnage + totalDropTonnage)}<small> kg</small></strong><small>repère secondaire</small></div>
+                </div>
+                <div><p class="eyebrow">Répartition musculaire</p><h3>Séries moyennes par semaine vs programme</h3></div>
+                ${muscleRows.length ? muscleRows.map(muscle => {
+                  const percent = muscle.target ? muscle.actual / muscle.target * 100 : (muscle.actual ? 100 : 0);
+                  const summary = muscle.target ? `${formatNumber(muscle.actual, 1)} / ${muscle.target}` : `${formatNumber(muscle.actual, 1)} · hors programme`;
+                  return `<div class="muscle-row"><div class="muscle-row-head"><span>${esc(muscle.short)}</span><span class="muted">${summary}</span></div><div class="progress ${muscle.actual > muscle.target ? "over" : ""}"><span style="width:${Math.min(percent, 100)}%"></span></div></div>`;
+                }).join("") : `<p class="muted">Aucune série musculaire à comparer.</p>`}
+              </div>
+            </details>
           </section>`;
       }
-
       function weeklyAggregates(sessions) {
         const map = new Map();
         sessions.forEach(session => {
@@ -3800,7 +3999,7 @@ svg {
           : `<form id="cloud-auth-form" class="stack"><div class="form-grid"><div class="field"><label for="cloud-email">Adresse e-mail</label><input id="cloud-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="ton@email.fr"></div><div class="field"><label for="cloud-password">Mot de passe</label><input id="cloud-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum"></div></div><div class="row"><button class="btn btn-primary" type="submit">Se connecter</button><button class="btn" type="button" data-action="cloud-signup">Créer mon compte</button></div><p id="cloud-status-detail" class="small muted">${esc(cloudStatusDetail)}</p></form>`;
         return `
           <section class="page">
-            <div><p class="eyebrow">Pratique et sauvegarde</p><h1>Ton profil</h1><p class="muted">Définis simplement ta manière de t’entraîner. L’assistant adapte ensuite ses propositions sans t’imposer une méthode unique.</p></div>
+            <div class="page-intro"><p class="eyebrow">Profil et sauvegarde</p><h1>Ton cadre, pas une méthode imposée.</h1><p class="muted">Ces préférences préremplissent les nouveaux exercices et rendent l’aide de charge cohérente avec ta pratique.</p></div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Compte et cloud</p><h2>${cloudUser ? "Synchronisation active" : "Retrouver tes séances partout"}</h2></div>${cloudUser ? "" : `<span id="cloud-status-badge" class="badge">${esc(cloudStatusLabel())}</span>`}</div>
               ${cloudAccount}
@@ -3808,17 +4007,17 @@ svg {
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Profil pratiquant</p><h2>Comment tu aimes t’entraîner</h2></div><span class="badge accent">Actif</span></div>
-              <div class="notice"><strong>Ton assistant s’adapte :</strong> ${esc(practitionerProfileSummary(profile))}. Ces choix deviennent les réglages automatiques de tes exercices.</div>
+              <div class="notice"><strong>Réglage actuel :</strong> ${esc(practitionerProfileSummary(profile))}. Tu peux toujours adapter un exercice ou une série sans changer ce profil.</div>
               <div class="form-grid">
                 <div class="field"><label for="profile-goal">Objectif principal</label><select id="profile-goal" data-profile-setting="goal"><option value="hypertrophy" ${profile.goal === "hypertrophy" ? "selected" : ""}>Prise de muscle</option><option value="strengthHypertrophy" ${profile.goal === "strengthHypertrophy" ? "selected" : ""}>Force et muscle</option><option value="strength" ${profile.goal === "strength" ? "selected" : ""}>Force</option></select></div>
                 <div class="field"><label for="profile-experience">Expérience</label><select id="profile-experience" data-profile-setting="experience"><option value="beginner" ${profile.experience === "beginner" ? "selected" : ""}>Débutant</option><option value="intermediate" ${profile.experience === "intermediate" ? "selected" : ""}>Intermédiaire</option><option value="advanced" ${profile.experience === "advanced" ? "selected" : ""}>Avancé</option></select></div>
                 <div class="field"><label for="profile-effort">Style d’effort</label><select id="profile-effort" data-profile-setting="effortStyle"><option value="controlled" ${profile.effortStyle === "controlled" ? "selected" : ""}>Contrôlé · souvent 1–2 RIR</option><option value="nearFailure" ${profile.effortStyle === "nearFailure" ? "selected" : ""}>Proche de l’échec · 0–1 RIR</option><option value="highIntensity" ${profile.effortStyle === "highIntensity" ? "selected" : ""}>Haute intensité · pousser lourd</option></select></div>
-                <div class="field"><label for="profile-heavy-anchor">Repère série lourde (≈ reps)</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
-                <div class="field"><label for="profile-backoff-anchor">Repère back-off (≈ reps)</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
+                <div class="field"><label for="profile-heavy-anchor">Repère par défaut · séries 1 et 2</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
+                <div class="field"><label for="profile-backoff-anchor">Repère par défaut · séries suivantes</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
                 <div class="field"><label for="profile-rir-min">Effort habituel · RIR minimum</label><input id="profile-rir-min" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMin}" data-profile-setting="targetRirMin"></div>
                 <div class="field"><label for="profile-rir-max">Effort habituel · RIR maximum</label><input id="profile-rir-max" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMax}" data-profile-setting="targetRirMax"></div>
               </div>
-              <p class="small muted">Par défaut, un exercice de trois séries est créé avec deux séries lourdes puis un back-off. Ces nombres orientent les propositions de charge sans rendre un nombre de répétitions obligatoire.</p>
+              <p class="small muted">Ces deux nombres servent uniquement à préremplir les nouvelles structures de séries. Chaque cible reste modifiable ou peut être laissée vide.</p>
               <details class="options"><summary>Repères avancés, facultatifs</summary><div class="form-grid" style="padding-top:10px"><div class="field"><label for="profile-rep-min">Repère bas</label><input id="profile-rep-min" type="number" inputmode="numeric" min="1" max="30" value="${profile.minRepsGuardrail}" data-profile-setting="minRepsGuardrail"></div><div class="field"><label for="profile-rep-max">Repère haut</label><input id="profile-rep-max" type="number" inputmode="numeric" min="1" max="50" value="${profile.maxRepsGuardrail}" data-profile-setting="maxRepsGuardrail"></div></div><p class="small muted" style="padding-top:8px">Ce ne sont pas des objectifs. L’assistant les utilise seulement pour détecter une charge manifestement trop lourde ou trop légère.</p></details>
             </div>
             <div class="card stack">
@@ -3848,10 +4047,8 @@ svg {
         const feedback = session.feedback || {};
         const feedbackItems = finiteNumber(feedback.schemaVersion) >= 2
           ? [
-              ["Difficulté", feedbackValueLabel("difficulty", feedback.difficulty)],
               ["Énergie", feedbackValueLabel("energy", feedback.energy)],
               ["Performance", feedbackValueLabel("performance", feedback.performance)],
-              ["Congestion", feedbackValueLabel("pump", feedback.pump)],
               ["Gêne / douleur", feedbackValueLabel("painImpact", feedback.painImpact)]
             ]
           : [
@@ -3876,7 +4073,7 @@ svg {
           const sets = (exercise.sets || []).map((set, setIndex) => {
             const completed = finiteNumber(set.reps) > 0;
             const drops = (set.drops || []).map((drop, dropIndex) => `<div class="detail-drop row-between"><div><strong>Drop ${dropIndex + 1}</strong><p class="small muted">Enchaîné sans repos</p></div><div class="row"><span class="badge">${recordedValue(drop.weight, " kg")}</span><span class="badge accent">${recordedValue(drop.reps, " reps")}</span></div></div>`).join("");
-            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row"><span class="badge ${set.warmup ? "" : "accent"}">${esc(setRoleLabel(set.role, set.warmup))}${!set.warmup && set.repAnchor ? ` · ${esc(repTargetLabel(set.repAnchor))} reps` : ""}</span><span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
+            return `<div class="detail-set"><div class="row-between"><strong>Série ${setIndex + 1}</strong><div class="row"><span class="badge ${set.warmup ? "" : "accent"}">${set.warmup ? "Échauffement" : set.repAnchor ? `Cible ${esc(repTargetLabel(set.repAnchor))} reps` : "Série de travail"}</span><span class="badge">${completed ? (set.validated ? "Validée" : "Enregistrée") : "Non renseignée"}</span></div></div><div class="detail-set-grid"><div class="detail-value"><span>Charge saisie</span><strong>${recordedValue(set.weight, " kg")}</strong></div><div class="detail-value"><span>Répétitions</span><strong>${recordedValue(set.reps)}</strong></div><div class="detail-value"><span>RIR</span><strong>${exercise.rirEnabled === false ? "Désactivé" : recordedValue(set.rir)}</strong></div><div class="detail-value"><span>Fin de série</span><strong>${set.stopReason ? esc(stopReasonLabel(set.stopReason)) : "—"}</strong></div><div class="detail-value"><span>Volume-charge série</span><strong>${completed ? `${compactWeight(setTonnage(set, exercise))} kg` : "—"}</strong></div></div>${drops}</div>`;
           }).join("");
           return `<article class="detail-exercise"><div class="row-between"><div><p class="eyebrow">${exerciseIndex + 1} · Exercice</p><h3>${esc(exercise.name || "Exercice")}</h3></div><span class="badge">${exercise.rirEnabled === false ? "RIR désactivé" : "RIR suivi"}</span></div><p class="small muted">${metadata.map(esc).join(" · ")}</p><div class="row"><span class="badge">${esc(loadTypeLabel(exercise.loadType))}</span>${exercise.machineSettings ? `<span class="badge">Réglages : ${esc(exercise.machineSettings)}</span>` : ""}${exercise.secondaryMuscles?.length ? `<span class="badge">Secondaires : ${exercise.secondaryMuscles.map(esc).join(", ")}</span>` : ""}</div>${sets || `<p class="muted">Aucune série enregistrée.</p>`}${exercise.comments ? `<p class="small muted detail-comment"><strong>Note exercice :</strong> ${esc(exercise.comments)}</p>` : ""}</article>`;
         }).join("");
@@ -3894,12 +4091,12 @@ svg {
       function updateLiveSummary() {
         if (!state.draft) return;
         const setEl = root.querySelector("#live-set-count");
-        const tonnageEl = root.querySelector("#live-tonnage");
+        const repsEl = root.querySelector("#live-reps");
         const dropEl = root.querySelector("#live-drop-count");
         const timeEl = root.querySelector("#live-time");
         const pendingEl = root.querySelector("#pending-validation-notice");
         if (setEl) setEl.textContent = sessionWorkSets(state.draft);
-        if (tonnageEl) tonnageEl.textContent = compactWeight(sessionTonnage(state.draft));
+        if (repsEl) repsEl.textContent = sessionReps(state.draft);
         if (dropEl) dropEl.textContent = sessionDropSegments(state.draft);
         if (timeEl) timeEl.textContent = Math.max(0, Math.round((Date.now() - new Date(state.draft.startedAt).getTime()) / 60000));
         if (pendingEl) {
@@ -3961,8 +4158,7 @@ svg {
         state.sessions.push(session);
         state.draft = null;
         saveState();
-        currentView = "home";
-        render();
+        navigate("home");
         showToast(`${session.name} enregistrée · ${sessionWorkSets(session)} séries`);
       }
 

@@ -2,14 +2,14 @@
   "id": "volume-training-log",
   "name": "INNERSET — Workout & Progress",
   "short_name": "INNERSET",
-  "description": "Assistant de progression en musculation avec profil pratiquant, recommandations de charge adaptatives, programmes libres, séries dégressives et synchronisation sécurisée.",
+  "description": "Carnet d’entraînement personnel avec programmes libres, suivi de séance et preuves de progression comparables.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0D1117",
-  "theme_color": "#0D1117",
+  "background_color": "#0A0B0D",
+  "theme_color": "#0A0B0D",
   "categories": ["fitness", "sports", "health"],
   "icons": [
     {

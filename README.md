@@ -2,84 +2,43 @@
 
 **Every set builds you.**
 
-Application de suivi d’entraînements de bodybuilding, installable sur téléphone et synchronisable avec Supabase.
+INNERSET est un carnet d’entraînement de musculation installable sur téléphone. Il permet de construire ses programmes, d’enregistrer chaque passage et de lire sa progression sans score arbitraire ni comparaison sociale.
 
-La version 1.15.0 rend les objectifs de répétitions configurables dans les programmes :
+## Version 2.0.0
 
-- une série peut recevoir une cible exacte (`6`) ou une fourchette (`8-10`) ;
-- la cible générale peut être renseignée dès l’ajout d’un exercice, puis affinée série par série dans l’éditeur de séance ;
-- les formats `8-10`, `8–10` et `8 à 10` sont acceptés et enregistrés sous une forme cohérente ;
-- la cible est transmise à la séance en cours, affichée dans l’historique et conservée dans les exports ;
-- l’assistant maintient la charge dans la fourchette, propose un palier en moins en cas d’échec sous la borne basse et un palier en plus lorsque la borne haute est atteinte avec l’effort prévu ;
-- sur ordinateur, ouvrir une séance du programme n’étire plus visuellement la carte située à côté.
+Cette version refond l’expérience autour de quatre espaces :
 
-La version 1.14.1 intègre la nouvelle identité visuelle :
+- **Aujourd’hui** : prochaine séance, rythme de la semaine, dernier signal utile et journal des passages ;
+- **Programme** : programmes libres, séances modèles, bibliothèque personnelle et cibles de répétitions exactes ou en fourchette ;
+- **Séance** : saisie rapide des charges, répétitions, RIR facultatif, séries W, drops, validation et contexte de fin de séance ;
+- **Progression** : comparaison du même exercice, de la même variante de charge et de la même zone de répétitions.
 
-- monogramme blanc composé de deux silhouettes athlétiques dos à dos suggérant les lettres I et S ;
-- silhouette masculine inspirée du bodybuilding et silhouette féminine inspirée du fitness ;
-- logo transparent agrandi dans l’en-tête, sans fond ni contour visible ;
-- nouvelles icônes d’installation sur fond bleu nuit, adaptées à iOS, Android et au mode PWA ;
-- cache hors ligne renouvelé afin que le nouveau logo remplace correctement l’ancien après publication.
+Les anciennes catégories de séries restent lisibles en interne pour assurer la compatibilité avec l’historique, mais elles ne structurent plus l’interface. L’utilisateur travaille simplement série par série avec un repère de répétitions facultatif.
 
-La version 1.14.0 adapte le suivi à une organisation lourdes/back-off sans objectif rigide de répétitions :
+## Lecture de la progression
 
-- chaque série possède désormais une intention : lourde, back-off ou libre ; le statut W reste indépendant ;
-- un exercice de trois séries reçoit par défaut deux séries lourdes autour de 6 répétitions puis un back-off autour de 10 répétitions ;
-- ces repères sont souples, modifiables exercice par exercice dans le programme et modifiables ponctuellement pendant une séance ;
-- la validation redevient neutre avec un bouton unique « Valider la série » ; le RIR et la raison d’arrêt décrivent l’effort séparément ;
-- un RIR 0 renseigne automatiquement un échec musculaire, sans rendre l’échec obligatoire pour valider ;
-- l’assistant recommande une charge pour le rôle de la prochaine série et ne préremplit jamais un back-off avec une charge destinée aux séries lourdes ;
-- les historiques, tendances et meilleurs poids comparent séparément les séries lourdes, back-off et libres ;
-- les statistiques affichent aussi la répartition des séries, répétitions et volumes-charges principaux selon leur intention ;
-- les anciennes données reçoivent automatiquement la structure `lourde / lourde / back-off` lors de leur migration vers le schéma 10 ;
-- l’export CSV inclut le rôle de la série et son repère de répétitions.
+INNERSET ne calcule aucun e1RM et n’attribue aucun score global. Pour un exercice et une zone de répétitions :
 
-La version 1.13.0 introduit la nouvelle identité INNERSET :
+- davantage de répétitions à charge identique crée un nouveau repère ;
+- davantage de charge dans la même zone de répétitions crée un nouveau repère ;
+- deux améliorations comparables successives confirment une progression ;
+- un seul passage inférieur ne produit pas de tendance négative ;
+- deux passages successifs sous les repères précédents sont affichés comme un signal à contextualiser, jamais comme un verdict.
 
-- positionnement centré sur une performance personnelle, progressive et sans comparaison toxique ;
-- signature « Every set builds you. » ;
-- interface bleu nuit, indigo, sauge et cyan, plus sobre et haut de gamme ;
-- nouveau monogramme I/S et nouvelles icônes d’installation ;
-- exports, métadonnées PWA et textes d’installation harmonisés, sans modifier les données existantes.
+Le volume-charge, les drops et la répartition musculaire restent disponibles dans un volet de mesures secondaires. Ils décrivent le travail saisi, pas la force ni la qualité d’une séance.
 
-La version 1.12.2 rend le suivi du ressenti plus personnel et moins biaisé :
+## Données et compatibilité
 
-- aucun critère de fin de séance n’est présélectionné ;
-- les anciennes notes abstraites sont remplacées par des choix facultatifs et clairement définis pour la difficulté, l’énergie, la performance et la congestion ;
-- la gêne ou la douleur est enregistrée selon son impact réel sur le mouvement, avec une zone et un contexte facultatifs ;
-- les statistiques comparent les passages récents à la référence propre de l’utilisateur au lieu d’afficher une moyenne universelle ;
-- la douleur n’est plus moyennée : l’app compte les séances concernées et fait ressortir les zones ou exercices récurrents ;
-- les anciennes évaluations numériques restent visibles dans l’historique mais sont exclues des nouvelles tendances ;
-- les ressentis contextualisent les données objectives sans pouvoir déclencher seuls une hausse de charge.
+- Le schéma JSON reste en version 10 : aucune migration Supabase ni nouvelle table n’est nécessaire.
+- Les séances enregistrées restent des instantanés indépendants du programme modèle.
+- Modifier une séance en cours ne modifie pas le programme.
+- Les données sont conservées localement puis synchronisées avec Supabase lorsque le compte est connecté.
+- Le service worker utilise le cache `innerset-v26` pour diffuser la nouvelle interface sur GitHub Pages.
 
-La version 1.12.1 avait affiné la lecture des statistiques :
+Les tests de non-régression s’exécutent avec :
 
-- la charge de travail hebdomadaire est désormais représentée par une courbe à points ;
-- le volume-charge global est visualisé dans un graphique en anneau, réparti entre séries effectives et drops ;
-- le bloc « Volume musculaire » redondant a été retiré de l’accueil et reste disponible dans les statistiques.
+```bash
+node tests/regression.mjs
+```
 
-La version 1.12.0 a transformé l’assistant en système personnalisé et plus intuitif :
-
-- un profil pratiquant définit l’objectif, l’expérience, le style d’effort et l’utilisation souhaitée de l’échec ;
-- le profil initial privilégie la prise de muscle, la haute intensité et une dernière série à l’échec ;
-- les exercices utilisent automatiquement ce profil, avec une personnalisation facultative uniquement lorsque cela est utile ;
-- les anciennes cibles rigides de répétitions et de RIR disparaissent au profit de garde-fous larges qui ne sont pas des objectifs ;
-- l’assistant compare la charge, les répétitions, le RIR et la manière dont la série s’est terminée sur la même variante d’exercice ;
-- une amélioration réelle à charge et effort comparables peut déclencher une hausse d’un palier ;
-- après chaque série validée, l’app peut maintenir, augmenter ou réduire la charge de la prochaine série ;
-- le bouton « Valider à l’échec » enregistre automatiquement un RIR 0, tandis qu’une gêne reste distinguée d’un échec musculaire ;
-- les statistiques affichent l’alignement avec le profil, les fins de série à l’échec et la qualité du suivi de l’effort ;
-- une série de semaines régulières encourage la discipline sans comparaison entre utilisateurs.
-
-La version conserve également les sécurités et statistiques précédentes :
-
-- une séance ne peut plus être enregistrée tant qu’une série renseignée reste non validée ;
-- la période statistique va de 1 à 8 semaines, avec 1 semaine par défaut, ou depuis toujours ;
-- les cibles musculaires ne sont plus codées en dur : elles sont calculées depuis le programme actif et excluent les exercices W par défaut ;
-- le volume-charge est présenté comme un repère de travail et séparé entre séries principales et drops ;
-- le e1RM est remplacé par le meilleur poids dans une plage de répétitions comparable et une moyenne mobile sur trois passages ;
-- les répétitions principales, les répétitions de drops et la proportion de séries dégressives sont distinguées.
-
-Les tests de non-régression sont disponibles dans `tests/regression.mjs` et s’exécutent avec `node tests/regression.mjs`.
-
-Voir [README_INSTALLATION.md](README_INSTALLATION.md) pour la mise en ligne sur GitHub Pages et l’installation sur téléphone.
+Voir [README_INSTALLATION.md](README_INSTALLATION.md) pour la publication GitHub Pages et l’installation sur téléphone.
