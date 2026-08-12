@@ -6,14 +6,18 @@ import { fileURLToPath } from "node:url";
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(directory, "..", "index.html"), "utf8");
 const serviceWorker = fs.readFileSync(path.join(directory, "..", "service-worker.js"), "utf8");
-assert.match(html, /const APP_VERSION = "2\.0\.0"/, "La version visible doit correspondre à la refonte du carnet de progression.");
+assert.match(html, /const APP_VERSION = "2\.1\.0"/, "La version visible doit correspondre à MYGYM 2.1.0.");
 assert.match(html, /class="brand-mark" src="\.\/icons\/logo-transparent\.png"/, "L’en-tête doit utiliser le nouveau logo transparent.");
-assert.match(serviceWorker, /const CACHE_NAME = "innerset-v26"/, "Le cache PWA doit être renouvelé pour diffuser la V2.");
+assert.match(serviceWorker, /const CACHE_NAME = "mygym-v27"/, "Le cache PWA doit être renouvelé pour diffuser MYGYM.");
 assert.match(html, /\.program-grid \{ display: grid; gap: 16px; align-items: start; \}/, "Les cartes d’entraînement doivent garder un espacement net.");
 assert.match(html, /\.program-card \{ align-self: start;/, "Chaque entraînement doit conserver sa propre hauteur dans la grille desktop.");
 assert.equal((html.match(/class="nav-btn"/g) || []).length, 4, "La navigation principale doit se limiter à quatre destinations.");
 assert.match(html, />Aujourd’hui<.*>Programme<.*>Séance<.*>Progression</s, "La navigation V2 doit suivre le parcours du carnet.");
-assert.match(html, /--accent: #F06B4F/, "La direction visuelle doit utiliser l’accent vermillon éditorial.");
+assert.match(html, /--bg: #EEE9DE/, "La direction visuelle doit utiliser un fond papier clair.");
+assert.match(html, /--accent: #2D59D7/, "La direction visuelle doit utiliser l’accent bleu encre.");
+assert.match(html, />MYGYM</, "Le nom visible doit être MYGYM.");
+assert.doesNotMatch(html, /Every set builds you|Des preuves, pas un score|Ton cadre, pas une méthode imposée/, "Les slogans doivent être absents de l’interface.");
+assert.match(html, /let statsDays = 0;/, "La période statistique par défaut doit être Depuis toujours.");
 const scriptStart = html.indexOf("<script>\n    (() =>");
 const scriptEnd = html.indexOf("</script>", scriptStart);
 assert.ok(scriptStart >= 0 && scriptEnd > scriptStart, "Le script principal doit être présent.");
@@ -67,6 +71,7 @@ mainScript = mainScript.replace(
         availableRepRanges,
         blankSessionFeedback,
         createDraft,
+        createFreeDraft,
         defaultSetPlan,
         defaultState,
         exerciseProgressEvidence,
@@ -196,6 +201,15 @@ assert.deepEqual(api.normalizeSessionFeedback({ schemaVersion: 2, difficulty: "h
 }, "Une absence de gêne ne doit conserver aucune zone ou note obsolète.");
 api.setState(baseState);
 assert.deepEqual(api.programMuscleTargets(), { chest: 3, back: 4 }, "Les cibles doivent venir du programme et exclure W.");
+assert.match(api.renderWorkout(), /data-action="start-free-session"/, "L’onglet Séance doit proposer une séance libre.");
+api.createFreeDraft();
+assert.equal(api.getState().draft.name, "Séance libre");
+assert.equal(api.getState().draft.programId, "", "Une séance libre ne doit dépendre d’aucun programme.");
+assert.deepEqual(api.getState().draft.exercises, [], "Une séance libre doit démarrer sans exercice.");
+assert.match(api.renderWorkout(), /Nom de la séance/);
+assert.match(api.renderWorkout(), /Ajouter depuis la bibliothèque/);
+assert.match(api.renderWorkout(), /Créer un nouvel exercice/);
+api.setState(baseState);
 const editedProgramState = structuredClone(baseState);
 editedProgramState.workoutTemplates[0].exercises[0].plannedSets = 5;
 api.setState(editedProgramState);
@@ -233,7 +247,8 @@ stateWithDraft.draft = {
 };
 api.setState(stateWithDraft);
 const blankFeedbackWorkoutHtml = api.renderWorkout();
-assert.match(blankFeedbackWorkoutHtml, /Contexte du passage/);
+assert.match(blankFeedbackWorkoutHtml, /Fin de séance/);
+assert.match(blankFeedbackWorkoutHtml, /Ressenti et commentaires/);
 assert.match(blankFeedbackWorkoutHtml, /Énergie disponible/);
 assert.match(blankFeedbackWorkoutHtml, /Performance perçue/);
 assert.match(blankFeedbackWorkoutHtml, /Gêne \/ douleur/);
@@ -287,9 +302,9 @@ assert.equal(subjectiveSummary.legacyCount, 1);
 api.setState({ ...baseState, sessions: subjectiveSessions });
 api.setStatsDays(0);
 const subjectiveStatsHtml = api.renderStats();
-assert.match(subjectiveStatsHtml, /Des preuves, pas un score/);
-assert.match(subjectiveStatsHtml, /Contexte humain/);
-assert.match(subjectiveStatsHtml, /À surveiller sans poser de diagnostic/);
+assert.match(subjectiveStatsHtml, /Suivi de progression/);
+assert.match(subjectiveStatsHtml, /Ressenti/);
+assert.match(subjectiveStatsHtml, /Gêne signalée/);
 assert.doesNotMatch(subjectiveStatsHtml, /Signaux moyens|Difficulté habituelle/);
 assert.doesNotMatch(subjectiveStatsHtml, /Rôle de la série|Intentions de travail|Lourdes, back-off/);
 const subjectiveDetailHtml = api.renderSessionDetail(subjectiveSessions[3]);
@@ -338,6 +353,13 @@ assert.match(workloadChartHtml, /Évolution du volume-charge hebdomadaire/);
 api.setState(baseState);
 assert.doesNotMatch(api.renderHome(), /Volume musculaire/, "L’accueil ne doit plus dupliquer le bloc de volume musculaire.");
 assert.doesNotMatch(api.renderHome(), /Volume-charge/, "L’accueil ne doit pas présenter le tonnage comme un indicateur de performance.");
+assert.doesNotMatch(api.renderHome(), /proof-card|Progression confirmée/, "L’accueil ne doit plus afficher de bloc de progression.");
+const journalState = structuredClone(baseState);
+journalState.sessions = [{ id: "journal-1", date: "2026-07-20", name: "A", durationMin: 60, exercises: [] }];
+api.setState(journalState);
+const journalHomeHtml = api.renderHome();
+assert.match(journalHomeHtml, /<details class="journal-disclosure">/, "Le journal doit être replié par défaut.");
+assert.doesNotMatch(journalHomeHtml, /<details class="journal-disclosure" open/, "L’historique complet ne doit pas être ouvert par défaut.");
 const bodyweightSession = {
   id: "bodyweight-session",
   date: "2026-07-20",
@@ -364,7 +386,7 @@ assert.equal(progress.best.reps, 7);
 assert.equal(progress.trend.at(-1).value, 82.5, "La tendance doit être la moyenne mobile des trois passages comparables.");
 const evidence = api.exerciseProgressEvidence(progressionSessions, "press", "total", "6-8");
 assert.equal(evidence.status, "confirmed", "Deux améliorations comparables successives doivent confirmer la progression.");
-assert.match(evidence.summary, /\+2,50 kg|\+2,5 kg/, "La preuve doit exprimer un gain concret plutôt qu’un score abstrait.");
+assert.match(evidence.summary, /\+2,50 kg|\+2,5 kg/, "La comparaison doit exprimer le gain concret.");
 const isolatedLowerPassage = [...progressionSessions.slice(0, 3), {
   id: "s5",
   date: "2026-07-22",
@@ -372,8 +394,9 @@ const isolatedLowerPassage = [...progressionSessions.slice(0, 3), {
 }];
 assert.notEqual(api.exerciseProgressEvidence(isolatedLowerPassage, "press", "total", "6-8").status, "down", "Un seul passage inférieur ne doit pas créer une tendance négative.");
 
+api.setStatsDays(0);
 const periodHtml = api.statsPeriodControl();
-assert.match(periodHtml, /value="7" selected/);
+assert.match(periodHtml, /value="0" selected/);
 for (let week = 1; week <= 8; week += 1) assert.match(periodHtml, new RegExp(`>${week} semaine`));
 assert.match(periodHtml, /Depuis toujours/);
 
@@ -386,8 +409,8 @@ assert.deepEqual([profile.minRepsGuardrail, profile.maxRepsGuardrail], [4, 15]);
 assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "trackOnly" }).assistantEnabled, false, "L’ancien mode sans recommandation doit être migré.");
 assert.equal(api.normalizeAdaptiveSettings({ progressionMode: "double" }).useProfileDefaults, true, "Les anciens objectifs rigides doivent migrer vers le profil.");
 api.setState(baseState);
-assert.match(api.renderData(), /Profil pratiquant/);
-assert.match(api.renderData(), /Haute intensité/);
+assert.match(api.renderData(), /Valeurs par défaut de l’aide de charge/);
+assert.doesNotMatch(api.renderData(), /Profil pratiquant|Objectif principal|Expérience|Style d’effort/);
 
 const adaptiveExercise = {
   id: "press",
@@ -476,7 +499,7 @@ assert.equal(api.failureExpectedForSet(failureSets, 2), true);
 assert.equal(api.setReachedFailure({ rir: 0 }), true);
 assert.equal(api.setReachedFailure({ rir: "", stopReason: "technicalFailure" }), true);
 const templateExerciseHtml = api.renderTemplateExerciseRow({ ...failureSets, plannedSets: 3, muscle: "chest" }, 0);
-assert.match(templateExerciseHtml, /Utiliser automatiquement mon profil pratiquant/);
+assert.match(templateExerciseHtml, /Utiliser les valeurs par défaut de l’application/);
 assert.match(templateExerciseHtml, /Repères par série/);
 assert.doesNotMatch(templateExerciseHtml, /Rôle de la série|>Lourde<|>Back-off<|>Libre</);
 assert.doesNotMatch(templateExerciseHtml, /Répétitions minimum|Double progression/);
@@ -628,4 +651,4 @@ const backoffRecommendation = api.adaptiveRecommendation(currentRoleExercise);
 assert.equal(backoffRecommendation.role, "backoff");
 assert.equal(backoffRecommendation.recommendedLoadKg, 75, "Le back-off doit repartir de son propre historique, jamais de la charge lourde en cours.");
 
-console.log("Régressions INNERSET v2.0.0 : OK");
+console.log("Régressions MYGYM v2.1.0 : OK");

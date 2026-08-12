@@ -1,31 +1,28 @@
-# INNERSET
+# MYGYM
 
-**Every set builds you.**
+MYGYM est un carnet d’entraînement de musculation installable sur téléphone. Il permet de créer des programmes, d’enregistrer des séances planifiées ou libres et de consulter des statistiques fondées sur les données réellement saisies.
 
-INNERSET est un carnet d’entraînement de musculation installable sur téléphone. Il permet de construire ses programmes, d’enregistrer chaque passage et de lire sa progression sans score arbitraire ni comparaison sociale.
+## Version 2.1.0
 
-## Version 2.0.0
+L’application comprend quatre espaces :
 
-Cette version refond l’expérience autour de quatre espaces :
-
-- **Aujourd’hui** : prochaine séance, rythme de la semaine, dernier signal utile et journal des passages ;
+- **Aujourd’hui** : prochaine séance, activité de la semaine et journal repliable ;
 - **Programme** : programmes libres, séances modèles, bibliothèque personnelle et cibles de répétitions exactes ou en fourchette ;
-- **Séance** : saisie rapide des charges, répétitions, RIR facultatif, séries W, drops, validation et contexte de fin de séance ;
-- **Progression** : comparaison du même exercice, de la même variante de charge et de la même zone de répétitions.
+- **Séance** : choix d’une séance planifiée ou démarrage d’une séance libre, puis saisie des charges, répétitions, RIR facultatif, séries W, drops et ressenti ;
+- **Progression** : statistiques globales, comparaison par exercice et suivi prévu/réalisé du programme actif.
 
-Les anciennes catégories de séries restent lisibles en interne pour assurer la compatibilité avec l’historique, mais elles ne structurent plus l’interface. L’utilisateur travaille simplement série par série avec un repère de répétitions facultatif.
+Une séance libre démarre sans exercice. Les exercices ajoutés pendant cette séance utilisent la bibliothèque personnelle, mais ne modifient aucun programme.
 
-## Lecture de la progression
+## Calcul de la progression
 
-INNERSET ne calcule aucun e1RM et n’attribue aucun score global. Pour un exercice et une zone de répétitions :
+Pour un exercice et une zone de répétitions comparables :
 
-- davantage de répétitions à charge identique crée un nouveau repère ;
-- davantage de charge dans la même zone de répétitions crée un nouveau repère ;
-- deux améliorations comparables successives confirment une progression ;
-- un seul passage inférieur ne produit pas de tendance négative ;
-- deux passages successifs sous les repères précédents sont affichés comme un signal à contextualiser, jamais comme un verdict.
+- davantage de répétitions à charge identique indique une hausse ;
+- davantage de charge dans la même zone de répétitions indique une hausse ;
+- deux hausses comparables successives sont distinguées d’une hausse isolée ;
+- une baisse isolée est distinguée de deux baisses comparables successives.
 
-Le volume-charge, les drops et la répartition musculaire restent disponibles dans un volet de mesures secondaires. Ils décrivent le travail saisi, pas la force ni la qualité d’une séance.
+Le volume-charge correspond à la somme des charges effectives multipliées par les répétitions. Les séries principales et les drops restent séparés dans les statistiques.
 
 ## Données et compatibilité
 
@@ -33,7 +30,7 @@ Le volume-charge, les drops et la répartition musculaire restent disponibles da
 - Les séances enregistrées restent des instantanés indépendants du programme modèle.
 - Modifier une séance en cours ne modifie pas le programme.
 - Les données sont conservées localement puis synchronisées avec Supabase lorsque le compte est connecté.
-- Le service worker utilise le cache `innerset-v26` pour diffuser la nouvelle interface sur GitHub Pages.
+- Le service worker utilise le cache `mygym-v27`.
 
 Les tests de non-régression s’exécutent avec :
 

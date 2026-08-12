@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0A0B0D">
-<meta name="description" content="INNERSET, le carnet d’entraînement qui transforme chaque série en preuve de progression personnelle.">
+<meta name="theme-color" content="#EEE9DE">
+<meta name="description" content="MYGYM, carnet d’entraînement pour créer ses programmes, enregistrer ses séances et suivre sa progression.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="INNERSET">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MYGYM">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
-<title>INNERSET — Workout &amp; Progress</title>
-<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #0A0B0D !important; }</style>
+<title>MYGYM — Carnet d’entraînement</title>
+<style>html > body, :root:not([data-app-block-surface]) > body { margin: 0; padding: 0; background: #EEE9DE !important; }</style>
 <script src="./supabase-client.js"></script>
 <style>:root {
   color-scheme: light dark;
@@ -704,33 +704,34 @@ svg {
 <div id="volume-tracker-app" class="volume-app">
   <style>
     #volume-tracker-app {
-      --bg: #0A0B0D;
-      --surface: #111316;
-      --surface-2: #171A1E;
-      --surface-3: #22262B;
-      --text: #F2EFE8;
-      --muted: #9B9891;
-      --line: #333438;
-      --line-strong: #505157;
-      --accent: #F06B4F;
-      --accent-ink: #160B08;
-      --positive: #9DB39C;
-      --orange: #D6A36F;
-      --red: #E07768;
-      --blue: #9AA9C1;
-      --radius: 7px;
+      --bg: #EEE9DE;
+      --surface: #FAF7F0;
+      --surface-2: #E7E1D5;
+      --surface-3: #D8D0C2;
+      --text: #1C2422;
+      --muted: #666D68;
+      --line: #C8C0B2;
+      --line-strong: #777C76;
+      --accent: #2D59D7;
+      --accent-ink: #FFFFFF;
+      --positive: #24735D;
+      --orange: #B96D2A;
+      --red: #B34B42;
+      --blue: #287B73;
+      --radius: 8px;
       --radius-sm: 4px;
       min-height: 100vh;
       min-height: 100dvh;
       background:
-        linear-gradient(90deg, transparent 0 49.9%, color-mix(in srgb, var(--line) 12%, transparent) 50%, transparent 50.1%) 0 0 / min(100vw, 980px) 100%,
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--accent) 4%, transparent) 0 1px, transparent 1px 34px),
+        linear-gradient(90deg, transparent 0 49.9%, color-mix(in srgb, var(--line) 18%, transparent) 50%, transparent 50.1%) 0 0 / min(100vw, 1040px) 100%,
         var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 16px;
       line-height: 1.45;
       -webkit-font-smoothing: antialiased;
-      color-scheme: dark;
+      color-scheme: light;
     }
     #volume-tracker-app * { box-sizing: border-box; }
     #volume-tracker-app button,
@@ -748,7 +749,7 @@ svg {
       justify-content: space-between;
       gap: 16px;
       padding: max(13px, env(safe-area-inset-top)) 18px 11px;
-      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      background: color-mix(in srgb, var(--surface) 91%, transparent);
       backdrop-filter: blur(22px);
       border-bottom: 1px solid var(--line);
     }
@@ -766,16 +767,16 @@ svg {
     }
     #volume-tracker-app .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 3px; }
     #volume-tracker-app .brand-mark {
-      width: 28px;
-      height: 46px;
+      width: 25px;
+      height: 40px;
       display: block;
-      flex: 0 0 28px;
+      flex: 0 0 25px;
       object-fit: contain;
       background: transparent;
+      filter: brightness(0) saturate(100%);
     }
-    #volume-tracker-app .brand-copy { line-height: 1.05; }
-    #volume-tracker-app .brand-name { display: block; font-weight: 850; letter-spacing: .21em; font-size: 12px; }
-    #volume-tracker-app .brand-sub { display: block; color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 10px; font-style: italic; letter-spacing: .01em; margin-top: 5px; }
+    #volume-tracker-app .brand-copy { line-height: 1; }
+    #volume-tracker-app .brand-name { display: block; font-weight: 900; letter-spacing: .18em; font-size: 13px; }
     #volume-tracker-app .header-status { color: var(--muted); font-size: 12px; text-align: right; }
     #volume-tracker-app .header-control { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 0 0 0 10px; border: 0; border-left: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
     #volume-tracker-app .header-control-mark { color: var(--accent); font-size: 13px; letter-spacing: .14em; }
@@ -812,11 +813,11 @@ svg {
       border-top: 1px solid var(--line-strong);
       border-bottom: 1px solid var(--line-strong);
       border-radius: 0;
-      background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 7%, var(--surface)) 0 36%, var(--surface) 72%);
+      background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 12%, var(--surface)) 0 36%, var(--surface) 72%);
       box-shadow: none;
     }
     #volume-tracker-app .hero::after {
-      content: "SET";
+      content: "LOG";
       position: absolute;
       width: auto;
       height: auto;
@@ -824,7 +825,7 @@ svg {
       top: 2px;
       border-radius: 0;
       background: transparent;
-      color: color-mix(in srgb, var(--text) 4%, transparent);
+      color: color-mix(in srgb, var(--accent) 8%, transparent);
       font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
       font-size: clamp(112px, 26vw, 260px);
       font-weight: 900;
@@ -840,10 +841,11 @@ svg {
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 18px;
+      box-shadow: 3px 3px 0 color-mix(in srgb, var(--line) 42%, transparent);
     }
     #volume-tracker-app .card.soft { background: var(--surface-2); }
     #volume-tracker-app .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); background: var(--line); }
-    #volume-tracker-app .kpi-grid > .card { border: 0; border-radius: 0; }
+    #volume-tracker-app .kpi-grid > .card { border: 0; border-radius: 0; box-shadow: none; }
     #volume-tracker-app .kpi { min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; border-radius: 0; }
     #volume-tracker-app .kpi-label { color: var(--muted); font-size: 12px; }
     #volume-tracker-app .kpi-value { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: clamp(26px, 7vw, 38px); line-height: .95; font-weight: 850; letter-spacing: -.05em; }
@@ -871,7 +873,7 @@ svg {
     #volume-tracker-app .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: none; clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%); }
     #volume-tracker-app .btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
     #volume-tracker-app .btn-ghost { background: transparent; }
-    #volume-tracker-app .btn-danger { color: #ff9b9b; background: color-mix(in srgb, var(--red) 8%, var(--surface)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
+    #volume-tracker-app .btn-danger { color: var(--red); background: color-mix(in srgb, var(--red) 7%, var(--surface)); border-color: color-mix(in srgb, var(--red) 42%, var(--line)); }
     #volume-tracker-app .btn-sm { min-height: 36px; padding: 7px 10px; border-radius: 3px; font-size: 12px; }
     #volume-tracker-app .btn-icon { width: 38px; min-height: 38px; padding: 0; }
     #volume-tracker-app .btn-block { width: 100%; }
@@ -1067,7 +1069,7 @@ svg {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       padding: 0 8px max(6px, env(safe-area-inset-bottom));
-      background: color-mix(in srgb, var(--bg) 96%, transparent);
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--line);
     }
@@ -1102,7 +1104,7 @@ svg {
       border-radius: 13px;
       background: var(--text);
       color: var(--bg);
-      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+      box-shadow: 0 12px 40px rgba(28,36,34,.22);
       font-weight: 750;
       opacity: 0;
       pointer-events: none;
@@ -1119,9 +1121,9 @@ svg {
       background: var(--surface);
       color: var(--text);
       padding: 0;
-      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      box-shadow: 0 30px 80px rgba(28,36,34,.28);
     }
-    #volume-tracker-app dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(3px); }
+    #volume-tracker-app dialog::backdrop { background: rgba(28,36,34,.48); backdrop-filter: blur(3px); }
     #volume-tracker-app .dialog-body { padding: 20px; display: grid; gap: 16px; }
     #volume-tracker-app .dialog-actions { display: flex; justify-content: end; gap: 8px; }
     #volume-tracker-app .history-item { display: grid; gap: 8px; padding: 14px 0; }
@@ -1138,7 +1140,6 @@ svg {
     #volume-tracker-app .guard-copy { line-height: 1.55; }
     #volume-tracker-app .page-intro { position: relative; display: grid; gap: 10px; padding: 8px 0 4px 18px; border-left: 2px solid var(--accent); }
     #volume-tracker-app .page-intro .muted { max-width: 62ch; }
-    #volume-tracker-app .manifesto { color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 12px; font-style: italic; letter-spacing: .025em; }
     #volume-tracker-app .ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); }
     #volume-tracker-app .ledger-cell { min-width: 0; display: grid; align-content: space-between; gap: 13px; min-height: 102px; padding: 15px; background: var(--surface); }
     #volume-tracker-app .ledger-cell > span:first-child { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
@@ -1149,6 +1150,33 @@ svg {
     #volume-tracker-app .journal-date { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.4; text-transform: uppercase; }
     #volume-tracker-app .journal-body { min-width: 0; display: grid; gap: 9px; }
     #volume-tracker-app .journal-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+    #volume-tracker-app .journal-disclosure { border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); background: color-mix(in srgb, var(--surface) 84%, transparent); }
+    #volume-tracker-app .journal-disclosure > summary { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 82px; padding: 16px 0; cursor: pointer; }
+    #volume-tracker-app .journal-disclosure > summary::-webkit-details-marker { display: none; }
+    #volume-tracker-app .journal-summary-meta { display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: var(--muted); text-align: right; }
+    #volume-tracker-app .journal-chevron { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface); color: var(--accent); font-size: 20px; transition: transform .2s ease; }
+    #volume-tracker-app .journal-disclosure[open] .journal-chevron { transform: rotate(45deg); }
+    #volume-tracker-app .journal-disclosure[open] > summary { border-bottom: 1px solid var(--line); }
+    #volume-tracker-app .journal-disclosure .journal { border-top: 0; }
+    #volume-tracker-app .journal-footer { padding: 16px 0; }
+    #volume-tracker-app .free-session {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      overflow: hidden;
+      padding: 22px;
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+      box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    #volume-tracker-app .free-session::before { content: "00"; position: absolute; right: 12px; bottom: -25px; color: color-mix(in srgb, var(--accent) 8%, transparent); font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-size: 112px; font-weight: 900; line-height: 1; pointer-events: none; }
+    #volume-tracker-app .free-session > * { position: relative; z-index: 1; }
+    #volume-tracker-app .profile-defaults > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+    #volume-tracker-app .profile-defaults > summary::-webkit-details-marker { display: none; }
+    #volume-tracker-app .profile-defaults[open] > summary { padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+    #volume-tracker-app .profile-defaults[open] .journal-chevron { transform: rotate(45deg); }
     #volume-tracker-app .section-rule { display: flex; align-items: center; gap: 12px; }
     #volume-tracker-app .section-rule::after { content: ""; min-width: 24px; height: 1px; flex: 1; background: var(--line); }
     #volume-tracker-app .proof-card { display: grid; gap: 16px; padding: 19px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); background: var(--surface); }
@@ -1189,8 +1217,7 @@ svg {
       #volume-tracker-app .brand { flex: 1 1 auto; overflow: hidden; }
       #volume-tracker-app .brand-copy { min-width: 0; overflow: hidden; }
       #volume-tracker-app .brand-name,
-      #volume-tracker-app .brand-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      #volume-tracker-app .brand-sub { font-size: 10px; }
+      #volume-tracker-app .brand-copy { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       #volume-tracker-app .header-status { display: block; max-width: none; overflow: hidden; font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
       #volume-tracker-app .header-control { flex: 0 1 40%; max-width: 40%; }
       #volume-tracker-app main { padding-left: 14px; padding-right: 14px; }
@@ -1211,6 +1238,10 @@ svg {
       #volume-tracker-app .form-grid.compact-feedback { grid-template-columns: 1fr; }
       #volume-tracker-app .evidence-row { grid-template-columns: 1fr; align-items: start; }
       #volume-tracker-app .evidence-row > strong:last-child { text-align: left; }
+      #volume-tracker-app .free-session { grid-template-columns: 1fr; }
+      #volume-tracker-app .free-session .btn { width: 100%; }
+      #volume-tracker-app .journal-disclosure > summary { grid-template-columns: 1fr auto; }
+      #volume-tracker-app .journal-summary-meta > span:first-child { display: none; }
     }
     @media (max-width: 350px) {
       #volume-tracker-app .feedback-grid,
@@ -1247,13 +1278,12 @@ svg {
   <div class="app-shell">
     <header class="topbar">
       <button class="brand" type="button" data-action="brand-home" aria-label="Retourner à l’accueil">
-        <img class="brand-mark" src="./icons/logo-transparent.png" alt="" width="28" height="46">
+        <img class="brand-mark" src="./icons/logo-transparent.png" alt="" width="25" height="40">
         <span class="brand-copy">
-          <span class="brand-name">INNERSET</span>
-          <span class="brand-sub">Every set builds you.</span>
+          <span class="brand-name">MYGYM</span>
         </span>
       </button>
-      <button class="header-control" type="button" data-action="navigate" data-view="data" aria-label="Ouvrir le profil et la synchronisation"><span id="header-status" class="header-status">Données locales</span><span class="header-control-mark" aria-hidden="true">••</span></button>
+      <button class="header-control" type="button" data-action="navigate" data-view="data" aria-label="Ouvrir les réglages et la synchronisation"><span id="header-status" class="header-status">Données locales</span><span class="header-control-mark" aria-hidden="true">••</span></button>
     </header>
 
     <main id="app-main" aria-live="polite"></main>
@@ -1367,7 +1397,7 @@ svg {
     (() => {
       "use strict";
 
-      const APP_VERSION = "2.0.0";
+      const APP_VERSION = "2.1.0";
       const STORAGE_KEY = "volume-training-log-v1";
       const CLOUD_META_KEY = "training-by-yeltcha-cloud-meta-v1";
       const SUPABASE_URL = "https://fenduuhwpkdgjsxgjfql.supabase.co";
@@ -1602,7 +1632,7 @@ svg {
 
       const muscleMap = Object.fromEntries(MUSCLES.map(muscle => [muscle.id, muscle]));
       let currentView = "home";
-      let statsDays = 7;
+      let statsDays = 0;
       let selectedExercise = "";
       let selectedRepRange = "";
       let selectedSetRole = "all";
@@ -2362,13 +2392,13 @@ svg {
       function adaptiveSettingsLabel(exercise) {
         const settings = effectiveAdaptiveSettings(exercise);
         if (!settings.assistantEnabled) return exercise.warmupDefault ? "Exercice d’échauffement" : "Suivi simple, sans recommandation";
-        const source = settings.usesProfile ? "Profil" : "Personnalisé";
+        const source = settings.usesProfile ? "Valeurs générales" : "Valeurs personnalisées";
         return `${source} · effort RIR ${settings.targetRirMin}–${settings.targetRirMax} · garde-fous ${settings.minRepsGuardrail}–${settings.maxRepsGuardrail} reps · palier ${formatNumber(settings.loadIncrementKg, 2)} ${comparableWeightUnit(exercise.loadType)}`;
       }
 
       function practitionerProfileSummary(profile = state.settings?.practitionerProfile) {
         const normalized = normalizePractitionerProfile(profile);
-        return `${goalLabel(normalized.goal)} · ${experienceLabel(normalized.experience)} · repères ${normalized.heavyRepAnchor} puis ${normalized.backoffRepAnchor} reps · RIR ${normalized.targetRirMin}–${normalized.targetRirMax}`;
+        return `repères ${normalized.heavyRepAnchor} puis ${normalized.backoffRepAnchor} reps · RIR ${normalized.targetRirMin}–${normalized.targetRirMax} · seuils ${normalized.minRepsGuardrail}–${normalized.maxRepsGuardrail} reps`;
       }
 
       function getLibraryExercise(exerciseId) {
@@ -2474,6 +2504,24 @@ svg {
               sets: plan.map(item => ({ id: uid("set"), weight: "", reps: "", rir: "", warmup: Boolean(exercise.warmupDefault), role: item.role, repAnchor: item.repAnchor, validated: false, stopReason: "", drops: [] }))
             };
           })
+        };
+        saveState();
+        navigate("workout");
+      }
+
+      function createFreeDraft() {
+        if (state.draft && !window.confirm("Une séance est déjà en cours. La remplacer ?")) return;
+        const now = new Date();
+        state.draft = {
+          id: uid("draft"),
+          programId: "",
+          name: "Séance libre",
+          date: localDateString(now),
+          startedAt: now.toISOString(),
+          durationOverride: "",
+          feedback: blankSessionFeedback(),
+          comments: "",
+          exercises: []
         };
         saveState();
         navigate("workout");
@@ -2913,9 +2961,9 @@ svg {
         const previous = passages.at(-2) || null;
         if (!previous) return {
           status: "insufficient",
-          label: "Base en construction",
+          label: "Données insuffisantes",
           summary: current ? "Un premier passage comparable est enregistré." : "Aucun passage comparable n’est encore enregistré.",
-          detail: "Il faut au moins deux passages dans la même zone de répétitions pour lire une évolution.",
+          detail: "Deux passages dans la même zone de répétitions sont nécessaires pour calculer une évolution.",
           passages, current, previous
         };
         const lastStep = progressionStep(previous, current);
@@ -2936,15 +2984,15 @@ svg {
             summary = `+${current.reps - previous.reps} répétition${current.reps - previous.reps > 1 ? "s" : ""} à charge identique.`;
             detail = `${formatNumber(current.weight, 2)} ${unit} : ${previous.reps} puis ${current.reps} répétitions.`;
           }
-          if (status === "confirmed") detail += " Le signal se répète sur deux comparaisons successives.";
+          if (status === "confirmed") detail += " Deux comparaisons successives montrent une hausse.";
         } else if (status === "down") {
           summary = "Deux passages successifs sont sous les repères précédents.";
-          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. C’est un signal à contextualiser, pas un verdict.`;
+          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. Deux comparaisons successives montrent une baisse.`;
         } else if (lastStep === "down") {
-          summary = "Un passage plus bas, sans tendance confirmée.";
-          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. Un seul passage ne suffit pas à conclure.`;
+          summary = "Le dernier passage est sous le repère précédent.";
+          detail = `Dernier repère : ${formatNumber(current.weight, 2)} ${unit} × ${current.reps}. Une seule comparaison ne définit pas une tendance.`;
         }
-        const label = ({ confirmed: "Progression confirmée", progress: "Nouveau repère", stable: "Stable", down: "À contextualiser" })[status];
+        const label = ({ confirmed: "Hausse sur 2 passages", progress: "Hausse récente", stable: lastStep === "down" ? "Baisse récente" : "Stable", down: "Baisse sur 2 passages" })[status];
         return { status, label, summary, detail, passages, current, previous };
       }
 
@@ -3135,7 +3183,7 @@ svg {
 
         const passages = exerciseAdaptivePassages(exercise, role);
         if (!passages.length) {
-          return { ...base, kind: "baseline", title: `Choisis ta charge ${roleLabel.toLowerCase()}`, observation: `Aucun passage ${roleLabel.toLowerCase()} comparable n’est encore enregistré.`, why: `${targetLabel ? `Ta cible de ${targetLabel} reps sert de zone de travail.` : "Réalise ta série naturellement."} L’effort RIR ${settings.targetRirMin}–${settings.targetRirMax} aidera ensuite l’assistant à calibrer la charge.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all", recommendedRole: role };
+          return { ...base, kind: "baseline", title: `Choisis ta charge ${roleLabel.toLowerCase()}`, observation: `Aucun passage ${roleLabel.toLowerCase()} comparable n’est encore enregistré.`, why: `${targetLabel ? `Cible enregistrée : ${targetLabel} reps.` : "Aucune cible de répétitions."} Le RIR ${settings.targetRirMin}–${settings.targetRirMax} sera utilisé pour les prochains ajustements.`, confidence: "premier repère", recommendedLoadKg: null, applyScope: "all", recommendedRole: role };
         }
 
         const latest = passages[0];
@@ -3166,12 +3214,12 @@ svg {
           kind = "caution";
           recommendedLoadKg = Math.max(0, latest.weight - settings.loadIncrementKg);
           title = `Essaie ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. La baisse proposée se limite à un palier et ne remet pas en cause l’intensité.`;
+          why = `L’échec est arrivé sous le repère bas de ${settings.minRepsGuardrail} répétitions. La baisse proposée se limite à un palier.`;
         } else if (sameLoadHistory && latest.reps > sameLoadHistory.reps && effortMatched && (!targetBounds?.isRange || latest.reps >= targetBounds.max)) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
           title = `Tente ${formatNumber(recommendedLoadKg, 2)} ${unit}`;
-          why = `À charge identique, ta série de référence ${roleLabel.toLowerCase()} est passée de ${sameLoadHistory.reps} à ${latest.reps} répétitions avec l’effort prévu. Ta performance réelle justifie un palier supplémentaire.`;
+          why = `À charge identique, la série de référence ${roleLabel.toLowerCase()} est passée de ${sameLoadHistory.reps} à ${latest.reps} répétitions avec l’effort prévu. La proposition ajoute un palier.`;
         } else if ((latest.reps > settings.maxRepsGuardrail || historyTargetIncreaseReached) && setMatchesEffortTarget(latest.topSet, settings)) {
           kind = "increase";
           recommendedLoadKg = latest.weight + settings.loadIncrementKg;
@@ -3188,7 +3236,7 @@ svg {
           why = `La dernière ${roleLabel.toLowerCase()} s’est terminée à RIR ${latest.lastRir}, au-dessus de ton repère ${settings.targetRirMin}–${settings.targetRirMax}. La proposition ajoute un seul palier.`;
         } else if (!effortMatched) {
           title = `Repars sur ${formatNumber(latest.weight, 2)} ${unit}`;
-          why = `La charge n’est pas encore le seul signal : renseigne l’effort pour viser ton repère personnel RIR ${settings.targetRirMin}–${settings.targetRirMax}.`;
+          why = `Le RIR du dernier passage n’est pas dans la zone ${settings.targetRirMin}–${settings.targetRirMax} ou n’est pas renseigné. La charge est conservée.`;
         }
         return { ...base, kind, title, observation, why, confidence, recommendedLoadKg, applyScope: "all", recommendedRole: role };
       }
@@ -3219,7 +3267,7 @@ svg {
         const applyButton = recommendation.recommendedLoadKg !== null
           ? `<button class="btn btn-sm" type="button" data-action="apply-adaptive-load" data-exercise-index="${exerciseIndex}" data-recommended-load="${esc(recommendation.recommendedLoadKg)}" data-recommended-role="${esc(recommendation.recommendedRole || recommendation.role)}" data-apply-scope="${esc(recommendation.applyScope)}">${recommendation.applyScope === "next" ? "Appliquer à la prochaine série" : "Préremplir les séries concernées"}</button>`
           : "";
-        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(title)}</strong><span class="badge accent">preuve ${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(neutralizeSeriesRoleCopy(recommendation.observation))}</p><p class="recommendation-why"><strong>Lecture :</strong> ${esc(neutralizeSeriesRoleCopy(recommendation.why))}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Facultatif · aucune saisie existante ne sera écrasée</span></div>` : ""}</div>`;
+        return `<div class="progression-card ${esc(recommendation.kind)}"><div class="row-between"><strong class="recommendation-title">${esc(title)}</strong><span class="badge accent">fiabilité ${esc(recommendation.confidence)}</span></div><p class="small muted">${esc(neutralizeSeriesRoleCopy(recommendation.observation))}</p><p class="recommendation-why"><strong>Motif :</strong> ${esc(neutralizeSeriesRoleCopy(recommendation.why))}</p>${applyButton ? `<div class="row">${applyButton}<span class="small muted">Facultatif · aucune saisie existante ne sera écrasée</span></div>` : ""}</div>`;
       }
 
       function applyAdaptiveLoad(exercise, recommendedLoad, scope = "all", role = "") {
@@ -3501,29 +3549,30 @@ svg {
         const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone;
         if (standalone) return "";
         const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (installPrompt) return `<div class="notice row-between"><span>Installe INNERSET comme une vraie app.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
+        if (installPrompt) return `<div class="notice row-between"><span>MYGYM peut être ajouté à l’écran d’accueil.</span><button class="btn btn-sm" data-action="install" type="button">Installer</button></div>`;
         if (isIos) return `<div class="notice"><strong>Installation iPhone :</strong> dans Safari, touche Partager puis <em>Sur l’écran d’accueil</em>.</div>`;
         return "";
       }
 
       function renderHistoryBlock() {
         const sessions = getSortedSessions().reverse();
-        return `
-          <div class="section-head section-rule"><div><p class="eyebrow">Journal</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""} enregistrée${sessions.length > 1 ? "s" : ""}</h2></div></div>
-          ${sessions.length ? `<div class="journal">${sessions.map(session => `<article class="journal-entry"><time class="journal-date" datetime="${esc(session.date)}">${formatDate(session.date, true)}</time><div class="journal-body"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${finiteNumber(session.durationMin)} min · ${sessionWorkSets(session)} séries de travail · ${sessionReps(session)} reps${sessionDropSegments(session) ? ` · ${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}` : ""}</p></div><div class="journal-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Ouvrir</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Refaire</button><button class="btn btn-sm btn-ghost" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div></article>`).join("")}</div>` : `<div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">01</span><h3>Le premier repère manque encore</h3><p class="muted">Enregistre une séance. INNERSET attendra des données comparables avant de parler de progression.</p></div></div>`}
-          ${sessions.length ? `<button class="btn btn-danger btn-block" type="button" data-action="reset-data">Effacer tout l’historique</button>` : ""}`;
+        if (!sessions.length) return `<div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">01</span><h3>Journal vide</h3><p class="muted">Les séances enregistrées apparaîtront ici.</p></div></div>`;
+        const latest = sessions[0];
+        return `<details class="journal-disclosure">
+          <summary>
+            <div><p class="eyebrow">Journal</p><h2>${sessions.length} séance${sessions.length > 1 ? "s" : ""} enregistrée${sessions.length > 1 ? "s" : ""}</h2></div>
+            <div class="journal-summary-meta"><span>Dernière : ${esc(latest.name)} · ${formatDate(latest.date, true)}</span><span class="journal-chevron" aria-hidden="true">＋</span></div>
+          </summary>
+          <div class="journal">${sessions.map(session => `<article class="journal-entry"><time class="journal-date" datetime="${esc(session.date)}">${formatDate(session.date, true)}</time><div class="journal-body"><div class="row-between"><div><h3>${esc(session.name)}</h3><p class="small muted">${finiteNumber(session.durationMin)} min · ${sessionWorkSets(session)} séries de travail · ${sessionReps(session)} reps${sessionDropSegments(session) ? ` · ${sessionDropSegments(session)} drop${sessionDropSegments(session) > 1 ? "s" : ""}` : ""}</p></div><div class="journal-actions"><button class="btn btn-sm btn-primary" type="button" data-action="view-session-detail" data-session-id="${esc(session.id)}">Ouvrir</button><button class="btn btn-sm" type="button" data-action="duplicate-session" data-session-id="${esc(session.id)}">Refaire</button><button class="btn btn-sm btn-ghost" type="button" data-action="delete-session" data-session-id="${esc(session.id)}">Supprimer</button></div></div>${session.comments ? `<p class="small muted">${esc(session.comments)}</p>` : ""}</div></article>`).join("")}</div>
+          <div class="journal-footer"><button class="btn btn-sm btn-danger" type="button" data-action="reset-data">Effacer tout l’historique</button></div>
+        </details>`;
       }
 
       function renderHome() {
         const week = currentWeekSessions();
         const weekSets = week.reduce((sum, session) => sum + sessionWorkSets(session), 0);
         const weekMinutes = week.reduce((sum, session) => sum + finiteNumber(session.durationMin), 0);
-        const weekStreak = activeWeekStreak();
         const next = nextProgram();
-        const latest = latestSession();
-        const recentSignal = exerciseProgressOverview(getSortedSessions())
-          .filter(item => ["confirmed", "progress"].includes(item.evidence.status) && item.evidence.current)
-          .sort((a, b) => b.evidence.current.date.localeCompare(a.evidence.current.date))[0];
         const action = state.draft
           ? `<button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Reprendre ${esc(state.draft.name)}</button>`
           : next
@@ -3536,22 +3585,19 @@ svg {
             <div class="hero">
               <div class="hero-copy">
                 <p class="eyebrow">Aujourd’hui</p>
-                <h1>${state.draft ? "Reprends là où tu t’es arrêté." : next ? esc(next.name) : "Pose ton premier repère."}</h1>
-                <p class="muted">${state.draft ? "Tes séries validées et tes saisies sont déjà conservées." : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries prévues. Le reste se décide sous la barre.` : "Crée librement un programme et une séance qui te ressemblent."}</p>
-                <p class="manifesto">Un corps construit. Rien de figé.</p>
+                <h1>${state.draft ? "Séance en cours" : next ? esc(next.name) : "Aucun programme actif"}</h1>
+                <p class="muted">${state.draft ? `${state.draft.exercises.length} exercice${state.draft.exercises.length > 1 ? "s" : ""} dans le brouillon. Les saisies sont conservées.` : next ? `${next.exercises.length} exercices · ${sessionPlannedSets(next)} séries prévues.` : "Crée un programme ou démarre une séance libre depuis l’onglet Séance."}</p>
               </div>
               ${action}
             </div>
 
-            <div class="section-head section-rule"><div><p class="eyebrow">Semaine en cours</p><h2>Le rythme, sans jugement</h2></div></div>
+            <div class="section-head section-rule"><div><p class="eyebrow">Semaine en cours</p><h2>Activité enregistrée</h2></div></div>
             <div class="ledger" aria-label="Repères de la semaine">
-              <div class="ledger-cell"><span>Passages</span><strong>${week.length}<small> / ${state.settings.targetSessionsWeek}</small></strong><small>objectif personnel</small></div>
-              <div class="ledger-cell"><span>Séries utiles</span><strong>${weekSets}</strong><small>W exclues</small></div>
-              <div class="ledger-cell"><span>Temps sous la barre</span><strong>${weekMinutes}<small> min</small></strong><small>temps enregistré</small></div>
-              <div class="ledger-cell"><span>Continuité</span><strong>${weekStreak || "—"}</strong><small>${weekStreak ? `semaine${weekStreak > 1 ? "s" : ""} au rythme visé` : "aucune série forcée"}</small></div>
+              <div class="ledger-cell"><span>Séances</span><strong>${week.length}<small> / ${state.settings.targetSessionsWeek}</small></strong><small>cible hebdomadaire</small></div>
+              <div class="ledger-cell"><span>Séries de travail</span><strong>${weekSets}</strong><small>échauffements exclus</small></div>
+              <div class="ledger-cell"><span>Durée totale</span><strong>${weekMinutes}<small> min</small></strong><small>temps enregistré</small></div>
+              <div class="ledger-cell"><span>Durée moyenne</span><strong>${week.length ? formatNumber(weekMinutes / week.length, 0) : "—"}${week.length ? "<small> min</small>" : ""}</strong><small>par séance</small></div>
             </div>
-
-            ${recentSignal ? `<div class="proof-card ${recentSignal.evidence.status}"><div class="row-between"><span class="proof-state">${esc(recentSignal.evidence.label)}</span><span class="small muted">${formatDate(recentSignal.evidence.current.date, true)}</span></div><div><p class="eyebrow">${esc(recentSignal.name)}</p><strong class="proof-value">${esc(recentSignal.evidence.summary)}</strong></div><p class="small muted">${esc(recentSignal.evidence.detail)}</p><button class="btn btn-sm" type="button" data-action="navigate" data-view="stats">Voir les preuves</button></div>` : latest ? `<div class="quiet-panel"><p class="eyebrow">Lecture honnête</p><h2>Les données s’accumulent. Pas encore de conclusion.</h2><p class="measure-note">INNERSET affichera un signal quand au moins deux passages seront comparables sur un même exercice et une même zone de répétitions.</p></div>` : ""}
 
             ${renderHistoryBlock()}
           </section>`;
@@ -3563,13 +3609,13 @@ svg {
         const totalWeeklySets = templates.reduce((sum, session) => sum + sessionPlannedSets(session), 0);
         if (!activeProgram) return `
           <section class="page">
-            <div class="page-intro"><p class="eyebrow">Programme</p><h1>Construis ton entraînement.</h1><p class="muted">Aucun modèle imposé : tu nommes ton programme, ses séances et chaque repère de répétitions.</p></div>
-            <div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h2>Aucun programme actif</h2><p class="muted">Ton historique reste conservé. Commence simplement une nouvelle organisation.</p><button class="btn btn-primary" type="button" data-action="open-program-dialog">Créer un programme</button></div></div>
+            <div class="page-intro"><p class="eyebrow">Programme</p><h1>Programmes d’entraînement</h1><p class="muted">Crée des séances, choisis leur ordre et définis les exercices prévus.</p></div>
+            <div class="card empty"><div class="empty-inner"><span class="empty-icon">≡</span><h2>Aucun programme actif</h2><p class="muted">L’historique déjà enregistré reste conservé.</p><button class="btn btn-primary" type="button" data-action="open-program-dialog">Créer un programme</button></div></div>
             <button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque d’exercices</button>
           </section>`;
         return `
           <section class="page">
-            <div class="page-intro"><p class="eyebrow">Programme actif</p><h1>${esc(activeProgram.name)}</h1><p class="muted">Le plan donne une direction. La séance enregistrée reste une photographie indépendante de ce que tu as réellement fait.</p></div>
+            <div class="page-intro"><p class="eyebrow">Programme actif</p><h1>${esc(activeProgram.name)}</h1><p class="muted">Les modifications effectuées pendant une séance ne changent pas ce programme.</p></div>
             <div class="card stack">
               <div class="form-grid">
                 <div class="field"><label for="active-program">Programme affiché</label><select id="active-program" data-active-program>${state.programs.map(program => `<option value="${esc(program.id)}" ${program.id === activeProgram.id ? "selected" : ""}>${esc(program.name)}</option>`).join("")}</select></div>
@@ -3598,7 +3644,7 @@ svg {
                 </details>`).join("")}
             </div>
             ${templates.length ? "" : `<div class="card empty"><div class="empty-inner"><span class="empty-icon">＋</span><h2>Programme vide</h2><p class="muted">Crée ta première séance puis ajoute les exercices de ta bibliothèque.</p><button class="btn btn-primary" type="button" data-action="create-template">Créer une séance</button></div></div>`}
-            <div class="quiet-panel row-between"><div><p class="eyebrow">Bibliothèque</p><h2>Tes mouvements, tes machines, tes repères.</h2><p class="small muted">Une variante de machine reste un exercice distinct pour conserver des comparaisons honnêtes.</p></div><button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque</button></div>
+            <div class="quiet-panel row-between"><div><p class="eyebrow">Bibliothèque</p><h2>Exercices, machines et réglages</h2><p class="small muted">Chaque variante de machine peut être enregistrée séparément pour comparer des charges cohérentes.</p></div><button class="btn" type="button" data-action="navigate" data-view="library">Ouvrir la bibliothèque</button></div>
           </section>`;
       }
 
@@ -3647,8 +3693,8 @@ svg {
             <summary>Aide de charge · ${esc(adaptiveSettingsLabel(exercise))}</summary>
             <div class="stack" style="padding-top:10px">
               <label class="row small"><input type="checkbox" data-template-adaptive-toggle="assistantEnabled" data-index="${index}" ${settings.assistantEnabled ? "checked" : ""} style="width:auto;min-height:auto"> Me suggérer un poids de départ à partir de mes passages précédents</label>
-              ${settings.assistantEnabled ? `<label class="row small"><input type="checkbox" data-template-adaptive-toggle="useProfileDefaults" data-index="${index}" ${settings.useProfileDefaults ? "checked" : ""} style="width:auto;min-height:auto"> Utiliser automatiquement mon profil pratiquant</label>` : ""}
-              ${settings.assistantEnabled && settings.useProfileDefaults ? `<div class="notice"><strong>Réglage automatique :</strong> ${esc(practitionerProfileSummary())}. Tu n’as rien d’autre à configurer pour cet exercice.</div>` : ""}
+              ${settings.assistantEnabled ? `<label class="row small"><input type="checkbox" data-template-adaptive-toggle="useProfileDefaults" data-index="${index}" ${settings.useProfileDefaults ? "checked" : ""} style="width:auto;min-height:auto"> Utiliser les valeurs par défaut de l’application</label>` : ""}
+              ${settings.assistantEnabled && settings.useProfileDefaults ? `<div class="notice"><strong>Valeurs utilisées :</strong> ${esc(practitionerProfileSummary())}.</div>` : ""}
               ${settings.assistantEnabled && !settings.useProfileDefaults ? `<div class="template-progress-grid">
                 <div class="field"><label for="custom-rir-min-${index}">RIR minimum</label><input id="custom-rir-min-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMin}" data-template-adaptive-field="customTargetRirMin" data-index="${index}"></div>
                 <div class="field"><label for="custom-rir-max-${index}">RIR maximum</label><input id="custom-rir-max-${index}" type="number" inputmode="numeric" min="0" max="5" value="${settings.customTargetRirMax}" data-template-adaptive-field="customTargetRirMax" data-index="${index}"></div>
@@ -3667,7 +3713,7 @@ svg {
         const resolvedExercises = template.exercises.map(resolveTemplateExercise);
         return `
           <section class="page">
-            <div class="section-head"><div class="page-intro"><p class="eyebrow">Composer la séance</p><h1>${esc(template.name)}</h1><p class="muted">L’ordre, le nombre de séries et les repères de répétitions forment le plan. Tu resteras libre de les adapter pendant un passage réel.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Modifier la séance</p><h1>${esc(template.name)}</h1><p class="muted">Définis l’ordre, le nombre de séries et les repères de répétitions. Ces valeurs restent modifiables pendant la séance.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Terminer</button></div>
             <div class="card stack"><div class="field"><label for="template-name">Nom de la séance</label><input id="template-name" value="${esc(template.name)}" data-template-field="name"></div></div>
             <div class="section-head"><div><h2>Ordre des exercices</h2><p class="small muted">${resolvedExercises.length} exercice${resolvedExercises.length > 1 ? "s" : ""}</p></div><button class="btn btn-primary" type="button" data-action="open-template-picker">＋ Ajouter un exercice</button></div>
             <div class="card list-divider">
@@ -3680,7 +3726,12 @@ svg {
       function renderWorkout() {
         if (!state.draft) {
           const templates = getActiveWorkoutTemplates();
-          return `<section class="page"><div class="page-intro"><p class="eyebrow">Passage du jour</p><h1>Quelle séance vas-tu écrire ?</h1><p class="muted">Le dernier résultat utile de chaque exercice réapparaîtra au moment de saisir tes séries.</p></div><div class="program-grid">${templates.filter(session => session.exercises.length).map((session, index) => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><span class="eyebrow">S${String(index + 1).padStart(2, "0")}</span><strong>${esc(session.name)}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div>${templates.some(session => session.exercises.length) ? "" : `<div class="card empty"><div class="empty-inner"><h2>Aucune séance prête</h2><p class="muted">Crée ou complète une séance dans l’onglet Programme.</p><button class="btn" type="button" data-action="navigate" data-view="program">Gérer le programme</button></div></div>`}</section>`;
+          const readyTemplates = templates.filter(session => session.exercises.length);
+          return `<section class="page">
+            <div class="page-intro"><p class="eyebrow">Nouvelle séance</p><h1>Choisir une séance</h1><p class="muted">Démarre une séance du programme actif ou une séance libre.</p></div>
+            <div class="free-session"><div class="stack"><div><p class="eyebrow">Hors programme</p><h2>Séance libre</h2></div><p class="small muted">La séance démarre vide. Ajoute les exercices au fur et à mesure depuis la bibliothèque ou crée-les sur place.</p></div><button class="btn btn-primary" type="button" data-action="start-free-session">Démarrer à vide</button></div>
+            ${readyTemplates.length ? `<div class="section-head section-rule"><div><p class="eyebrow">Programme actif</p><h2>Séances prévues</h2></div></div><div class="program-grid">${readyTemplates.map((session, index) => `<button class="card btn btn-ghost row-between" type="button" data-action="start-session" data-program="${session.id}"><span><span class="eyebrow">S${String(index + 1).padStart(2, "0")}</span><strong>${esc(session.name)}</strong><span class="small muted" style="display:block">${session.exercises.length} exercices · ${sessionPlannedSets(session)} séries</span></span><span class="badge accent">Commencer</span></button>`).join("")}</div>` : `<div class="quiet-panel row-between"><div><h2>Aucune séance programmée</h2><p class="small muted">Tu peux utiliser la séance libre ou créer un programme.</p></div><button class="btn" type="button" data-action="navigate" data-view="program">Gérer le programme</button></div>`}
+          </section>`;
         }
         const draft = state.draft;
         const liveSets = sessionWorkSets(draft);
@@ -3692,12 +3743,13 @@ svg {
         return `
           <section class="page">
             <div class="workout-head">
-              <div class="section-head"><div class="page-intro"><p class="eyebrow">Séance en cours</p><h1>${esc(draft.name)}</h1><p class="manifesto">Une série à la fois.</p></div><button class="btn btn-sm btn-danger" type="button" data-action="discard-draft">Abandonner</button></div>
+              <div class="section-head"><div class="page-intro"><p class="eyebrow">Séance en cours</p><h1>${esc(draft.name)}</h1><p class="muted">${draft.programId ? "Séance issue du programme actif" : "Séance indépendante du programme"}</p></div><button class="btn btn-sm btn-danger" type="button" data-action="discard-draft">Abandonner</button></div>
               <div class="form-grid">
+                ${draft.programId ? "" : `<div class="field"><label for="workout-name">Nom de la séance</label><input id="workout-name" maxlength="80" value="${esc(draft.name)}" data-draft-field="name" placeholder="Séance libre"></div>`}
                 <div class="field"><label for="workout-date">Date</label><input id="workout-date" type="date" value="${esc(draft.date)}" data-draft-field="date"></div>
                 <div class="field"><label for="workout-duration">Durée (min, optionnel)</label><input id="workout-duration" type="number" inputmode="numeric" min="1" max="600" placeholder="Auto : ${elapsed}" value="${esc(draft.durationOverride)}" data-draft-field="durationOverride"></div>
               </div>
-              <p class="measure-note">Saisis, valide, avance. Une cible de répétitions reste un repère modifiable, jamais une obligation. Le RIR décrit l’effort ; il ne décide pas si une série « compte ».</p>
+              <p class="measure-note">Chaque série renseignée doit être validée avant l’enregistrement de la séance. Les cibles de répétitions et le RIR restent modifiables.</p>
             </div>
 
             <div class="card live-strip" aria-label="Résumé en direct">
@@ -3716,8 +3768,8 @@ svg {
             </div>
 
             <div class="card stack">
-              <div><p class="eyebrow">Contexte du passage</p><h2>Ce que les chiffres ne disent pas</h2></div>
-              <p class="small muted">Trois réponses facultatives suffisent. Elles donnent du contexte sans transformer une sensation subjective en score de performance.</p>
+              <div><p class="eyebrow">Fin de séance</p><h2>Ressenti et commentaires</h2></div>
+              <p class="small muted">Ces champs sont facultatifs et servent à contextualiser les données de la séance.</p>
               <div class="form-grid compact-feedback">
                 ${feedbackSelect("energy", "Énergie disponible", feedback.energy)}
                 ${feedbackSelect("performance", "Performance perçue", feedback.performance)}
@@ -3812,7 +3864,7 @@ svg {
         const sessions = sessionsForPeriod(statsDays);
         const periodControl = statsPeriodControl();
         if (!sessions.length) {
-          return `<section class="page"><div class="section-head"><div class="page-intro"><p class="eyebrow">Progression</p><h1>Des preuves, pas un score.</h1><p class="muted">INNERSET attend des passages comparables avant de tirer une conclusion.</p></div>${periodControl}</div><div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">04</span><h2>Aucune séance sur cette période</h2><p class="muted">Élargis la période ou enregistre une séance. Une absence de données n’est ni un recul ni un échec.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
+          return `<section class="page"><div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, variante de charge et zone de répétitions.</p></div>${periodControl}</div><div class="quiet-panel empty"><div class="empty-inner"><span class="empty-icon" aria-hidden="true">04</span><h2>Aucune séance sur cette période</h2><p class="muted">Choisis une période plus large ou enregistre une séance.</p><button class="btn btn-primary" type="button" data-action="navigate" data-view="workout">Enregistrer une séance</button></div></div></section>`;
         }
 
         const totalMainTonnage = sessions.reduce((sum, session) => sum + sessionMainTonnage(session), 0);
@@ -3873,7 +3925,7 @@ svg {
 
         return `
           <section class="page">
-            <div class="section-head"><div class="page-intro"><p class="eyebrow">Progression</p><h1>Des preuves, pas un score.</h1><p class="muted">Même exercice, même variante de charge et même zone de répétitions. Le reste n’est que du contexte.</p></div>${periodControl}</div>
+            <div class="section-head"><div class="page-intro"><p class="eyebrow">Statistiques</p><h1>Suivi de progression</h1><p class="muted">Comparaisons par exercice, variante de charge et zone de répétitions.</p></div>${periodControl}</div>
 
             <div class="ledger" aria-label="Repères de la période">
               <div class="ledger-cell"><span>Séances</span><strong>${sessions.length}</strong><small>sur la période</small></div>
@@ -3882,7 +3934,7 @@ svg {
               <div class="ledger-cell"><span>Proche de l’échec</span><strong>${effortTracking.total ? formatNumber(effortTracking.nearFailure / effortTracking.total * 100, 0) : "—"}${effortTracking.total ? "<small> %</small>" : ""}</strong><small>RIR 0–1 documenté</small></div>
             </div>
 
-            <div class="section-head section-rule"><div><p class="eyebrow">Exercice</p><h2>La preuve la plus utile</h2></div></div>
+            <div class="section-head section-rule"><div><p class="eyebrow">Exercice</p><h2>Évolution comparable</h2></div></div>
             <div class="card stack">
               ${exerciseOptions.length ? `<div class="form-grid"><div class="field"><label for="exercise-stat">Exercice et variante de charge</label><select id="exercise-stat" data-exercise-stat>${exerciseOptions.map(exercise => `<option value="${esc(exercise.key)}" ${exercise.key === selectedExercise ? "selected" : ""}>${esc(exercise.name)} · ${esc(loadTypeLabel(exercise.loadType))}</option>`).join("")}</select></div><div class="field"><label for="rep-range-stat">Zone comparable</label><select id="rep-range-stat" data-rep-range-stat ${repRanges.length ? "" : "disabled"}>${repRanges.map(range => `<option value="${range.id}" ${range.id === selectedRepRange ? "selected" : ""}>${range.label} · ${range.passageCount} passage${range.passageCount > 1 ? "s" : ""}</option>`).join("")}</select></div></div>` : ""}
               <div class="proof-card ${esc(evidence.status)}">
@@ -3894,27 +3946,27 @@ svg {
               ${evidence.passages.length ? `<div class="evidence-grid">${evidence.passages.slice(-4).reverse().map(passage => `<div class="evidence-row"><div><strong>${formatDate(passage.date, true)}</strong><p class="small muted">Passage comparable</p></div><strong>${formatNumber(passage.weight, 2)} ${comparisonUnit} × ${passage.reps}</strong></div>`).join("")}</div>` : ""}
             </div>
 
-            <div class="section-head section-rule"><div><p class="eyebrow">Vue d’ensemble</p><h2>Ce qui bouge, ce qui attend</h2><p class="small muted">Une baisse isolée reste stable. Deux signaux successifs sont nécessaires avant d’afficher « à contextualiser ».</p></div><div class="row"><span class="badge accent">${(statusCounts.confirmed || 0) + (statusCounts.progress || 0)} en progression</span><span class="badge">${statusCounts.insufficient || 0} sans assez de données</span></div></div>
+            <div class="section-head section-rule"><div><p class="eyebrow">Vue d’ensemble</p><h2>État des comparaisons</h2><p class="small muted">Une hausse ou une baisse sur deux comparaisons successives est distinguée d’une variation isolée.</p></div><div class="row"><span class="badge accent">${(statusCounts.confirmed || 0) + (statusCounts.progress || 0)} en hausse</span><span class="badge">${statusCounts.insufficient || 0} sans assez de données</span></div></div>
             ${overview.length ? `<div class="evidence-grid">${overview.map(item => `<div class="evidence-row"><div class="row" style="flex-wrap:nowrap"><span class="evidence-mark ${esc(item.evidence.status)}" aria-hidden="true"></span><div><strong>${esc(item.name)}</strong><p class="small muted">${item.range ? esc(item.range.label) : "Zone non disponible"} · ${esc(loadTypeLabel(item.loadType))}</p></div></div><strong>${esc(item.evidence.label)}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Aucun exercice exploitable sur la période.</p></div>`}
 
-            <div class="section-head section-rule"><div><p class="eyebrow">Programme réel</p><h2>Le plan face au terrain</h2><p class="small muted">La comparaison utilise seulement le dernier passage de chaque séance modèle. Un exercice ajouté pendant la séance ne modifie jamais le programme.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>
+            <div class="section-head section-rule"><div><p class="eyebrow">Programme</p><h2>Prévu et réalisé</h2><p class="small muted">La comparaison utilise le dernier passage de chaque séance modèle. Un exercice ajouté pendant la séance ne modifie pas le programme.</p></div>${activeProgram ? `<span class="badge accent">${esc(activeProgram.name)}</span>` : ""}</div>
             ${templateRows.length ? `<div class="evidence-grid">${templateRows.map(item => `<div class="evidence-row"><div><strong>${esc(item.name)}</strong><p class="small muted">${item.passages} passage${item.passages > 1 ? "s" : ""} sur la période${item.last ? ` · dernier le ${formatDate(item.last.date)}` : ""}</p></div><strong>${item.last ? `${item.actual} réalisées / ${item.planned} prévues${item.delta ? ` · ${item.delta > 0 ? "+" : ""}${item.delta}` : ""}` : "Pas encore passée"}</strong></div>`).join("")}</div>` : `<div class="quiet-panel"><p class="muted">Le programme actif ne contient aucune séance.</p></div>`}
 
             <div class="card stack">
-              <div class="section-head"><div><p class="eyebrow">Contexte humain</p><h2>Énergie, perception, gêne</h2><p class="small muted">Ces réponses éclairent un passage. Elles ne peuvent jamais créer seules un signal de progression.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div>
+              <div class="section-head"><div><p class="eyebrow">Ressenti</p><h2>Énergie, performance perçue et gêne</h2><p class="small muted">Synthèse des réponses facultatives renseignées à la fin des séances.</p></div><span class="badge">${subjectiveFeedback.answeredSessions}/${sessions.length} renseignées</span></div>
               <div class="ledger">
                 <div class="ledger-cell"><span>Énergie basse</span><strong>${subjectiveFeedback.energyCount ? `${subjectiveFeedback.lowEnergyCount}<small> / ${subjectiveFeedback.energyCount}</small>` : "—"}</strong><small>réponses documentées</small></div>
                 <div class="ledger-cell"><span>Conforme ou mieux</span><strong>${subjectiveFeedback.performanceCount ? formatNumber(subjectiveFeedback.performanceOnTrack / subjectiveFeedback.performanceCount * 100, 0) : "—"}${subjectiveFeedback.performanceCount ? "<small> %</small>" : ""}</strong><small>performance perçue</small></div>
                 <div class="ledger-cell"><span>Passages avec gêne</span><strong>${subjectiveFeedback.painCount}</strong><small>${subjectiveFeedback.impactfulPainCount} avec mouvement modifié ou arrêté</small></div>
                 <div class="ledger-cell"><span>Arrêts de série</span><strong>${effortTracking.pain}</strong><small>gêne distincte de l’échec musculaire</small></div>
               </div>
-              ${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>À surveiller sans poser de diagnostic :</strong> ${esc(painContext || "une gêne a été signalée sur la période")}.</div>` : `<p class="measure-note">L’absence de réponse n’est pas interprétée. Le ressenti reste facultatif.</p>`}
+              ${subjectiveFeedback.painCount ? `<div class="notice warning"><strong>Gêne signalée :</strong> ${esc(painContext || "une gêne a été renseignée sur la période")}.</div>` : `<p class="measure-note">L’absence de réponse n’est pas interprétée. Le ressenti reste facultatif.</p>`}
             </div>
 
             <details class="card stack secondary-measures">
               <summary><span><span class="eyebrow">Mesures secondaires</span><strong>Volume, drops et répartition musculaire</strong></span><span aria-hidden="true">＋</span></summary>
               <div class="stack">
-                <p class="small muted">Le volume-charge décrit une quantité de travail saisie. Il n’est ni un score de force, ni une preuve de qualité.</p>
+                <p class="small muted">Le volume-charge correspond à la somme des charges effectives multipliées par les répétitions enregistrées.</p>
                 ${volumeCompositionChart(totalMainTonnage, totalDropTonnage)}
                 <div class="ledger">
                   <div class="ledger-cell"><span>Reps principales</span><strong>${totalMainReps}</strong><small>${formatNumber(totalSets ? totalMainReps / totalSets : 0, 1)} par série</small></div>
@@ -3999,32 +4051,31 @@ svg {
           : `<form id="cloud-auth-form" class="stack"><div class="form-grid"><div class="field"><label for="cloud-email">Adresse e-mail</label><input id="cloud-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="ton@email.fr"></div><div class="field"><label for="cloud-password">Mot de passe</label><input id="cloud-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum"></div></div><div class="row"><button class="btn btn-primary" type="submit">Se connecter</button><button class="btn" type="button" data-action="cloud-signup">Créer mon compte</button></div><p id="cloud-status-detail" class="small muted">${esc(cloudStatusDetail)}</p></form>`;
         return `
           <section class="page">
-            <div class="page-intro"><p class="eyebrow">Profil et sauvegarde</p><h1>Ton cadre, pas une méthode imposée.</h1><p class="muted">Ces préférences préremplissent les nouveaux exercices et rendent l’aide de charge cohérente avec ta pratique.</p></div>
+            <div class="page-intro"><p class="eyebrow">Réglages et sauvegarde</p><h1>Paramètres de l’application</h1><p class="muted">Synchronisation, valeurs de calcul, export et installation.</p></div>
             <div class="card stack">
-              <div class="row-between"><div><p class="eyebrow">Compte et cloud</p><h2>${cloudUser ? "Synchronisation active" : "Retrouver tes séances partout"}</h2></div>${cloudUser ? "" : `<span id="cloud-status-badge" class="badge">${esc(cloudStatusLabel())}</span>`}</div>
+              <div class="row-between"><div><p class="eyebrow">Compte et cloud</p><h2>${cloudUser ? "Synchronisation active" : "Synchronisation multi-appareils"}</h2></div>${cloudUser ? "" : `<span id="cloud-status-badge" class="badge">${esc(cloudStatusLabel())}</span>`}</div>
               ${cloudAccount}
               <div class="notice"><strong>Mode hors ligne :</strong> tu peux continuer ta séance sans réseau. Les changements seront envoyés automatiquement dès le retour de la connexion.</div>
             </div>
             <div class="card stack">
-              <div class="row-between"><div><p class="eyebrow">Profil pratiquant</p><h2>Comment tu aimes t’entraîner</h2></div><span class="badge accent">Actif</span></div>
-              <div class="notice"><strong>Réglage actuel :</strong> ${esc(practitionerProfileSummary(profile))}. Tu peux toujours adapter un exercice ou une série sans changer ce profil.</div>
-              <div class="form-grid">
-                <div class="field"><label for="profile-goal">Objectif principal</label><select id="profile-goal" data-profile-setting="goal"><option value="hypertrophy" ${profile.goal === "hypertrophy" ? "selected" : ""}>Prise de muscle</option><option value="strengthHypertrophy" ${profile.goal === "strengthHypertrophy" ? "selected" : ""}>Force et muscle</option><option value="strength" ${profile.goal === "strength" ? "selected" : ""}>Force</option></select></div>
-                <div class="field"><label for="profile-experience">Expérience</label><select id="profile-experience" data-profile-setting="experience"><option value="beginner" ${profile.experience === "beginner" ? "selected" : ""}>Débutant</option><option value="intermediate" ${profile.experience === "intermediate" ? "selected" : ""}>Intermédiaire</option><option value="advanced" ${profile.experience === "advanced" ? "selected" : ""}>Avancé</option></select></div>
-                <div class="field"><label for="profile-effort">Style d’effort</label><select id="profile-effort" data-profile-setting="effortStyle"><option value="controlled" ${profile.effortStyle === "controlled" ? "selected" : ""}>Contrôlé · souvent 1–2 RIR</option><option value="nearFailure" ${profile.effortStyle === "nearFailure" ? "selected" : ""}>Proche de l’échec · 0–1 RIR</option><option value="highIntensity" ${profile.effortStyle === "highIntensity" ? "selected" : ""}>Haute intensité · pousser lourd</option></select></div>
-                <div class="field"><label for="profile-heavy-anchor">Repère par défaut · séries 1 et 2</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
-                <div class="field"><label for="profile-backoff-anchor">Repère par défaut · séries suivantes</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
-                <div class="field"><label for="profile-rir-min">Effort habituel · RIR minimum</label><input id="profile-rir-min" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMin}" data-profile-setting="targetRirMin"></div>
-                <div class="field"><label for="profile-rir-max">Effort habituel · RIR maximum</label><input id="profile-rir-max" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMax}" data-profile-setting="targetRirMax"></div>
-              </div>
-              <p class="small muted">Ces deux nombres servent uniquement à préremplir les nouvelles structures de séries. Chaque cible reste modifiable ou peut être laissée vide.</p>
-              <details class="options"><summary>Repères avancés, facultatifs</summary><div class="form-grid" style="padding-top:10px"><div class="field"><label for="profile-rep-min">Repère bas</label><input id="profile-rep-min" type="number" inputmode="numeric" min="1" max="30" value="${profile.minRepsGuardrail}" data-profile-setting="minRepsGuardrail"></div><div class="field"><label for="profile-rep-max">Repère haut</label><input id="profile-rep-max" type="number" inputmode="numeric" min="1" max="50" value="${profile.maxRepsGuardrail}" data-profile-setting="maxRepsGuardrail"></div></div><p class="small muted" style="padding-top:8px">Ce ne sont pas des objectifs. L’assistant les utilise seulement pour détecter une charge manifestement trop lourde ou trop légère.</p></details>
-            </div>
-            <div class="card stack">
-              <div><p class="eyebrow">Mesures</p><h2>Calcul du volume-charge</h2></div>
+              <div><p class="eyebrow">Valeurs générales</p><h2>Calculs et activité hebdomadaire</h2></div>
               <div class="form-grid"><div class="field"><label for="bodyweight">Poids du corps (kg)</label><input id="bodyweight" type="number" inputmode="decimal" min="20" max="300" step="0.1" value="${esc(state.settings.bodyweightKg)}" data-setting="bodyweightKg"></div><div class="field"><label for="target-sessions">Séances cibles / semaine</label><input id="target-sessions" type="number" inputmode="numeric" min="1" max="14" value="${esc(state.settings.targetSessionsWeek)}" data-setting="targetSessionsWeek"></div></div>
-              <p class="small muted">Le poids du corps est ajouté au lest pour le volume-charge des mouvements concernés. Les exercices “par côté” multiplient la charge saisie par 2. Ce calcul reste un repère interne, pas une mesure de force.</p>
+              <p class="small muted">Le poids du corps est ajouté au lest pour les mouvements concernés. Les exercices « par côté » multiplient la charge saisie par 2.</p>
             </div>
+            <details class="card stack profile-defaults">
+              <summary><span><span class="eyebrow">Saisie</span><strong>Valeurs par défaut de l’aide de charge</strong></span><span class="journal-chevron" aria-hidden="true">＋</span></summary>
+              <div class="stack">
+                <p class="small muted">Ces valeurs servent uniquement à initialiser de nouveaux exercices. Elles restent modifiables exercice par exercice.</p>
+                <div class="form-grid">
+                  <div class="field"><label for="profile-heavy-anchor">Répétitions par défaut · séries 1 et 2</label><input id="profile-heavy-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.heavyRepAnchor}" data-profile-setting="heavyRepAnchor"></div>
+                  <div class="field"><label for="profile-backoff-anchor">Répétitions par défaut · séries suivantes</label><input id="profile-backoff-anchor" type="number" inputmode="numeric" min="1" max="50" value="${profile.backoffRepAnchor}" data-profile-setting="backoffRepAnchor"></div>
+                  <div class="field"><label for="profile-rir-min">RIR minimum utilisé</label><input id="profile-rir-min" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMin}" data-profile-setting="targetRirMin"></div>
+                  <div class="field"><label for="profile-rir-max">RIR maximum utilisé</label><input id="profile-rir-max" type="number" inputmode="numeric" min="0" max="5" value="${profile.targetRirMax}" data-profile-setting="targetRirMax"></div>
+                  <div class="field"><label for="profile-rep-min">Seuil bas de répétitions</label><input id="profile-rep-min" type="number" inputmode="numeric" min="1" max="30" value="${profile.minRepsGuardrail}" data-profile-setting="minRepsGuardrail"></div>
+                  <div class="field"><label for="profile-rep-max">Seuil haut de répétitions</label><input id="profile-rep-max" type="number" inputmode="numeric" min="1" max="50" value="${profile.maxRepsGuardrail}" data-profile-setting="maxRepsGuardrail"></div>
+                </div>
+              </div>
+            </details>
             <div class="card stack">
               <div><p class="eyebrow">Sauvegarde</p><h2>Exporter ou restaurer</h2></div>
               <div class="row"><button class="btn btn-primary" type="button" data-action="export-json">Exporter une sauvegarde</button><button class="btn" type="button" data-action="export-csv">Exporter en CSV</button><button class="btn" type="button" data-action="import-json">Restaurer un fichier</button></div>
@@ -4032,9 +4083,9 @@ svg {
             </div>
             <div class="card stack">
               <div class="row-between"><div><p class="eyebrow">Installation</p><h2>${standalone ? "App installée" : "Ajouter à l’écran d’accueil"}</h2></div><span class="badge ${standalone ? "accent" : ""}">${standalone ? "Mode app" : "Navigateur"}</span></div>
-              ${standalone ? `<p class="muted">INNERSET est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
+              ${standalone ? `<p class="muted">MYGYM est lancé en mode autonome et fonctionne hors ligne après son premier chargement.</p>` : `${installNotice()}<p class="small muted">L’installation nécessite une adresse web sécurisée (HTTPS). Une fois ouverte et ajoutée à l’écran d’accueil, l’app fonctionne hors connexion.</p>`}
             </div>
-            <p class="small muted">INNERSET ${APP_VERSION} · Every set builds you. · stockage local et synchronisation Supabase</p>
+            <p class="small muted">MYGYM ${APP_VERSION} · stockage local et synchronisation Supabase</p>
           </section>`;
       }
 
@@ -4150,6 +4201,7 @@ svg {
         const session = {
           ...draft,
           id: uid("session"),
+          name: String(draft.name || "").trim() || "Séance libre",
           endedAt: endedAt.toISOString(),
           durationMin: manualDuration === "" ? autoDuration : Math.max(1, finiteNumber(manualDuration, autoDuration))
         };
@@ -4203,8 +4255,8 @@ svg {
       }
 
       function exportJson() {
-        const payload = { app: "INNERSET", tagline: "Every set builds you.", exportedAt: new Date().toISOString(), ...state };
-        downloadFile(`innerset-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
+        const payload = { app: "MYGYM", exportedAt: new Date().toISOString(), ...state };
+        downloadFile(`mygym-sauvegarde-${localDateString()}.json`, JSON.stringify(payload, null, 2), "application/json");
         showToast("Sauvegarde JSON exportée.");
       }
 
@@ -4230,7 +4282,7 @@ svg {
           }));
         });
         const csv = "\ufeff" + rows.map(row => row.map(csvCell).join(";")).join("\n");
-        downloadFile(`innerset-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
+        downloadFile(`mygym-donnees-${localDateString()}.csv`, csv, "text/csv;charset=utf-8");
         showToast("Export CSV créé.");
       }
 
@@ -4246,7 +4298,7 @@ svg {
             render();
             showToast("Sauvegarde restaurée.");
           } catch (error) {
-            showToast("Ce fichier n’est pas une sauvegarde INNERSET valide.");
+            showToast("Ce fichier n’est pas une sauvegarde MYGYM valide.");
           }
         };
         reader.readAsText(file);
@@ -4264,6 +4316,7 @@ svg {
         if (action === "close-session-detail") closeDialog(sessionDetailDialog);
         if (action === "navigate") navigate(button.dataset.view);
         if (action === "start-session") createDraft(button.dataset.program);
+        if (action === "start-free-session") createFreeDraft();
         if (action === "finish-workout") finishWorkout();
         if (action === "discard-draft") {
           if (window.confirm("Abandonner cette séance ? Les saisies en cours seront perdues.")) { state.draft = null; saveState(); render(); }

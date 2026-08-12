@@ -1,15 +1,15 @@
 {
   "id": "volume-training-log",
-  "name": "INNERSET — Workout & Progress",
-  "short_name": "INNERSET",
-  "description": "Carnet d’entraînement personnel avec programmes libres, suivi de séance et preuves de progression comparables.",
+  "name": "MYGYM — Carnet d’entraînement",
+  "short_name": "MYGYM",
+  "description": "Création de programmes, suivi de séances et statistiques de progression.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0A0B0D",
-  "theme_color": "#0A0B0D",
+  "background_color": "#EEE9DE",
+  "theme_color": "#EEE9DE",
   "categories": ["fitness", "sports", "health"],
   "icons": [
     {
